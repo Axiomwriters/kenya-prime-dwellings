@@ -28,7 +28,7 @@ export function TopHeaderBar() {
               className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition-colors"
             >
               <Phone className="w-4 h-4" />
-              <span className="hidden sm:inline">+254 700 000 000</span>
+              <span>+254 700 000 000</span>
             </a>
           </div>
 

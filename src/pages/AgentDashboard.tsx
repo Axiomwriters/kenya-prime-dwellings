@@ -1,8 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AgentSidebar } from "@/components/AgentSidebar";
-import { TopHeaderBar } from "@/components/TopHeaderBar";
-import { DashboardHeader } from "@/components/DashboardHeader";
+import { HeaderWrapper } from "@/components/HeaderWrapper";
 import DashboardOverview from "./AgentDashboard/DashboardOverview";
 import AgentProfile from "./AgentDashboard/AgentProfile";
 import MyListings from "./AgentDashboard/MyListings";
@@ -15,11 +14,10 @@ export default function AgentDashboard() {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <AgentSidebar />
-        
-        <SidebarInset className="flex-1 overflow-x-hidden">
-          <TopHeaderBar />
-          <DashboardHeader />
-          
+
+        <SidebarInset className="flex-1 w-full">
+          <HeaderWrapper />
+
           <main className="p-6">
             <Routes>
               <Route index element={<DashboardOverview />} />

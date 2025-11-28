@@ -5,7 +5,7 @@ import AdminOverview from "./AdminDashboard/AdminOverview";
 import VerificationManagement from "./AdminDashboard/VerificationManagement";
 import ListingModeration from "./AdminDashboard/ListingModeration";
 import UserManagement from "./AdminDashboard/UserManagement";
-import { DashboardHeader } from "@/components/DashboardHeader";
+import { HeaderWrapper } from "@/components/HeaderWrapper";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/AdminSidebar";
 
@@ -29,9 +29,9 @@ export default function AdminDashboard() {
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-background">
         <AdminSidebar />
-        <div className="flex-1 w-full overflow-x-hidden">
+        <div className="flex-1 w-full">
           <div className="min-h-screen bg-background">
-            <DashboardHeader />
+            <HeaderWrapper />
 
             <div className="container mx-auto px-4 py-8">
               <Routes>

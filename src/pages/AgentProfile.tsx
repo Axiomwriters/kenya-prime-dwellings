@@ -2,11 +2,31 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, MapPin, Phone, MessageCircle, CheckCircle, Home } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import {
+  ArrowLeft,
+  MapPin,
+  Phone,
+  MessageCircle,
+  CheckCircle,
+  Home,
+  Calendar,
+  Star,
+  Award,
+  Clock,
+  Building2
+} from "lucide-react";
 import { toast } from "sonner";
 
 interface AgentProfile {
@@ -20,6 +40,7 @@ interface AgentProfile {
   whatsapp: string | null;
   verification_status: string | null;
   listings_count: number;
+  created_at?: string;
 }
 
 interface AgentListing {
@@ -63,7 +84,8 @@ export default function AgentProfile() {
           county,
           city,
           phone,
-          whatsapp
+          whatsapp,
+          created_at
         `)
         .eq("id", id)
         .maybeSingle();
@@ -135,18 +157,13 @@ export default function AgentProfile() {
     return (
       <div className="min-h-screen bg-background py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Skeleton className="h-10 w-32 mb-8" />
+          <Skeleton className="h-48 w-full rounded-xl mb-8" />
           <div className="grid md:grid-cols-3 gap-8">
             <div className="md:col-span-1">
-              <Card>
-                <CardContent className="p-6">
-                  <Skeleton className="w-32 h-32 rounded-full mx-auto mb-4" />
-                  <Skeleton className="h-6 w-3/4 mx-auto mb-2" />
-                  <Skeleton className="h-4 w-1/2 mx-auto mb-4" />
-                  <Skeleton className="h-20 w-full mb-4" />
-                  <Skeleton className="h-10 w-full" />
-                </CardContent>
-              </Card>
+              <Skeleton className="h-64 w-full" />
+            </div>
+            <div className="md:col-span-2">
+              <Skeleton className="h-96 w-full" />
             </div>
           </div>
         </div>
@@ -167,185 +184,228 @@ export default function AgentProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back Button */}
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="mb-6 hover:bg-accent"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
+    <div className="min-h-screen bg-background animate-in fade-in duration-500">
+      {/* Profile Header */}
+      <div className="relative mb-6">
+        <div className="h-48 bg-gradient-to-r from-primary/10 to-primary/5 w-full">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="absolute top-4 left-4 bg-background/50 hover:bg-background/80 backdrop-blur-sm"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+        </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {/* Agent Profile Card */}
-          <div className="md:col-span-1">
-            <Card className="sticky top-8">
-              <CardContent className="p-6">
-                {/* Avatar */}
-                <div className="flex flex-col items-center text-center mb-6">
-                  <Avatar className="w-32 h-32 mb-4 border-4 border-border shadow-lg">
-                    <AvatarImage src={agent.avatar_url || undefined} alt={agent.full_name} />
-                    <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
-                      {agent.full_name?.charAt(0) || "A"}
-                    </AvatarFallback>
-                  </Avatar>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
+          <div className="flex flex-col md:flex-row gap-6 items-start md:items-end -mt-12">
+            <Avatar className="w-32 h-32 border-4 border-background shadow-xl shrink-0">
+              <AvatarImage src={agent.avatar_url || undefined} alt={agent.full_name} />
+              <AvatarFallback className="text-4xl bg-primary text-primary-foreground">
+                {agent.full_name?.charAt(0) || "A"}
+              </AvatarFallback>
+            </Avatar>
 
-                  <h1 className="text-2xl font-bold text-foreground mb-2">
-                    {agent.full_name}
-                  </h1>
-
-                  {agent.verification_status === "approved" && (
-                    <Badge className="mb-3 bg-success text-success-foreground">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      Verified Agent
-                    </Badge>
-                  )}
-
-                  {(agent.county || agent.city) && (
-                    <div className="flex items-center gap-1 text-muted-foreground mb-4">
-                      <MapPin className="w-4 h-4" />
-                      <span className="text-sm">
-                        {agent.city && agent.county
-                          ? `${agent.city}, ${agent.county}`
-                          : agent.city || agent.county}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Bio */}
-                {agent.bio && (
-                  <div className="mb-6">
-                    <h3 className="text-sm font-semibold text-foreground mb-2">About</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {agent.bio}
-                    </p>
-                  </div>
+            <div className="flex-1 space-y-2 pt-2 md:pt-0 md:mb-2">
+              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                <h1 className="text-3xl font-bold text-foreground">{agent.full_name}</h1>
+                {agent.verification_status === "approved" && (
+                  <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100 gap-1 w-fit border-green-200">
+                    <CheckCircle className="w-3 h-3" /> Verified Agent
+                  </Badge>
                 )}
-
-                {/* Stats */}
-                <div className="mb-6 p-4 bg-accent/50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Home className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="text-2xl font-bold text-foreground">{agent.listings_count}</p>
-                      <p className="text-xs text-muted-foreground">Active Listings</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contact Buttons */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-foreground mb-3">Contact Agent</h3>
-                  
-                  {agent.whatsapp && (
-                    <Button
-                      onClick={handleWhatsApp}
-                      className="w-full bg-[#25D366] hover:bg-[#20BA5A] text-white"
-                    >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      WhatsApp
-                    </Button>
-                  )}
-
-                  {agent.phone && (
-                    <Button
-                      onClick={handleCall}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      <Phone className="w-4 h-4 mr-2" />
-                      Call Now
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Listings Section */}
-          <div className="md:col-span-2">
-            <h2 className="text-2xl font-bold text-foreground mb-6">
-              Property Listings
-            </h2>
-
-            {listings.length === 0 ? (
-              <Card className="p-12 text-center">
-                <Home className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-semibold text-foreground mb-2">
-                  No Active Listings
-                </h3>
-                <p className="text-muted-foreground">
-                  This agent doesn't have any active property listings at the moment.
-                </p>
-              </Card>
-            ) : (
-              <div className="grid sm:grid-cols-2 gap-6">
-                {listings.map((listing) => (
-                  <Card
-                    key={listing.id}
-                    className="group cursor-pointer hover:shadow-xl transition-all duration-300 overflow-hidden"
-                    onClick={() => handleListingClick(listing.id)}
-                  >
-                    {/* Property Image */}
-                    <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-                      {listing.images && listing.images.length > 0 ? (
-                        <img
-                          src={listing.images[0]}
-                          alt={listing.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Home className="w-16 h-16 text-muted-foreground" />
-                        </div>
-                      )}
-
-                      <Badge
-                        className={`absolute top-3 right-3 ${
-                          listing.listing_type === "sale"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-accent text-accent-foreground"
-                        }`}
-                      >
-                        For {listing.listing_type === "sale" ? "Sale" : "Rent"}
-                      </Badge>
-                    </div>
-
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold text-lg text-foreground mb-2 line-clamp-1 group-hover:text-primary transition-colors">
-                        {listing.title}
-                      </h3>
-                      <p className="text-xl font-bold text-primary mb-2">
-                        KSh {listing.price.toLocaleString()}
-                        {listing.listing_type === "rent" && <span className="text-sm font-normal">/month</span>}
-                      </p>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
-                        <MapPin className="w-4 h-4" />
-                        {listing.location}
-                      </div>
-
-                      {/* Property Features */}
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        {listing.category === "house" && listing.bedrooms && (
-                          <span>{listing.bedrooms} Beds</span>
-                        )}
-                        {listing.category === "house" && listing.bathrooms && (
-                          <span>{listing.bathrooms} Baths</span>
-                        )}
-                        {listing.land_size && (
-                          <span>{listing.land_size}</span>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
               </div>
-            )}
+              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                {(agent.county || agent.city) && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-4 h-4" />
+                    {agent.city && agent.county
+                      ? `${agent.city}, ${agent.county}`
+                      : agent.city || agent.county}
+                  </span>
+                )}
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  Joined {new Date(agent.created_at || Date.now()).getFullYear()}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Home className="w-4 h-4" />
+                  {agent.listings_count} Active Listings
+                </span>
+              </div>
+            </div>
+
+            <div className="flex gap-3 w-full md:w-auto md:mb-4">
+              {agent.whatsapp && (
+                <Button
+                  onClick={handleWhatsApp}
+                  className="flex-1 md:flex-none bg-[#25D366] hover:bg-[#20BA5A] text-white"
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  WhatsApp
+                </Button>
+              )}
+              {agent.phone && (
+                <Button
+                  onClick={handleCall}
+                  variant="outline"
+                  className="flex-1 md:flex-none"
+                >
+                  <Phone className="w-4 h-4 mr-2" />
+                  Call
+                </Button>
+              )}
+            </div>
           </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
+        {/* Left Column: Info */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">About</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {agent.bio || "No bio available for this agent."}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Performance</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <Building2 className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">Properties Sold</p>
+                  <p className="text-sm text-muted-foreground">12+ (Last 12 months)</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <Clock className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">Response Time</p>
+                  <p className="text-sm text-muted-foreground">Typically replies within 1 hr</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <Star className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">Client Rating</p>
+                  <p className="text-sm text-muted-foreground">4.8/5.0 (24 reviews)</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column: Content */}
+        <div className="lg:col-span-2">
+          <Tabs defaultValue="listings" className="w-full">
+            <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent mb-6">
+              <TabsTrigger
+                value="listings"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3"
+              >
+                Active Listings ({mockProperties.length})
+              </TabsTrigger>
+              <TabsTrigger
+                value="sold"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3"
+              >
+                Sold Properties
+              </TabsTrigger>
+              <TabsTrigger
+                value="reviews"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3"
+              >
+                Reviews
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="listings" className="space-y-6">
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: true,
+                }}
+                className="w-full"
+              >
+                <CarouselContent className="-ml-4">
+                  {mockProperties.map((property) => (
+                    <CarouselItem key={property.id} className="pl-4 md:basis-1/2">
+                      <Card
+                        className="group cursor-pointer hover:shadow-xl transition-all duration-300 overflow-hidden h-full"
+                        onClick={() => handleListingClick(property.id)}
+                      >
+                        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                          <img
+                            src={property.image}
+                            alt={property.title}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                          <Badge className="absolute top-3 right-3 bg-primary text-primary-foreground">
+                            {property.listing_type === 'sale' ? 'For Sale' : 'For Rent'}
+                          </Badge>
+                        </div>
+                        <CardContent className="p-4">
+                          <h3 className="font-semibold text-lg text-foreground mb-2 line-clamp-1 group-hover:text-primary transition-colors">
+                            {property.title}
+                          </h3>
+                          <p className="text-xl font-bold text-primary mb-2">
+                            KSh {property.price.toLocaleString()}
+                          </p>
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
+                            <MapPin className="w-4 h-4" />
+                            {property.location}
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1"><Bed className="w-4 h-4" /> {property.bedrooms}</span>
+                            <span className="flex items-center gap-1"><Bath className="w-4 h-4" /> {property.bathrooms}</span>
+                            <span className="flex items-center gap-1"><Square className="w-4 h-4" /> {property.land_size}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <div className="flex justify-end gap-2 mt-4">
+                  <CarouselPrevious className="static translate-y-0" />
+                  <CarouselNext className="static translate-y-0" />
+                </div>
+              </Carousel>
+            </TabsContent>
+
+            <TabsContent value="sold" className="mt-6">
+              <Card>
+                <CardContent className="p-12 text-center text-muted-foreground">
+                  <Building2 className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Sold properties history coming soon...</p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="reviews" className="mt-6">
+              <Card>
+                <CardContent className="p-12 text-center text-muted-foreground">
+                  <Star className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Client reviews coming soon...</p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>

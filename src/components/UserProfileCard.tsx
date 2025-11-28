@@ -38,8 +38,33 @@ export function UserProfileCard({ onOpenProfile }: UserProfileCardProps) {
   };
 
   if (!isAuthenticated) {
+    if (isCollapsed) {
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="py-3 pl-2 pr-3">
+                <Link to="/auth">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="w-9 h-9 mx-auto bg-gradient-hero text-white hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all duration-300"
+                  >
+                    <span className="text-xs font-bold">SI</span>
+                  </Button>
+                </Link>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="glass-card border-primary/20">
+              <p className="text-sm">Sign in to continue</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+
     return (
-      <div className="p-3">
+      <div className="py-3 pl-2 pr-3">
         <div className="glass-card rounded-xl p-4 border border-primary/20 hover:border-primary/40 transition-all duration-300">
           <p className="text-sm text-center text-muted-foreground mb-3">
             Sign in to continue
@@ -68,11 +93,11 @@ export function UserProfileCard({ onOpenProfile }: UserProfileCardProps) {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="p-3 cursor-pointer" onClick={onOpenProfile}>
-              <div className="relative w-12 h-12 mx-auto">
+            <div className="py-3 pl-2 pr-3 cursor-pointer" onClick={onOpenProfile}>
+              <div className="relative w-9 h-9 mx-auto">
                 <div className="absolute inset-0 bg-gradient-hero rounded-full animate-pulse opacity-50"></div>
-                <Avatar className="relative w-12 h-12 border-2 border-primary/50 ring-2 ring-primary/20 hover:ring-primary/40 transition-all duration-300">
-                  <AvatarFallback className="bg-gradient-hero text-white font-semibold">
+                <Avatar className="relative w-9 h-9 border-2 border-primary/50 ring-2 ring-primary/20 hover:ring-primary/40 transition-all duration-300">
+                  <AvatarFallback className="bg-gradient-hero text-white font-semibold text-sm">
                     {userInitials}
                   </AvatarFallback>
                 </Avatar>
@@ -153,27 +178,6 @@ export function UserProfileCard({ onOpenProfile }: UserProfileCardProps) {
                 <Eye className="w-4 h-4 mr-2" />
                 View Profile
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toast.info("Edit profile coming soon!");
-                }}
-                className="cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Profile
-              </DropdownMenuItem>
-              {!isAgent && (
-                <>
-                  <DropdownMenuItem onClick={(e) => {
-                    e.stopPropagation();
-                    setShowRegistration(true);
-                  }}>
-                    <Edit className="w-4 h-4 mr-2" />
-                    Become an Agent
-                  </DropdownMenuItem>
-                </>
-              )}
               <DropdownMenuSeparator className="bg-border/50" />
               <DropdownMenuItem
                 onClick={(e) => {

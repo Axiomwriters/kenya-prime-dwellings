@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import {
   Home,
   MapPin,
@@ -6,7 +7,7 @@ import {
   TrendingUp,
   Settings,
   FileText,
-  X,
+  ChevronLeft,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -38,6 +39,11 @@ const menuItems = [
     icon: MapPin,
   },
   {
+    title: "Short Stay",
+    url: "/short-stay",
+    icon: Home,
+  },
+  {
     title: "Agents",
     url: "/agent",
     icon: Users,
@@ -61,34 +67,49 @@ const menuItems = [
 
 export function AppSidebar() {
   const location = useLocation();
-  const { state } = useSidebar();
+  const { state, isMobile } = useSidebar();
   const { isAdmin } = useAuth();
-  const isCollapsed = state === "collapsed";
+  const isCollapsed = state === "collapsed" && !isMobile;
   const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0.5);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <>
-      <Sidebar collapsible="icon" className="border-r border-primary/10 z-[60] fixed left-0 top-0 bottom-0 h-screen shadow-2xl">
-        <SidebarContent className="bg-background/95 backdrop-blur-xl">
-          {/* Close Button */}
-          <SidebarGroup>
-            <div className="px-4 py-4 flex justify-end">
-              <button
-                onClick={() => {
-                  const trigger = document.querySelector('[data-sidebar="trigger"]') as HTMLButtonElement;
-                  trigger?.click();
-                }}
-                className="p-2 hover:bg-primary/10 rounded-lg transition-colors text-muted-foreground hover:text-primary"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          </SidebarGroup>
-
+      <Sidebar
+        collapsible="icon"
+        className={cn(
+          "border-r border-primary/10 z-50 fixed left-0 shadow-2xl transition-all duration-300",
+          isScrolled ? "top-[56px] h-[calc(100vh-56px)]" : "top-[96px] h-[calc(100vh-96px)]"
+        )}
+      >
+        <SidebarContent className={cn(
+          "bg-background/95 backdrop-blur-xl",
+          isMobile ? "pt-[110px]" : "pt-9"
+        )}>
           {/* Navigation Menu */}
           <SidebarGroup>
             <SidebarGroupLabel className={isCollapsed ? "sr-only" : ""}>
-              Navigation
+              <div className="flex items-center justify-between w-full">
+                <span>Navigation</span>
+                <button
+                  onClick={() => {
+                    const trigger = document.querySelector('[data-sidebar="trigger"]') as HTMLButtonElement;
+                    trigger?.click();
+                  }}
+                  className="hover:text-primary transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+              </div>
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -178,13 +199,33 @@ export function AppSidebar() {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname.startsWith('/host')}
+                    className={`
+                      transition-all duration-200
+                      ${location.pathname.startsWith('/host')
+                        ? 'bg-primary/10 text-primary hover:bg-primary/15 font-semibold border-l-2 border-primary'
+                        : 'hover:bg-primary/5 hover:text-primary'
+                      }
+                    `}
+                    tooltip={isCollapsed ? "Host Dashboard" : undefined}
+                  >
+                    <Link to="/host" className="flex items-center gap-3">
+                      <Home className={`w-5 h-5 ${location.pathname.startsWith('/host') ? 'text-primary' : ''}`} />
+                      {!isCollapsed && <span>Host Dashboard</span>}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
 
         {/* User Profile Card at Bottom */}
-        <SidebarFooter className="mt-auto border-t border-primary/10 bg-background/95 backdrop-blur-xl">
+        <SidebarFooter className="mt-auto border-t border-primary/10 bg-background/95 backdrop-blur-xl p-0">
           <UserProfileCard onOpenProfile={() => setIsProfileDrawerOpen(true)} />
         </SidebarFooter>
       </Sidebar>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,6 +18,7 @@ interface Property {
   type: "For Sale" | "For Rent";
   isHighGrowth?: boolean;
   status: "sale" | "rent";
+  propertyType: string;
 }
 
 interface PropertyCardProps {
@@ -24,10 +26,11 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property }: PropertyCardProps) {
+  const navigate = useNavigate();
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const handleViewDetails = () => {
-    toast.success(`Opening details for ${property.title}`);
+    navigate(`/properties/${property.id}`);
   };
 
   const handleWhatsApp = () => {
@@ -60,12 +63,11 @@ export function PropertyCard({ property }: PropertyCardProps) {
         <img
           src={property.image}
           alt={property.title}
-          className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
-            imageLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
+          className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${imageLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
           onLoad={() => setImageLoaded(true)}
         />
-        
+
         {/* Badges */}
         <div className="absolute top-3 left-3 flex gap-2">
           {property.isHighGrowth && (
@@ -74,12 +76,11 @@ export function PropertyCard({ property }: PropertyCardProps) {
               High Growth Area
             </Badge>
           )}
-          <Badge 
-            className={`px-2 py-1 text-xs font-medium ${
-              property.status === "sale" 
-                ? "bg-primary text-primary-foreground hover:bg-primary/90" 
-                : "bg-accent text-accent-foreground hover:bg-accent/90"
-            }`}
+          <Badge
+            className={`px-2 py-1 text-xs font-medium ${property.status === "sale"
+              ? "bg-primary text-primary-foreground hover:bg-primary/90"
+              : "bg-accent text-accent-foreground hover:bg-accent/90"
+              }`}
           >
             {property.type}
           </Badge>
@@ -120,14 +121,14 @@ export function PropertyCard({ property }: PropertyCardProps) {
 
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-2">
-          <Button 
+          <Button
             onClick={handleViewDetails}
             className="bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 hover:scale-105 shadow-button"
           >
             <Eye className="w-4 h-4 mr-2" />
             View Details
           </Button>
-          <Button 
+          <Button
             onClick={handleWhatsApp}
             className="bg-whatsapp hover:bg-whatsapp/90 text-whatsapp-foreground transition-all duration-200 hover:scale-105 shadow-button"
           >
@@ -135,17 +136,17 @@ export function PropertyCard({ property }: PropertyCardProps) {
             WhatsApp
           </Button>
         </div>
-        
+
         <div className="grid grid-cols-2 gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={handleCall}
             className="transition-all duration-200 hover:scale-105 border-primary/20 hover:border-primary hover:bg-primary/5"
           >
             <Phone className="w-4 h-4 mr-2" />
             Call
           </Button>
-          <Button 
+          <Button
             onClick={handleChat}
             className="bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-200 hover:scale-105 shadow-button"
           >

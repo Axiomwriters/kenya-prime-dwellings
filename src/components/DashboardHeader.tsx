@@ -1,17 +1,25 @@
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Input } from "@/components/ui/input";
 import {
   Bell,
   Moon,
   Sun,
-  Home
+  Home,
+  Search
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
+import { SearchAutocomplete } from "@/components/SearchAutocomplete";
 
-export function DashboardHeader() {
+interface DashboardHeaderProps {
+  searchTerm?: string;
+  onSearchChange?: (term: string) => void;
+}
+
+export function DashboardHeader({ searchTerm = "", onSearchChange }: DashboardHeaderProps) {
   const { theme, setTheme } = useTheme();
   const { isAuthenticated } = useAuth();
 
@@ -25,9 +33,9 @@ export function DashboardHeader() {
 
   return (
 
-    <header className="bg-muted/50 backdrop-blur-sm border-b border-primary/10 sticky top-0 z-50 shadow-sm transition-all duration-300">
-      <div className="w-full px-4 sm:px-6 lg:px-8 overflow-x-hidden">
-        <div className="flex items-center justify-between h-16">
+    <header className="transition-all duration-300">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 gap-4">
           {/* Left: Hamburger + Logo */}
           <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
             <SidebarTrigger data-sidebar="trigger" className="hover:bg-primary/10 hover:text-primary transition-colors flex-shrink-0" />
@@ -36,7 +44,7 @@ export function DashboardHeader() {
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-hero rounded-lg flex items-center justify-center shadow-lg shadow-primary/20 group-hover:shadow-primary/40 transition-all duration-300">
                 <Home className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <div className="hidden sm:block">
+              <div className="hidden lg:block">
                 <h1 className="text-lg sm:text-xl font-bold text-foreground group-hover:text-primary transition-colors whitespace-nowrap">
                   PropertyHub
                 </h1>
@@ -46,6 +54,16 @@ export function DashboardHeader() {
               </div>
             </Link>
           </div>
+
+          {/* Center: Search Bar (Visible on all screens, flexible width) */}
+          {onSearchChange && (
+            <div className="flex-1 max-w-md mx-auto">
+              <SearchAutocomplete
+                onSearch={onSearchChange}
+                initialValue={searchTerm}
+              />
+            </div>
+          )}
 
           {/* Right: Actions */}
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">

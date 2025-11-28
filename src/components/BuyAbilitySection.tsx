@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { Home, TrendingUp } from "lucide-react";
+import { BuyAbilityModal } from "@/components/BuyAbilityModal";
 
 // Import property images
 import houseThikaRoad from "@/assets/house-thika-road.jpg";
@@ -53,6 +54,7 @@ const buyAbilityProperties = [
 export function BuyAbilitySection() {
   const [api, setApi] = useState<CarouselApi>();
   const [isHovered, setIsHovered] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Auto-scroll carousel every 5 seconds
   useEffect(() => {
@@ -103,8 +105,9 @@ export function BuyAbilitySection() {
                 </div>
 
                 {/* CTA Button */}
-                <Button 
+                <Button
                   className="w-full h-14 text-base font-semibold rounded-xl shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300 bg-primary hover:bg-primary/90"
+                  onClick={() => setIsModalOpen(true)}
                 >
                   Let's get started
                 </Button>
@@ -112,8 +115,10 @@ export function BuyAbilitySection() {
             </Card>
           </div>
 
+          <BuyAbilityModal open={isModalOpen} onOpenChange={setIsModalOpen} />
+
           {/* Right: Property Carousel */}
-          <div 
+          <div
             className="w-full"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
@@ -144,15 +149,15 @@ export function BuyAbilitySection() {
   );
 }
 
-function PropertyCardItem({ 
-  property, 
-  index 
-}: { 
-  property: typeof buyAbilityProperties[0]; 
+function PropertyCardItem({
+  property,
+  index
+}: {
+  property: typeof buyAbilityProperties[0];
   index: number;
 }) {
   return (
-    <Card 
+    <Card
       className="overflow-hidden border border-border/50 rounded-2xl hover:shadow-2xl transition-all duration-600 hover:-translate-y-1 animate-fade-in group cursor-pointer bg-card"
       style={{ animationDelay: `${index * 0.1}s` }}
     >
@@ -166,10 +171,10 @@ function PropertyCardItem({
         />
         {/* Badge Overlay */}
         <div className="absolute top-4 left-4">
-          <Badge 
+          <Badge
             className="px-3 py-1.5 text-xs font-semibold shadow-lg rounded-full"
-            style={{ 
-              backgroundColor: "hsl(24, 100%, 50%)", 
+            style={{
+              backgroundColor: "hsl(24, 100%, 50%)",
               color: "white",
               border: "none"
             }}

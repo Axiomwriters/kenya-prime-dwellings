@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { Preloader } from "@/components/Preloader";
 import Dashboard from "./pages/Dashboard";
 import Properties from "./pages/Properties";
 import PropertyDetail from "./pages/PropertyDetail";
@@ -17,62 +19,112 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
+import HostDashboard from "./pages/HostDashboard";
+import MainLayout from "@/components/MainLayout";
+import UserProfileSettings from "./pages/UserProfileSettings";
+import SavedProperties from "./pages/SavedProperties";
+import AccountSettings from "./pages/AccountSettings";
+import ShortStayLayout from "@/components/layouts/ShortStayLayout";
+import ShortStaySearch from "./pages/ShortStay/ShortStaySearch";
+import ShortStayDetails from "./pages/ShortStay/ShortStayDetails";
+import BookingCheckout from "./pages/ShortStay/BookingCheckout";
+import BookingConfirmation from "./pages/ShortStay/BookingConfirmation";
+import GuestDashboard from "./pages/ShortStay/GuestDashboard";
+import TripDetails from "./pages/ShortStay/TripDetails";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-    >
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/properties" element={<Properties />} />
-              <Route path="/properties/:id" element={<PropertyDetail />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/auth/reset" element={<ResetPassword />} />
-              <Route path="/agents/profile/:id" element={<AgentProfile />} />
-              <Route
-                path="/professional/*"
-                element={
-                  <ProtectedRoute requiredRole="professional">
-                    <ProfessionalDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/agent/*"
-                element={
-                  <ProtectedRoute requiredRole="agent">
-                    <AgentDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/*"
-                element={
-                  <ProtectedRoute requiredRole="admin">
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/unauthorized" element={<Unauthorized />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate initial loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <TooltipProvider>
+          {isLoading && <Preloader />}
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <Routes>
+                <Route element={<MainLayout />}>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/properties" element={<Properties />} />
+                  <Route path="/properties/:id" element={<PropertyDetail />} />
+                </Route>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/auth/reset" element={<ResetPassword />} />
+                <Route path="/profile/settings" element={<UserProfileSettings />} />
+                <Route path="/saved-properties" element={<SavedProperties />} />
+                <Route path="/account/settings" element={<AccountSettings />} />
+                <Route path="/agents/profile/:id" element={<AgentProfile />} />
+                <Route
+                  path="/professional/*"
+                  element={
+                    <ProtectedRoute requiredRole="professional">
+                      <ProfessionalDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/agent/*"
+                  element={
+                    <ProtectedRoute requiredRole="agent">
+                      <AgentDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/*"
+                  element={
+                    <ProtectedRoute requiredRole="admin">
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/host/*"
+                  element={
+                    <ProtectedRoute requiredRole="agent">
+                      <HostDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Short Stay Routes */}
+                <Route path="/short-stay" element={<ShortStayLayout />}>
+                  <Route index element={<ShortStaySearch />} />
+                  <Route path=":id" element={<ShortStayDetails />} />
+                  <Route path="book/:id" element={<BookingCheckout />} />
+                  <Route path="confirmation" element={<BookingConfirmation />} />
+                  <Route path="trips" element={<GuestDashboard />} />
+                  <Route path="trips/:id" element={<TripDetails />} />
+                </Route>
+
+                <Route path="/unauthorized" element={<Unauthorized />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

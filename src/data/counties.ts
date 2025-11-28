@@ -1,3 +1,7 @@
+/**
+ * All 47 Counties of Kenya in alphabetical order
+ * Used for location autocomplete in the search functionality
+ */
 export const KENYAN_COUNTIES = [
   'Baringo',
   'Bomet',
