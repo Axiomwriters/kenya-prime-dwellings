@@ -25,7 +25,10 @@ import {
   Star,
   Award,
   Clock,
-  Building2
+  Building2,
+  Bed,
+  Bath,
+  Square
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -319,7 +322,7 @@ export default function AgentProfile() {
                 value="listings"
                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3"
               >
-                Active Listings ({mockProperties.length})
+                Active Listings ({listings.length})
               </TabsTrigger>
               <TabsTrigger
                 value="sold"
@@ -344,18 +347,24 @@ export default function AgentProfile() {
                 className="w-full"
               >
                 <CarouselContent className="-ml-4">
-                  {mockProperties.map((property) => (
+                  {listings.map((property) => (
                     <CarouselItem key={property.id} className="pl-4 md:basis-1/2">
                       <Card
                         className="group cursor-pointer hover:shadow-xl transition-all duration-300 overflow-hidden h-full"
                         onClick={() => handleListingClick(property.id)}
                       >
                         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-                          <img
-                            src={property.image}
-                            alt={property.title}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
+                          {property.images && property.images[0] ? (
+                            <img
+                              src={property.images[0]}
+                              alt={property.title}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-muted">
+                              <Home className="w-12 h-12 text-muted-foreground/50" />
+                            </div>
+                          )}
                           <Badge className="absolute top-3 right-3 bg-primary text-primary-foreground">
                             {property.listing_type === 'sale' ? 'For Sale' : 'For Rent'}
                           </Badge>
@@ -372,9 +381,9 @@ export default function AgentProfile() {
                             {property.location}
                           </div>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1"><Bed className="w-4 h-4" /> {property.bedrooms}</span>
-                            <span className="flex items-center gap-1"><Bath className="w-4 h-4" /> {property.bathrooms}</span>
-                            <span className="flex items-center gap-1"><Square className="w-4 h-4" /> {property.land_size}</span>
+                            <span className="flex items-center gap-1"><Bed className="w-4 h-4" /> {property.bedrooms || 0}</span>
+                            <span className="flex items-center gap-1"><Bath className="w-4 h-4" /> {property.bathrooms || 0}</span>
+                            <span className="flex items-center gap-1"><Square className="w-4 h-4" /> {property.land_size || 'N/A'}</span>
                           </div>
                         </CardContent>
                       </Card>
