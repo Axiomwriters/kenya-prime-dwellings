@@ -138,27 +138,6 @@ export function AppSidebar() {
                   );
                 })}
 
-                {/* Admin Dashboard Link - Always visible for testing */}
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={location.pathname.startsWith('/admin')}
-                    className={`
-                      transition-all duration-200
-                      ${location.pathname.startsWith('/admin')
-                        ? 'bg-primary/10 text-primary hover:bg-primary/15 font-semibold border-l-2 border-primary'
-                        : 'hover:bg-primary/5 hover:text-primary'
-                      }
-                    `}
-                    tooltip={isCollapsed ? "Admin Dashboard" : undefined}
-                  >
-                    <Link to="/admin" className="flex items-center gap-3">
-                      <Shield className={`w-5 h-5 ${location.pathname.startsWith('/admin') ? 'text-primary' : ''}`} />
-                      {!isCollapsed && <span>Admin Dashboard</span>}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-
                 {/* Testing Links - Always visible for usability testing */}
                 <SidebarMenuItem>
                   <SidebarMenuButton

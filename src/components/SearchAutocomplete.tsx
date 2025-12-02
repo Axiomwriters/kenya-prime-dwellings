@@ -9,168 +9,130 @@ interface SearchAutocompleteProps {
     onSearch: (term: string) => void;
     initialValue?: string;
     className?: string;
+    placeholder?: string;
 }
+
 
 interface Suggestion {
-    type: "county" | "property" | "land" | "professional";
-    category: string;
+    type: 'county' | 'property' | 'land' | 'professional';
     value: string;
-    description?: string;
+    category?: string;
 }
 
-// Property options
-const PROPERTY_OPTIONS = [
-    { label: "Houses for Sale", type: "property" as const, category: "sale", keywords: ["house", "home", "sale", "buy"] },
-    { label: "Apartments for Sale", type: "property" as const, category: "sale", keywords: ["apartment", "flat", "condo", "sale", "buy"] },
-    { label: "Houses for Rent", type: "property" as const, category: "rent", keywords: ["house", "home", "rent", "rental"] },
-    { label: "Apartments for Rent", type: "property" as const, category: "rent", keywords: ["apartment", "flat", "condo", "rent", "rental"] },
-];
+const PROPERTY_TYPES = [
+    { value: 'Houses for Sale', type: 'property', category: 'sale' },
+    { value: 'Houses for Rent', type: 'property', category: 'rent' },
+    { value: 'Apartments for Sale', type: 'property', category: 'sale' },
+    { value: 'Apartments for Rent', type: 'property', category: 'rent' },
+] as const;
 
-// Land options
-const LAND_OPTIONS = [
-    { label: "Land for Sale", type: "land" as const, category: "sale", keywords: ["land", "plot", "acre", "sale", "buy"] },
-    { label: "Land for Lease", type: "land" as const, category: "lease", keywords: ["land", "plot", "acre", "lease", "rent"] },
-];
+const LAND_TYPES = [
+    { value: 'Land for Sale', type: 'land', category: 'sale' },
+    { value: 'Land for Lease', type: 'land', category: 'lease' },
+] as const;
 
-// Professional options
-const PROFESSIONAL_OPTIONS = [
-    { label: "Certified Architects", type: "professional" as const, category: "architect", keywords: ["architect", "design", "building", "professional"] },
-    { label: "Certified Engineers", type: "professional" as const, category: "engineer", keywords: ["engineer", "structural", "civil", "professional"] },
-    { label: "Certified Surveyors", type: "professional" as const, category: "surveyor", keywords: ["surveyor", "land", "survey", "professional"] },
-    { label: "Certified Contractors", type: "professional" as const, category: "contractor", keywords: ["contractor", "builder", "construction", "professional"] },
-];
+const PROFESSIONAL_TYPES = [
+    'Architects',
+    'Engineers',
+    'Contractors',
+    'Surveyors',
+    'Interior Designers',
+] as const;
 
-export function SearchAutocomplete({ onSearch, initialValue = "", className }: SearchAutocompleteProps) {
+export function SearchAutocomplete({ onSearch, initialValue = "", className, placeholder = "Search properties, locations, professionals..." }: SearchAutocompleteProps) {
     const [inputValue, setInputValue] = useState(initialValue);
     const [isOpen, setIsOpen] = useState(false);
-    const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
     const wrapperRef = useRef<HTMLDivElement>(null);
 
+    // Close dropdown when clicking outside
     useEffect(() => {
-        setInputValue(initialValue);
-    }, [initialValue]);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
+        function handleClickOutside(event: MouseEvent) {
             if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
                 setIsOpen(false);
             }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
         };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setInputValue(value);
-
-        if (value.trim().length === 0) {
-            setSuggestions([]);
-            setIsOpen(false);
-            onSearch(value);
-            return;
-        }
-
-        const lowerValue = value.toLowerCase();
-        const allSuggestions: Suggestion[] = [];
-
-        // Add county matches
-        const countyMatches = KENYAN_COUNTIES.filter((county) =>
-            county.toLowerCase().includes(lowerValue)
-        ).map((county) => ({
-            type: "county" as const,
-            category: "location",
-            value: county,
-        }));
-        allSuggestions.push(...countyMatches);
-
-        // Add property matches
-        const propertyMatches = PROPERTY_OPTIONS.filter((option) =>
-            option.keywords.some((keyword) => keyword.includes(lowerValue)) ||
-            option.label.toLowerCase().includes(lowerValue)
-        ).map((option) => ({
-            type: option.type,
-            category: option.category,
-            value: option.label,
-        }));
-        allSuggestions.push(...propertyMatches);
-
-        // Add land matches
-        const landMatches = LAND_OPTIONS.filter((option) =>
-            option.keywords.some((keyword) => keyword.includes(lowerValue)) ||
-            option.label.toLowerCase().includes(lowerValue)
-        ).map((option) => ({
-            type: option.type,
-            category: option.category,
-            value: option.label,
-        }));
-        allSuggestions.push(...landMatches);
-
-        // Add professional matches
-        const professionalMatches = PROFESSIONAL_OPTIONS.filter((option) =>
-            option.keywords.some((keyword) => keyword.includes(lowerValue)) ||
-            option.label.toLowerCase().includes(lowerValue)
-        ).map((option) => ({
-            type: option.type,
-            category: option.category,
-            value: option.label,
-        }));
-        allSuggestions.push(...professionalMatches);
-
-        setSuggestions(allSuggestions);
-        setIsOpen(allSuggestions.length > 0);
-        onSearch(value);
+        setIsOpen(value.trim().length > 0);
     };
 
     const handleSelect = (value: string) => {
         setInputValue(value);
-        setIsOpen(false);
         onSearch(value);
+        setIsOpen(false);
     };
+
+    // Filter suggestions based on input
+    const filteredCounties = KENYAN_COUNTIES.filter(county =>
+        county.toLowerCase().includes(inputValue.toLowerCase())
+    ).map(county => ({ type: 'county' as const, value: county }));
+
+    const filteredProperties = PROPERTY_TYPES.filter(prop =>
+        prop.value.toLowerCase().includes(inputValue.toLowerCase())
+    ).map(prop => ({ type: prop.type, value: prop.value, category: prop.category }));
+
+    const filteredLand = LAND_TYPES.filter(land =>
+        land.value.toLowerCase().includes(inputValue.toLowerCase())
+    ).map(land => ({ type: land.type, value: land.value, category: land.category }));
+
+    const filteredProfessionals = PROFESSIONAL_TYPES.filter(prof =>
+        prof.toLowerCase().includes(inputValue.toLowerCase())
+    ).map(prof => ({ type: 'professional' as const, value: prof }));
+
+    const groupedSuggestions = {
+        counties: filteredCounties,
+        properties: filteredProperties,
+        land: filteredLand,
+        professionals: filteredProfessionals,
+    };
+
+    const hasAnySuggestions =
+        filteredCounties.length > 0 ||
+        filteredProperties.length > 0 ||
+        filteredLand.length > 0 ||
+        filteredProfessionals.length > 0;
 
     const getIconForType = (type: string) => {
         switch (type) {
-            case "county":
+            case 'county':
                 return <MapPin className="w-4 h-4" />;
-            case "property":
+            case 'property':
                 return <Home className="w-4 h-4" />;
-            case "land":
-                return <Landmark className="w-4 h-4" />;
-            case "professional":
+            case 'land':
+                return <TreePine className="w-4 h-4" />;
+            case 'professional':
                 return <Users className="w-4 h-4" />;
             default:
                 return <Search className="w-4 h-4" />;
         }
     };
 
-    const getBadgeForCategory = (type: string, category: string) => {
-        if (type === "property" || type === "land") {
-            return category === "sale" ? (
-                <Badge className="bg-success/20 text-success border-success/30 text-xs">Sale</Badge>
-            ) : category === "rent" ? (
-                <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">Rent</Badge>
-            ) : (
-                <Badge className="bg-accent/20 text-accent border-accent/30 text-xs">Lease</Badge>
-            );
-        }
-        return null;
+    const getBadgeForCategory = (type: string, category?: string) => {
+        if (!category) return null;
+
+        const variant = category === 'sale' ? 'default' : category === 'rent' ? 'secondary' : 'outline';
+        return (
+            <Badge variant={variant} className="text-xs capitalize">
+                {category}
+            </Badge>
+        );
     };
 
-    const groupedSuggestions = {
-        counties: suggestions.filter((s) => s.type === "county"),
-        properties: suggestions.filter((s) => s.type === "property"),
-        land: suggestions.filter((s) => s.type === "land"),
-        professionals: suggestions.filter((s) => s.type === "professional"),
-    };
-
-    const hasAnySuggestions = Object.values(groupedSuggestions).some((group) => group.length > 0);
 
     return (
         <div ref={wrapperRef} className={cn("relative w-full", className)}>
             <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
-                    placeholder="Search properties, locations, professionals..."
+                    placeholder={placeholder}
                     className="pl-10 rounded-full bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary shadow-sm w-full h-9 text-sm placeholder:text-xs sm:placeholder:text-sm"
                     value={inputValue}
                     onChange={handleInputChange}

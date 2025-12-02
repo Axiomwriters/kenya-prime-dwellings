@@ -22,7 +22,9 @@ import {
     Settings,
     ArrowLeft,
     LogOut,
-    FileText
+    FileText,
+    BarChart3,
+    DollarSign
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,6 +38,10 @@ const adminItems = [
     { title: "User Management", url: "/admin/users", icon: Users },
     { title: "Verifications", url: "/admin/verifications", icon: Shield },
     { title: "Listings", url: "/admin/listings", icon: List },
+    { title: "Insights", url: "/admin/insights", icon: BarChart3 },
+    { title: "Reports", url: "/admin/reports", icon: FileText },
+    { title: "System Tools", url: "/admin/tools", icon: Settings },
+    { title: "Financial Hub", url: "/admin/financials", icon: DollarSign },
     { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 
@@ -53,7 +59,7 @@ export function AdminSidebar() {
 
     return (
         <>
-            <Sidebar className={cn(isCollapsed ? "w-14" : "w-60", "border-r border-primary/10 z-[60] fixed left-0 top-0 bottom-0 h-screen shadow-2xl")}>
+            <Sidebar className={isCollapsed ? "w-14" : "w-60"}>
                 <SidebarTrigger className="m-2 self-end" />
 
                 <SidebarContent>

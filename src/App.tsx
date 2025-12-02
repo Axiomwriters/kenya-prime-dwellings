@@ -15,7 +15,6 @@ import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import AgentDashboard from "./pages/AgentDashboard";
 import AgentProfile from "./pages/AgentProfile";
-import AdminDashboard from "./pages/AdminDashboard";
 import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
@@ -85,14 +84,6 @@ const App = () => {
                   element={
                     <ProtectedRoute requiredRole="agent">
                       <AgentDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/*"
-                  element={
-                    <ProtectedRoute requiredRole="admin">
-                      <AdminDashboard />
                     </ProtectedRoute>
                   }
                 />

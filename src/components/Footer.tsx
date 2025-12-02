@@ -56,9 +56,6 @@ export const Footer = () => {
               <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors duration-300">
                 Terms of Service
               </a>
-              <a href="/admin" className="text-sm text-muted-foreground hover:text-primary transition-colors duration-300">
-                Admin Dashboard
-              </a>
             </nav>
           </div>
 

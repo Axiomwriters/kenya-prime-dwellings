@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, UserCheck, Building2, Clock } from "lucide-react";
+import { Users, UserCheck, Building2, Clock, Activity, AlertTriangle, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AdminStatsCharts } from "@/components/admin/AdminStatsCharts";
+import { SystemHealthMonitor } from "@/components/admin/SystemHealthMonitor";
+import { CountdownWidgets } from "@/components/admin/CountdownWidgets";
+import { LiveUserActivity } from "@/components/admin/LiveUserActivity";
 
 interface Stats {
   totalUsers: number;
@@ -25,6 +29,7 @@ export default function AdminOverview() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log("AdminOverview mounted!");
     fetchStats();
   }, []);
 
@@ -82,7 +87,9 @@ export default function AdminOverview() {
       icon: Users,
       description: "Registered users",
       color: "text-blue-500",
+      bg: "bg-blue-500/10",
       link: "/admin/users",
+      trend: "+12% this week"
     },
     {
       title: "Total Agents",
@@ -90,7 +97,9 @@ export default function AdminOverview() {
       icon: UserCheck,
       description: "Approved agents",
       color: "text-indigo-500",
+      bg: "bg-indigo-500/10",
       link: "/admin/users",
+      trend: "+5% this week"
     },
     {
       title: "Pending Verifications",
@@ -98,7 +107,9 @@ export default function AdminOverview() {
       icon: Clock,
       description: "Awaiting approval",
       color: "text-orange-500",
+      bg: "bg-orange-500/10",
       link: "/admin/verifications",
+      trend: "High Priority"
     },
     {
       title: "Total Listings",
@@ -106,14 +117,8 @@ export default function AdminOverview() {
       icon: Building2,
       description: "Approved listings",
       color: "text-green-500",
-    },
-    {
-      title: "Pending Listings",
-      value: stats.pendingListings,
-      icon: Building2,
-      description: "Awaiting moderation",
-      color: "text-purple-500",
-      link: "/admin/listings",
+      bg: "bg-green-500/10",
+      trend: "+8% this week"
     },
   ];
 
@@ -122,7 +127,7 @@ export default function AdminOverview() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage verifications and listings</p>
+          <p className="text-muted-foreground">System Command Center</p>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
@@ -134,60 +139,93 @@ export default function AdminOverview() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-muted-foreground">Manage verifications and listings</p>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
+            Admin Command Center
+          </h1>
+          <p className="text-muted-foreground">Real-time system monitoring and management</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" className="gap-2">
+            <Activity className="w-4 h-4" />
+            System Status: Healthy
+          </Button>
+          <Button size="sm" className="gap-2 bg-red-500 hover:bg-red-600 text-white border-none">
+            <AlertTriangle className="w-4 h-4" />
+            3 Critical Alerts
+          </Button>
+        </div>
       </div>
 
+      {/* Top Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat) => (
-          <Card key={stat.title} className="hover:shadow-lg transition-shadow">
+          <Card key={stat.title} className="hover:shadow-lg transition-all duration-300 border-l-4" style={{ borderLeftColor: stat.color.replace('text-', 'var(--') }}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-              <stat.icon className={`w-4 h-4 ${stat.color}`} />
+              <div className={`p-2 rounded-full ${stat.bg}`}>
+                <stat.icon className={`w-4 h-4 ${stat.color}`} />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">{stat.description}</p>
-              {stat.link && stat.value > 0 && (
-                <Link to={stat.link}>
-                  <Button variant="link" size="sm" className="px-0 mt-2">
-                    View all →
-                  </Button>
-                </Link>
-              )}
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-muted-foreground">{stat.description}</p>
+                <span className="text-xs font-medium text-green-500 flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" />
+                  {stat.trend}
+                </span>
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Link to="/admin/verifications">
-              <Button variant="outline" className="w-full justify-start">
-                <UserCheck className="w-4 h-4 mr-2" />
-                Review Agent Verifications
-              </Button>
-            </Link>
-            <Link to="/admin/users">
-              <Button variant="outline" className="w-full justify-start">
-                <Users className="w-4 h-4 mr-2" />
-                Manage Users
-              </Button>
-            </Link>
-            <Link to="/admin/listings">
-              <Button variant="outline" className="w-full justify-start">
-                <Building2 className="w-4 h-4 mr-2" />
-                Moderate Listings
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+      {/* Main Charts Section */}
+      <AdminStatsCharts />
+
+      {/* Bottom Section: Monitoring & Activity */}
+      <div className="grid gap-6 md:grid-cols-12">
+        {/* Left Column: System Health & Countdowns */}
+        <div className="md:col-span-7 space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <SystemHealthMonitor />
+            <CountdownWidgets />
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-4">
+              <Link to="/admin/verifications">
+                <Button variant="outline" className="w-full justify-start h-auto py-4 flex-col items-start gap-2 hover:bg-primary/5 hover:border-primary/20 transition-colors">
+                  <div className="flex items-center gap-2 font-semibold">
+                    <UserCheck className="w-4 h-4 text-primary" />
+                    Verify Agents
+                  </div>
+                  <span className="text-xs text-muted-foreground">Review pending applications</span>
+                </Button>
+              </Link>
+              <Link to="/admin/listings">
+                <Button variant="outline" className="w-full justify-start h-auto py-4 flex-col items-start gap-2 hover:bg-primary/5 hover:border-primary/20 transition-colors">
+                  <div className="flex items-center gap-2 font-semibold">
+                    <Building2 className="w-4 h-4 text-primary" />
+                    Moderate Listings
+                  </div>
+                  <span className="text-xs text-muted-foreground">Check flagged properties</span>
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column: Live Activity Feed */}
+        <div className="md:col-span-5">
+          <LiveUserActivity />
+        </div>
       </div>
     </div>
   );
