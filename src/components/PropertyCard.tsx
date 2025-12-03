@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Bed, Bath, Square, Eye, TrendingUp, BarChart3 } from "lucide-react";
+import { MapPin, Bed, Bath, Square, ArrowUpRight, TrendingUp, LineChart } from "lucide-react";
 import { toast } from "sonner";
 import { MarketInsightDialog } from "./MarketInsightDialog";
 
@@ -116,16 +116,16 @@ export function PropertyCard({ property }: PropertyCardProps) {
               onClick={handleViewDetails}
               className="bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 hover:scale-105 shadow-button"
             >
-              <Eye className="w-4 h-4 mr-2" />
-              View Property
+              <ArrowUpRight className="w-4 h-4 mr-2" />
+              View
             </Button>
             <Button
               onClick={handleMarketInsight}
               variant="outline"
               className="transition-all duration-200 hover:scale-105 border-primary/20 hover:border-primary hover:bg-primary/5"
             >
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Market Insight
+              <LineChart className="w-4 h-4 mr-2" />
+              Market
             </Button>
           </div>
         </CardContent>

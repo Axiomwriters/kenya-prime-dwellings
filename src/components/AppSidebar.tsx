@@ -93,7 +93,7 @@ export function AppSidebar() {
       >
         <SidebarContent className={cn(
           "bg-background/95 backdrop-blur-xl",
-          isMobile ? "pt-[110px]" : "pt-9"
+          isMobile ? "pt-6" : "pt-9"
         )}>
           {/* Navigation Menu */}
           <SidebarGroup>

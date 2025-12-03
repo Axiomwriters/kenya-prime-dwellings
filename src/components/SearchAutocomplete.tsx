@@ -39,7 +39,7 @@ const PROFESSIONAL_TYPES = [
     'Interior Designers',
 ] as const;
 
-export function SearchAutocomplete({ onSearch, initialValue = "", className, placeholder = "Search properties, locations, professionals..." }: SearchAutocompleteProps) {
+export function SearchAutocomplete({ onSearch, initialValue = "", className, placeholder = "Search properties, locations, bespoke..." }: SearchAutocompleteProps) {
     const [inputValue, setInputValue] = useState(initialValue);
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -130,7 +130,6 @@ export function SearchAutocomplete({ onSearch, initialValue = "", className, pla
     return (
         <div ref={wrapperRef} className={cn("relative w-full", className)}>
             <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
                     placeholder={placeholder}
                     className="pl-10 rounded-full bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary shadow-sm w-full h-9 text-sm placeholder:text-xs sm:placeholder:text-sm"
@@ -140,6 +139,7 @@ export function SearchAutocomplete({ onSearch, initialValue = "", className, pla
                         if (inputValue.trim().length > 0 && hasAnySuggestions) setIsOpen(true);
                     }}
                 />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground w-4 h-4 pointer-events-none" />
             </div>
 
             {isOpen && hasAnySuggestions && (

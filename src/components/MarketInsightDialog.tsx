@@ -96,8 +96,8 @@ export function MarketInsightDialog({
     };
 
     // Check if property is an apartment
-    const isApartment = property.propertyType?.toLowerCase().includes('apartment') || 
-                        property.title?.toLowerCase().includes('apartment');
+    const isApartment = property.propertyType?.toLowerCase().includes('apartment') ||
+        property.title?.toLowerCase().includes('apartment');
 
 
     return (
@@ -367,9 +367,9 @@ export function MarketInsightDialog({
                                 {/* Quick Insight */}
                                 <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
                                     <p className="text-sm text-muted-foreground">
-                                        <strong className="text-foreground">Investment Insight:</strong> Based on current market trends, 
-                                        this apartment shows strong potential for short-term rental income. With an average {insights.airbnbROI.occupancyRate}% 
-                                        occupancy rate, you could generate approximately {insights.airbnbROI.monthlyRevenue.average} monthly, 
+                                        <strong className="text-foreground">Investment Insight:</strong> Based on current market trends,
+                                        this apartment shows strong potential for short-term rental income. With an average {insights.airbnbROI.occupancyRate}%
+                                        occupancy rate, you could generate approximately {insights.airbnbROI.monthlyRevenue.average} monthly,
                                         offering a competitive {insights.airbnbROI.annualReturn.roi} ROI on your investment.
                                     </p>
                                 </div>
@@ -384,24 +384,24 @@ export function MarketInsightDialog({
                                 <TrendingUp className="w-5 h-5 text-primary" />
                                 Market Trends
                             </h3>
-                            <div className="grid grid-cols-3 gap-4">
-                                <div className="text-center p-3 rounded-lg bg-muted/50">
-                                    <div className="text-sm text-muted-foreground mb-1">Demand</div>
-                                    <div className="font-bold text-success">
+                            <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                                <div className="text-center p-2 sm:p-3 rounded-lg bg-muted/50">
+                                    <div className="text-xs sm:text-sm text-muted-foreground mb-1">Demand</div>
+                                    <div className="font-bold text-sm sm:text-base text-success">
                                         {insights.marketTrends.demand}
                                     </div>
                                 </div>
-                                <div className="text-center p-3 rounded-lg bg-muted/50">
-                                    <div className="text-sm text-muted-foreground mb-1">Supply</div>
-                                    <div className="font-bold text-primary">
+                                <div className="text-center p-2 sm:p-3 rounded-lg bg-muted/50">
+                                    <div className="text-xs sm:text-sm text-muted-foreground mb-1">Supply</div>
+                                    <div className="font-bold text-sm sm:text-base text-primary">
                                         {insights.marketTrends.supply}
                                     </div>
                                 </div>
-                                <div className="text-center p-3 rounded-lg bg-muted/50">
-                                    <div className="text-sm text-muted-foreground mb-1">
+                                <div className="text-center p-2 sm:p-3 rounded-lg bg-muted/50">
+                                    <div className="text-xs sm:text-sm text-muted-foreground mb-1 break-words">
                                         Competitiveness
                                     </div>
-                                    <div className="font-bold">{insights.marketTrends.competitiveness}%</div>
+                                    <div className="font-bold text-sm sm:text-base">{insights.marketTrends.competitiveness}%</div>
                                 </div>
                             </div>
                         </CardContent>

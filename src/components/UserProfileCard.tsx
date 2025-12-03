@@ -27,8 +27,8 @@ interface UserProfileCardProps {
 
 export function UserProfileCard({ onOpenProfile }: UserProfileCardProps) {
   const { user, userRole, isAuthenticated, signOut } = useAuth();
-  const { state } = useSidebar();
-  const isCollapsed = state === "collapsed";
+  const { state, isMobile } = useSidebar();
+  const isCollapsed = state === "collapsed" && !isMobile;
   const [showRegistration, setShowRegistration] = useState(false);
   const isAgent = userRole === "agent" || userRole === "admin";
 
@@ -120,6 +120,82 @@ export function UserProfileCard({ onOpenProfile }: UserProfileCardProps) {
     );
   }
 
+  if (isMobile) {
+    return (
+      <div className="p-4">
+        <div
+          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-background to-muted border border-primary/20 p-4 shadow-lg"
+          onClick={onOpenProfile}
+        >
+          {/* Decorative background element */}
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-primary/10 blur-2xl" />
+
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-full blur-md" />
+              <Avatar className="h-12 w-12 border-2 border-primary/20">
+                <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                  {userInitials}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-foreground truncate">{userName}</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-xs text-muted-foreground">ID: {user?.id?.slice(0, 8) || "Guest"}</span>
+                <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                  {userRoleDisplay}
+                </span>
+              </div>
+            </div>
+
+            {/* Mobile Actions Menu */}
+            <div onClick={(e) => e.stopPropagation()}>
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors relative z-20"
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="glass-card border-primary/20 bg-background/95 backdrop-blur-xl z-[200]"
+                >
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onOpenProfile();
+                    }}
+                    className="cursor-pointer hover:bg-primary/10 hover:text-primary transition-colors"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    View Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-border/50" />
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleLogout();
+                    }}
+                    className="cursor-pointer text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-3">
       <div
@@ -154,7 +230,7 @@ export function UserProfileCard({ onOpenProfile }: UserProfileCardProps) {
 
 
           {/* Actions Menu */}
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
               <Button
                 variant="ghost"
@@ -166,7 +242,7 @@ export function UserProfileCard({ onOpenProfile }: UserProfileCardProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="glass-card border-primary/20 bg-background/95 backdrop-blur-xl"
+              className="glass-card border-primary/20 bg-background/95 backdrop-blur-xl z-[200]"
             >
               <DropdownMenuItem
                 onClick={(e) => {
