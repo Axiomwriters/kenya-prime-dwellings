@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -22,8 +22,12 @@ import {
     User,
     Minus,
     Plus,
-    ChevronDown
+    ChevronDown,
+    ArrowLeft,
+    ChevronLeft,
+    ChevronRight
 } from "lucide-react";
+import { LocationCarousel } from "@/components/short-stay/LocationCarousel";
 
 // Mock Data (In a real app, fetch based on ID)
 const property = {
@@ -41,11 +45,16 @@ const property = {
         superhost: true,
     },
     images: [
-        "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&auto=format&fit=crop&q=80",
-        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=60",
-        "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=800&auto=format&fit=crop&q=60",
-        "https://images.unsplash.com/photo-1554995207-c18c203602cb?w=800&auto=format&fit=crop&q=60",
-        "https://images.unsplash.com/photo-1584622050111-993a426fbf0a?w=800&auto=format&fit=crop&q=60",
+        { url: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&auto=format&fit=crop&q=80", category: "Living Room" },
+        { url: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=60", category: "Living Room" },
+        { url: "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800&auto=format&fit=crop&q=60", category: "Bedroom" },
+        { url: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800&auto=format&fit=crop&q=60", category: "Bedroom" },
+        { url: "https://images.unsplash.com/photo-1556912172-45b7abe8b7e1?w=800&auto=format&fit=crop&q=60", category: "Kitchen" },
+        { url: "https://images.unsplash.com/photo-1556911220-bff31c812dba?w=800&auto=format&fit=crop&q=60", category: "Kitchen" },
+        { url: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&auto=format&fit=crop&q=60", category: "Bathroom" },
+        { url: "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=800&auto=format&fit=crop&q=60", category: "Bathroom" },
+        { url: "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=800&auto=format&fit=crop&q=60", category: "View" },
+        { url: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=800&auto=format&fit=crop&q=60", category: "Exterior" },
     ],
     amenities: [
         { name: "Fast WiFi", icon: Wifi },
@@ -65,17 +74,54 @@ const property = {
 
 export default function ShortStayDetails() {
     const { id } = useParams();
-    const [date, setDate] = useState<Date | undefined>(new Date());
+    const navigate = useNavigate();
+
+    // Scroll to top when ID changes
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [id]);
+
+    const [checkInDate, setCheckInDate] = useState<Date | undefined>(new Date());
+    const [checkOutDate, setCheckOutDate] = useState<Date | undefined>(new Date(new Date().getTime() + 5 * 24 * 60 * 60 * 1000));
     const [guests, setGuests] = useState(1);
+    const carouselRef = useRef<HTMLDivElement>(null);
+
+    const scroll = (direction: "left" | "right") => {
+        if (carouselRef.current) {
+            const scrollAmount = 400;
+            const newScrollLeft =
+                direction === "left"
+                    ? carouselRef.current.scrollLeft - scrollAmount
+                    : carouselRef.current.scrollLeft + scrollAmount;
+
+            carouselRef.current.scrollTo({
+                left: newScrollLeft,
+                behavior: "smooth",
+            });
+        }
+    };
 
     // Calculate total
-    const nights = 5; // Mock duration
+    const nights = checkInDate && checkOutDate
+        ? Math.max(1, Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)))
+        : 5;
     const cleaningFee = 1500;
     const serviceFee = 2000;
     const total = (property.price * nights) + cleaningFee + serviceFee;
 
     return (
         <div className="container py-6 animate-fade-in">
+            {/* Back Button */}
+            <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(-1)}
+                className="mb-4 -ml-2 hover:bg-muted"
+            >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+            </Button>
+
             {/* Header */}
             <div className="mb-6">
                 <h1 className="text-2xl md:text-3xl font-bold mb-2">{property.title}</h1>
@@ -102,26 +148,49 @@ export default function ShortStayDetails() {
                 </div>
             </div>
 
-            {/* Photo Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-2 h-[300px] md:h-[400px] rounded-xl overflow-hidden mb-8 relative">
-                <div className="md:col-span-2 md:row-span-2">
-                    <img src={property.images[0]} alt="Main" className="w-full h-full object-cover hover:opacity-95 transition-opacity cursor-pointer" />
+            {/* Photo Carousel */}
+            <div className="relative mb-8">
+                <div
+                    ref={carouselRef}
+                    className="flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar scroll-smooth"
+                    style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                >
+                    {property.images.map((image, index) => (
+                        <div
+                            key={index}
+                            className="relative flex-shrink-0 w-full md:w-[400px] h-[300px] md:h-[350px] snap-start rounded-xl overflow-hidden group cursor-pointer"
+                        >
+                            <img
+                                src={image.url}
+                                alt={image.category}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                            <div className="absolute bottom-3 left-3">
+                                <Badge className="bg-black/60 text-white hover:bg-black/70 backdrop-blur-sm">
+                                    {image.category}
+                                </Badge>
+                            </div>
+                        </div>
+                    ))}
                 </div>
-                <div className="hidden md:block">
-                    <img src={property.images[1]} alt="Sub 1" className="w-full h-full object-cover hover:opacity-95 transition-opacity cursor-pointer" />
-                </div>
-                <div className="hidden md:block">
-                    <img src={property.images[2]} alt="Sub 2" className="w-full h-full object-cover hover:opacity-95 transition-opacity cursor-pointer" />
-                </div>
-                <div className="hidden md:block">
-                    <img src={property.images[3]} alt="Sub 3" className="w-full h-full object-cover hover:opacity-95 transition-opacity cursor-pointer" />
-                </div>
-                <div className="hidden md:block relative">
-                    <img src={property.images[4]} alt="Sub 4" className="w-full h-full object-cover hover:opacity-95 transition-opacity cursor-pointer" />
-                    <Button variant="secondary" size="sm" className="absolute bottom-4 right-4 gap-2">
-                        Show all photos
-                    </Button>
-                </div>
+
+                {/* Navigation Arrows */}
+                <Button
+                    variant="secondary"
+                    size="icon"
+                    className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 rounded-full shadow-lg hover:scale-110 transition-transform z-10"
+                    onClick={() => scroll("left")}
+                >
+                    <ChevronLeft className="w-5 h-5" />
+                </Button>
+                <Button
+                    variant="secondary"
+                    size="icon"
+                    className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 rounded-full shadow-lg hover:scale-110 transition-transform z-10"
+                    onClick={() => scroll("right")}
+                >
+                    <ChevronRight className="w-5 h-5" />
+                </Button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
@@ -186,17 +255,99 @@ export default function ShortStayDetails() {
                         <Button variant="outline" className="mt-6">Show all 32 amenities</Button>
                     </div>
 
+                    {/* Location Map */}
+                    <div className="pb-6 border-b">
+                        <h2 className="text-xl font-semibold mb-4">Where you'll be</h2>
+                        <Card className="overflow-hidden border-muted">
+                            <div className="relative w-full h-[400px] bg-muted/10">
+                                {/* Google Maps Placeholder */}
+                                <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground p-8">
+                                    <MapPin className="w-16 h-16 mb-4 text-primary" />
+                                    <p className="text-lg font-medium mb-2">Google Maps Integration</p>
+                                    <p className="text-sm text-center max-w-md">
+                                        This will display the exact location when connected to Google Maps API
+                                    </p>
+                                    <div className="mt-4 px-4 py-2 bg-background border rounded-lg">
+                                        <p className="text-xs font-mono">{property.location}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <CardContent className="pt-6">
+                                <div className="space-y-2">
+                                    <h3 className="font-semibold text-lg">{property.location}</h3>
+                                    <p className="text-muted-foreground text-sm">
+                                        The exact location will be provided after booking confirmation.
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
                     {/* Calendar */}
                     <div className="pb-6 border-b">
-                        <h2 className="text-xl font-semibold mb-4">Select check-in date</h2>
+                        <h2 className="text-xl font-semibold mb-4">Select your dates</h2>
                         <p className="text-muted-foreground text-sm mb-4">Add your travel dates for exact pricing</p>
-                        <div className="bg-muted/20 rounded-xl p-4 w-fit">
+
+                        {/* Mobile: Single Range Calendar */}
+                        <div className="lg:hidden bg-muted/20 rounded-xl p-4 w-fit">
                             <Calendar
-                                mode="single"
-                                selected={date}
-                                onSelect={setDate}
+                                mode="range"
+                                selected={{
+                                    from: checkInDate,
+                                    to: checkOutDate
+                                }}
+                                onSelect={(range) => {
+                                    if (range?.from) {
+                                        setCheckInDate(range.from);
+                                    }
+                                    if (range?.to) {
+                                        setCheckOutDate(range.to);
+                                    }
+                                }}
+                                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                numberOfMonths={1}
                                 className="rounded-md border shadow bg-background"
                             />
+                        </div>
+
+                        {/* Desktop: Dual Calendars */}
+                        <div className="hidden lg:grid grid-cols-2 gap-6">
+                            {/* Check-in Calendar */}
+                            <div className="bg-muted/20 rounded-xl p-4 w-fit">
+                                <h3 className="text-sm font-semibold mb-3">Check-in date</h3>
+                                <Calendar
+                                    mode="single"
+                                    selected={checkInDate}
+                                    onSelect={(date) => {
+                                        setCheckInDate(date);
+                                        // If checkout is before or same as new checkin, adjust it
+                                        if (date && checkOutDate && checkOutDate <= date) {
+                                            const newCheckout = new Date(date.getTime() + 24 * 60 * 60 * 1000);
+                                            setCheckOutDate(newCheckout);
+                                        }
+                                    }}
+                                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                    className="rounded-md border shadow bg-background"
+                                />
+                            </div>
+
+                            {/* Checkout Calendar */}
+                            <div className="bg-muted/20 rounded-xl p-4 w-fit">
+                                <h3 className="text-sm font-semibold mb-3">Checkout date</h3>
+                                <Calendar
+                                    mode="single"
+                                    selected={checkOutDate}
+                                    onSelect={setCheckOutDate}
+                                    disabled={(date) => {
+                                        const today = new Date(new Date().setHours(0, 0, 0, 0));
+                                        if (date < today) return true;
+                                        if (!checkInDate) return false;
+                                        // Disable dates on or before check-in date
+                                        return date <= checkInDate;
+                                    }}
+                                    className="rounded-md border shadow bg-background"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -223,11 +374,15 @@ export default function ShortStayDetails() {
                                 <div className="grid grid-cols-2 border-b">
                                     <div className="p-3 border-r hover:bg-muted/50 cursor-pointer">
                                         <div className="text-[10px] font-bold uppercase text-muted-foreground">Check-in</div>
-                                        <div className="text-sm">Nov 15</div>
+                                        <div className="text-sm">
+                                            {checkInDate ? checkInDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Add date'}
+                                        </div>
                                     </div>
                                     <div className="p-3 hover:bg-muted/50 cursor-pointer">
                                         <div className="text-[10px] font-bold uppercase text-muted-foreground">Checkout</div>
-                                        <div className="text-sm">Nov 20</div>
+                                        <div className="text-sm">
+                                            {checkOutDate ? checkOutDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Add date'}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="p-3 hover:bg-muted/50 cursor-pointer flex justify-between items-center">
@@ -244,7 +399,7 @@ export default function ShortStayDetails() {
 
                             <Button
                                 className="w-full text-lg py-6 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md"
-                                onClick={() => window.location.href = `/short-stay/book/${property.id}`}
+                                onClick={() => navigate(`/short-stay/book/${property.id}`)}
                             >
                                 Reserve
                             </Button>
@@ -326,6 +481,70 @@ export default function ShortStayDetails() {
                     ))}
                 </div>
                 <Button variant="outline" className="mt-8">Show all {property.reviews} reviews</Button>
+            </div>
+
+            <Separator className="my-12" />
+
+            {/* Location Map */}
+            {/* Similar Listings */}
+            <div className="mb-12">
+                <LocationCarousel
+                    title="Similar homes you may like"
+                    properties={[
+                        {
+                            id: 101,
+                            title: "Cozy Studio in Kileleshwa",
+                            location: "Kileleshwa, Nairobi",
+                            price: 4500,
+                            rating: 4.8,
+                            reviews: 85,
+                            image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=60",
+                            type: "Apartment",
+                            beds: 1,
+                            superhost: false,
+                            badgeLabel: "Budget friendly"
+                        },
+                        {
+                            id: 102,
+                            title: "Luxury 2BR in Kilimani",
+                            location: "Kilimani, Nairobi",
+                            price: 9500,
+                            rating: 4.9,
+                            reviews: 120,
+                            image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=60",
+                            type: "Apartment",
+                            beds: 2,
+                            superhost: true,
+                            badgeLabel: "Most booked"
+                        },
+                        {
+                            id: 103,
+                            title: "Modern Loft near CBD",
+                            location: "CBD, Nairobi",
+                            price: 6000,
+                            rating: 4.7,
+                            reviews: 45,
+                            image: "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=800&auto=format&fit=crop&q=60",
+                            type: "Loft",
+                            beds: 1,
+                            superhost: false,
+                            badgeLabel: "New"
+                        },
+                        {
+                            id: 104,
+                            title: "Spacious Villa in Karen",
+                            location: "Karen, Nairobi",
+                            price: 15000,
+                            rating: 5.0,
+                            reviews: 200,
+                            image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&auto=format&fit=crop&q=60",
+                            type: "Villa",
+                            beds: 4,
+                            superhost: true,
+                            badgeLabel: "Guest favorite"
+                        }
+                    ]}
+                />
             </div>
         </div>
     );

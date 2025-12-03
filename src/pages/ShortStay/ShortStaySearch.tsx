@@ -1,89 +1,44 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Map, List, Star, Heart, Wifi, Car, Utensils, Wind } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Map, List, Search } from "lucide-react";
+import { LocationCarousel } from "@/components/short-stay/LocationCarousel";
 
-// Mock Data
-const properties = [
-    {
-        id: 1,
-        title: "Modern Loft in Westlands",
-        location: "Westlands, Nairobi",
-        price: 8500,
-        rating: 4.8,
-        reviews: 124,
-        image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=60",
-        type: "Entire apartment",
-        beds: 2,
-        superhost: true,
-    },
-    {
-        id: 2,
-        title: "Cozy Studio near CBD",
-        location: "Kilimani, Nairobi",
-        price: 4500,
-        rating: 4.6,
-        reviews: 85,
-        image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=60",
-        type: "Studio",
-        beds: 1,
-        superhost: false,
-    },
-    {
-        id: 3,
-        title: "Luxury Villa in Karen",
-        location: "Karen, Nairobi",
-        price: 25000,
-        rating: 4.9,
-        reviews: 42,
-        image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&auto=format&fit=crop&q=60",
-        type: "Entire villa",
-        beds: 4,
-        superhost: true,
-    },
-    {
-        id: 4,
-        title: "Beachfront Condo",
-        location: "Nyali, Mombasa",
-        price: 12000,
-        rating: 4.7,
-        reviews: 210,
-        image: "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800&auto=format&fit=crop&q=60",
-        type: "Entire condo",
-        beds: 3,
-        superhost: true,
-    },
-    {
-        id: 5,
-        title: "Treehouse Retreat",
-        location: "Watamu",
-        price: 15000,
-        rating: 4.95,
-        reviews: 300,
-        image: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&auto=format&fit=crop&q=60",
-        type: "Treehouse",
-        beds: 2,
-        superhost: true,
-    },
-    {
-        id: 6,
-        title: "Safari Lodge Tent",
-        location: "Maasai Mara",
-        price: 35000,
-        rating: 5.0,
-        reviews: 56,
-        image: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=800&auto=format&fit=crop&q=60",
-        type: "Tent",
-        beds: 2,
-        superhost: true,
-    },
-];
+// Enhanced Mock Data
+const generateProperties = (count: number, location: string, type: string) => {
+    return Array.from({ length: count }).map((_, i) => ({
+        id: Math.random(),
+        title: `${type} in ${location} - Unit ${i + 1}`,
+        location: location,
+        price: Math.floor(Math.random() * 20000) + 3000,
+        rating: Math.round((4.5 + Math.random() * 0.5) * 10) / 10,
+        reviews: Math.floor(Math.random() * 300) + 10,
+        image: `https://images.unsplash.com/photo-${[
+            "1502672260266-1c1ef2d93688",
+            "1522708323590-d24dbb6b0267",
+            "1613490493576-7fde63acd811",
+            "1499793983690-e29da59ef1c2",
+            "1520250497591-112f2f40a3f4",
+            "1493246507139-91e8fad9978e",
+            "1512917774080-9991f1c4c750",
+            "1600596542815-a6df4db0dbd6",
+            "1600585154340-be6161a56a0c",
+            "1580587771525-78b9dba3b91d"
+        ][i % 10]}?w=800&auto=format&fit=crop&q=60`,
+        type: type,
+        beds: Math.floor(Math.random() * 4) + 1,
+        superhost: Math.random() > 0.5,
+    }));
+};
+
+const mombasaProperties = generateProperties(8, "Mombasa", "Apartment");
+const kiambuProperties = generateProperties(8, "Kiambu", "Villa");
+const nakuruProperties = generateProperties(8, "Nakuru", "Condo");
+const kilifiProperties = generateProperties(8, "Kilifi", "Beach House");
+const kwaleProperties = generateProperties(8, "Kwale", "Cottage");
+const capeTownProperties = generateProperties(8, "Cape Town", "Luxury Suite");
+const machakosProperties = generateProperties(8, "Machakos", "Bungalow");
+const laikipiaProperties = generateProperties(8, "Laikipia", "Safari Lodge");
 
 const categories = [
     { name: "Amazing Pools", icon: "🏊" },
@@ -92,22 +47,27 @@ const categories = [
     { name: "OMG!", icon: "🛸" },
     { name: "Trending", icon: "🔥" },
     { name: "Luxe", icon: "💎" },
+    { name: "Castles", icon: "🏰" },
+    { name: "Camping", icon: "⛺" },
+    { name: "Farms", icon: "🚜" },
+    { name: "Tiny Homes", icon: "🏠" },
 ];
 
 export default function ShortStaySearch() {
-    const navigate = useNavigate();
     const [view, setView] = useState<"grid" | "map">("grid");
 
     return (
-        <div className="container py-6 space-y-6 animate-fade-in">
+        <div className="container py-6 space-y-8 animate-fade-in">
             {/* Categories Bar */}
-            <div className="flex items-center gap-8 overflow-x-auto pb-4 no-scrollbar">
-                {categories.map((cat) => (
-                    <button key={cat.name} className="flex flex-col items-center gap-2 min-w-[64px] opacity-70 hover:opacity-100 transition-opacity group">
-                        <span className="text-2xl group-hover:scale-110 transition-transform">{cat.icon}</span>
-                        <span className="text-xs font-medium whitespace-nowrap border-b-2 border-transparent group-hover:border-primary pb-1">{cat.name}</span>
-                    </button>
-                ))}
+            <div className="sticky top-[64px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4 -mx-4 px-4 md:mx-0 md:px-0 border-b md:border-none">
+                <div className="flex items-center gap-8 overflow-x-auto no-scrollbar">
+                    {categories.map((cat) => (
+                        <button key={cat.name} className="flex flex-col items-center gap-2 min-w-[64px] opacity-70 hover:opacity-100 transition-opacity group">
+                            <span className="text-2xl group-hover:scale-110 transition-transform">{cat.icon}</span>
+                            <span className="text-xs font-medium whitespace-nowrap border-b-2 border-transparent group-hover:border-primary pb-1">{cat.name}</span>
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* Filters Bar */}
@@ -143,44 +103,47 @@ export default function ShortStaySearch() {
                 </div>
             </div>
 
-            {/* Property Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {properties.map((property) => (
-                    <Card key={property.id} className="group border-none shadow-none bg-transparent cursor-pointer" onClick={() => navigate(`/short-stay/${property.id}`)}>
-                        <div className="relative aspect-square overflow-hidden rounded-xl bg-muted mb-3">
-                            <img
-                                src={property.image}
-                                alt={property.title}
-                                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                            />
-                            <Button variant="ghost" size="icon" className="absolute top-3 right-3 text-white hover:bg-white/20 hover:text-white rounded-full">
-                                <Heart className="w-5 h-5" />
-                            </Button>
-                            {property.superhost && (
-                                <Badge className="absolute top-3 left-3 bg-white text-black hover:bg-white">Superhost</Badge>
-                            )}
-                        </div>
-                        <div className="space-y-1">
-                            <div className="flex justify-between items-start">
-                                <h3 className="font-semibold truncate pr-2">{property.location}</h3>
-                                <div className="flex items-center gap-1 text-sm">
-                                    <Star className="w-3 h-3 fill-primary text-primary" />
-                                    <span>{property.rating}</span>
-                                </div>
-                            </div>
-                            <p className="text-muted-foreground text-sm">{property.type}</p>
-                            <p className="text-muted-foreground text-sm">Nov 15 - 20</p>
-                            <div className="flex items-baseline gap-1 mt-1">
-                                <span className="font-semibold">KSh {property.price.toLocaleString()}</span>
-                                <span className="text-sm">night</span>
-                            </div>
-                        </div>
-                    </Card>
-                ))}
+            {/* Content Sections */}
+            <div className="space-y-8">
+                <LocationCarousel
+                    title="Popular homes in Mombasa"
+                    properties={mombasaProperties}
+                />
+                <LocationCarousel
+                    title="Available in Kiambu this weekend"
+                    properties={kiambuProperties}
+                />
+                <LocationCarousel
+                    title="Stay in Nakuru County"
+                    properties={nakuruProperties}
+                />
+                <LocationCarousel
+                    title="Available in Kilifi County this weekend"
+                    properties={kilifiProperties}
+                />
+                <LocationCarousel
+                    title="Homes in Kwale County"
+                    properties={kwaleProperties}
+                />
+                <LocationCarousel
+                    title="Places to stay in Cape Town"
+                    properties={capeTownProperties}
+                />
+                <LocationCarousel
+                    title="Check out homes in Machakos County"
+                    properties={machakosProperties}
+                />
+                <LocationCarousel
+                    title="Popular homes in Laikipia"
+                    properties={laikipiaProperties}
+                />
             </div>
 
-            <div className="flex justify-center mt-8">
-                <Button variant="outline" size="lg">Show more</Button>
+            <div className="flex justify-center mt-12 mb-8">
+                <div className="text-center space-y-4">
+                    <h3 className="text-lg font-semibold">Continue exploring short stays</h3>
+                    <Button size="lg" className="rounded-full px-8">Show more</Button>
+                </div>
             </div>
         </div>
     );
