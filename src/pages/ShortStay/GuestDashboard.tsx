@@ -39,7 +39,7 @@ export default function GuestDashboard() {
 
     return (
         <div className="container py-8 animate-fade-in">
-            <h1 className="text-3xl font-bold mb-6">Trips</h1>
+            <h1 className="text-3xl font-bold mb-6">Stays</h1>
 
             <Tabs defaultValue="upcoming" className="space-y-6">
                 <TabsList>
@@ -54,7 +54,7 @@ export default function GuestDashboard() {
                             <TripCard key={trip.id} trip={trip} navigate={navigate} />
                         ))
                     ) : (
-                        <EmptyState message="No upcoming trips booked... yet!" action="Start exploring" onAction={() => navigate("/short-stay")} />
+                        <EmptyState message="No upcoming stays booked... yet!" action="Start exploring" onAction={() => navigate("/short-stay")} />
                     )}
                 </TabsContent>
 
@@ -80,7 +80,7 @@ function TripCard({ trip, navigate }: { trip: any, navigate: any }) {
             <div className="w-full md:w-64 h-48 md:h-auto bg-muted relative">
                 <img src={trip.image} alt={trip.property} className="w-full h-full object-cover" />
                 <Badge className={`absolute top-3 left-3 ${trip.status === 'upcoming' ? 'bg-green-500' :
-                        trip.status === 'completed' ? 'bg-gray-500' : 'bg-red-500'
+                    trip.status === 'completed' ? 'bg-gray-500' : 'bg-red-500'
                     }`}>
                     {trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}
                 </Badge>

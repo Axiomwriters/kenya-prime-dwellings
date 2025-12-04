@@ -28,7 +28,7 @@ export function LocationCarousel({ title, subtitle, properties }: LocationCarous
 
     const scroll = (direction: "left" | "right") => {
         if (scrollContainerRef.current) {
-            const scrollAmount = 300; // Adjust scroll amount as needed
+            const scrollAmount = 600; // Scroll roughly 2 cards at a time
             const newScrollLeft =
                 direction === "left"
                     ? scrollContainerRef.current.scrollLeft - scrollAmount
@@ -48,7 +48,7 @@ export function LocationCarousel({ title, subtitle, properties }: LocationCarous
                     <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
                     {subtitle && <p className="text-muted-foreground">{subtitle}</p>}
                 </div>
-                <div className="flex gap-2">
+                <div className="hidden md:flex gap-2">
                     <Button
                         variant="outline"
                         size="icon"
@@ -70,11 +70,11 @@ export function LocationCarousel({ title, subtitle, properties }: LocationCarous
 
             <div
                 ref={scrollContainerRef}
-                className="flex gap-4 overflow-x-auto pb-4 no-scrollbar snap-x snap-mandatory -mx-4 px-4 md:mx-0 md:px-0 md:gap-6"
+                className="flex gap-3 md:gap-4 lg:gap-5 overflow-x-auto pb-4 no-scrollbar snap-x snap-mandatory -mx-4 px-4 md:mx-0 md:px-0"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
                 {properties.map((property) => (
-                    <div key={property.id} className="flex-shrink-0 w-[calc(100vw-3rem)] md:w-[300px] lg:w-[320px] snap-start">
+                    <div key={property.id} className="flex-shrink-0 w-[calc(100vw-80px)] md:w-[220px] lg:w-[235px] xl:w-[245px] snap-start">
                         <PropertyCard property={property} />
                     </div>
                 ))}

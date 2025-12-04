@@ -42,7 +42,7 @@ export default function TripDetails() {
         <div className="container max-w-4xl py-8 animate-fade-in">
             <div className="flex items-center gap-2 mb-6 cursor-pointer hover:underline text-muted-foreground" onClick={() => navigate("/short-stay/trips")}>
                 <ChevronLeft className="w-4 h-4" />
-                <span>Back to Trips</span>
+                <span>Back to Stays</span>
             </div>
 
             {/* Hero Section */}

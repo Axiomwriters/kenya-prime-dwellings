@@ -10,7 +10,7 @@ import { FAQSection } from "@/components/FAQSection";
 import { Footer } from "@/components/Footer";
 import { PropertyFilters } from "@/components/PropertyFilters";
 import { PropertyCard } from "@/components/PropertyCard";
-import { ScrollToTop } from "@/components/ScrollToTop";
+
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Home, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -171,7 +171,7 @@ export default function Dashboard() {
         <FAQSection />
         <NewsBlogSection />
         <Footer />
-        <ScrollToTop />
+
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Map, List, Search } from "lucide-react";
 import { LocationCarousel } from "@/components/short-stay/LocationCarousel";
+import { DynamicCountyCarousel } from "@/components/short-stay/DynamicCountyCarousel";
+import { StaySearchBar } from "@/components/short-stay/StaySearchBar";
 
 // Enhanced Mock Data
 const generateProperties = (count: number, location: string, type: string) => {
@@ -40,103 +40,148 @@ const capeTownProperties = generateProperties(8, "Cape Town", "Luxury Suite");
 const machakosProperties = generateProperties(8, "Machakos", "Bungalow");
 const laikipiaProperties = generateProperties(8, "Laikipia", "Safari Lodge");
 
-const categories = [
-    { name: "Amazing Pools", icon: "🏊" },
-    { name: "Beachfront", icon: "🏖️" },
-    { name: "Cabins", icon: "🏡" },
-    { name: "OMG!", icon: "🛸" },
-    { name: "Trending", icon: "🔥" },
-    { name: "Luxe", icon: "💎" },
-    { name: "Castles", icon: "🏰" },
-    { name: "Camping", icon: "⛺" },
-    { name: "Farms", icon: "🚜" },
-    { name: "Tiny Homes", icon: "🏠" },
-];
+
+
+interface SearchFilters {
+    location: string;
+    checkIn: Date | null;
+    checkOut: Date | null;
+    adults: number;
+    children: number;
+    infants: number;
+}
 
 export default function ShortStaySearch() {
-    const [view, setView] = useState<"grid" | "map">("grid");
+    const [searchFilters, setSearchFilters] = useState<SearchFilters | null>(null);
+
+    const handleSearch = (filters: SearchFilters) => {
+        setSearchFilters(filters);
+    };
+
+    const handleClearFilters = () => {
+        setSearchFilters(null);
+    };
+
+    // Filter properties based on search criteria
+    const filterProperties = (properties: any[]) => {
+        if (!searchFilters) return properties;
+
+        return properties.filter((property) => {
+            // Filter by location
+            if (searchFilters.location && !property.location.toLowerCase().includes(searchFilters.location.toLowerCase())) {
+                return false;
+            }
+
+            // Filter by guest capacity (beds should accommodate adults + children)
+            const totalGuests = searchFilters.adults + searchFilters.children;
+            if (totalGuests > property.beds) {
+                return false;
+            }
+
+            return true;
+        });
+    };
+
+    const filteredMombasa = filterProperties(mombasaProperties);
+    const filteredKiambu = filterProperties(kiambuProperties);
+    const filteredNakuru = filterProperties(nakuruProperties);
+    const filteredKilifi = filterProperties(kilifiProperties);
+    const filteredKwale = filterProperties(kwaleProperties);
+    const filteredCapeTown = filterProperties(capeTownProperties);
+    const filteredMachakos = filterProperties(machakosProperties);
+    const filteredLaikipia = filterProperties(laikipiaProperties);
+
+    const hasActiveFilters = searchFilters !== null;
 
     return (
         <div className="container py-6 space-y-8 animate-fade-in">
-            {/* Categories Bar */}
-            <div className="sticky top-[64px] z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4 -mx-4 px-4 md:mx-0 md:px-0 border-b md:border-none">
-                <div className="flex items-center gap-8 overflow-x-auto no-scrollbar">
-                    {categories.map((cat) => (
-                        <button key={cat.name} className="flex flex-col items-center gap-2 min-w-[64px] opacity-70 hover:opacity-100 transition-opacity group">
-                            <span className="text-2xl group-hover:scale-110 transition-transform">{cat.icon}</span>
-                            <span className="text-xs font-medium whitespace-nowrap border-b-2 border-transparent group-hover:border-primary pb-1">{cat.name}</span>
-                        </button>
-                    ))}
-                </div>
-            </div>
+            {/* Search Bar */}
+            <div className="sticky top-[130px] z-30 -mx-4 px-4 md:mx-0 md:px-0 pb-4">
+                <StaySearchBar onSearch={handleSearch} />
 
-            {/* Filters Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 border rounded-xl p-4 shadow-sm bg-card">
-                <div className="flex flex-wrap items-center gap-2">
-                    <Button variant="outline" className="rounded-full">Price</Button>
-                    <Button variant="outline" className="rounded-full">Type of place</Button>
-                    <Button variant="outline" className="rounded-full">Amenities</Button>
-                    <div className="h-6 w-px bg-border mx-2" />
-                    <div className="flex items-center gap-2">
-                        <Switch id="instant-book" />
-                        <label htmlFor="instant-book" className="text-sm font-medium cursor-pointer">Instant Book</label>
+                {hasActiveFilters && (
+                    <div className="flex items-center justify-between mt-4 px-4">
+                        <p className="text-sm text-muted-foreground">
+                            {searchFilters?.location && `Showing results for ${searchFilters.location}`}
+                        </p>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleClearFilters}
+                            className="text-sm"
+                        >
+                            Clear filters
+                        </Button>
                     </div>
-                </div>
-
-                <div className="flex items-center gap-2 bg-muted p-1 rounded-lg">
-                    <Button
-                        variant={view === "grid" ? "default" : "ghost"}
-                        size="sm"
-                        onClick={() => setView("grid")}
-                        className="gap-2"
-                    >
-                        <List className="w-4 h-4" /> Grid
-                    </Button>
-                    <Button
-                        variant={view === "map" ? "default" : "ghost"}
-                        size="sm"
-                        onClick={() => setView("map")}
-                        className="gap-2"
-                    >
-                        <Map className="w-4 h-4" /> Map
-                    </Button>
-                </div>
+                )}
             </div>
 
             {/* Content Sections */}
             <div className="space-y-8">
-                <LocationCarousel
-                    title="Popular homes in Mombasa"
-                    properties={mombasaProperties}
-                />
-                <LocationCarousel
-                    title="Available in Kiambu this weekend"
-                    properties={kiambuProperties}
-                />
-                <LocationCarousel
-                    title="Stay in Nakuru County"
-                    properties={nakuruProperties}
-                />
-                <LocationCarousel
-                    title="Available in Kilifi County this weekend"
-                    properties={kilifiProperties}
-                />
-                <LocationCarousel
-                    title="Homes in Kwale County"
-                    properties={kwaleProperties}
-                />
-                <LocationCarousel
-                    title="Places to stay in Cape Town"
-                    properties={capeTownProperties}
-                />
-                <LocationCarousel
-                    title="Check out homes in Machakos County"
-                    properties={machakosProperties}
-                />
-                <LocationCarousel
-                    title="Popular homes in Laikipia"
-                    properties={laikipiaProperties}
-                />
+                {filteredMombasa.length > 0 && (
+                    <LocationCarousel
+                        title="Popular homes in Mombasa"
+                        properties={filteredMombasa}
+                    />
+                )}
+                {filteredKiambu.length > 0 && (
+                    <LocationCarousel
+                        title="Available in Kiambu this weekend"
+                        properties={filteredKiambu}
+                    />
+                )}
+                {filteredNakuru.length > 0 && (
+                    <LocationCarousel
+                        title="Stay in Nakuru County"
+                        properties={filteredNakuru}
+                    />
+                )}
+                {filteredKilifi.length > 0 && (
+                    <LocationCarousel
+                        title="Available in Kilifi County this weekend"
+                        properties={filteredKilifi}
+                    />
+                )}
+                {filteredKwale.length > 0 && (
+                    <LocationCarousel
+                        title="Homes in Kwale County"
+                        properties={filteredKwale}
+                    />
+                )}
+                {filteredCapeTown.length > 0 && (
+                    <DynamicCountyCarousel
+                        properties={filteredCapeTown}
+                    />
+                )}
+                {filteredMachakos.length > 0 && (
+                    <LocationCarousel
+                        title="Check out homes in Machakos County"
+                        properties={filteredMachakos}
+                    />
+                )}
+                {filteredLaikipia.length > 0 && (
+                    <LocationCarousel
+                        title="Popular homes in Laikipia"
+                        properties={filteredLaikipia}
+                    />
+                )}
+
+                {/* No Results Message */}
+                {hasActiveFilters &&
+                    filteredMombasa.length === 0 &&
+                    filteredKiambu.length === 0 &&
+                    filteredNakuru.length === 0 &&
+                    filteredKilifi.length === 0 &&
+                    filteredKwale.length === 0 &&
+                    filteredCapeTown.length === 0 &&
+                    filteredMachakos.length === 0 &&
+                    filteredLaikipia.length === 0 && (
+                        <div className="text-center py-16">
+                            <h3 className="text-xl font-semibold mb-2">No properties found</h3>
+                            <p className="text-muted-foreground mb-4">Try adjusting your search criteria</p>
+                            <Button onClick={handleClearFilters}>Clear all filters</Button>
+                        </div>
+                    )}
             </div>
 
             <div className="flex justify-center mt-12 mb-8">

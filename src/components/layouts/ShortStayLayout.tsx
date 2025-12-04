@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { UserProfileCard } from "@/components/UserProfileCard";
 import { useState } from "react";
 import { ProfileDrawer } from "@/components/ProfileDrawer";
-import { Search, Globe, Menu } from "lucide-react";
+import { Search, Globe, Menu, Home } from "lucide-react";
 
 export default function ShortStayLayout() {
     const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState(false);
@@ -14,8 +14,11 @@ export default function ShortStayLayout() {
             <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="container flex h-16 items-center justify-between">
                     {/* Logo */}
-                    <Link to="/short-stay" className="flex items-center gap-2 font-bold text-xl text-primary">
-                        <span>KenyaPrime Stays</span>
+                    <Link to="/short-stay" className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-gradient-hero rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
+                            <Home className="w-5 h-5 text-white" />
+                        </div>
+                        <span className="font-bold text-xl text-primary">Stays</span>
                     </Link>
 
                     {/* Search Bar (Compact) */}

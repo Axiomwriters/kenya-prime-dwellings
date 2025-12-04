@@ -27,10 +27,10 @@ export function PropertyCard({ property }: PropertyCardProps) {
 
     return (
         <Card
-            className="group border-none shadow-none bg-transparent cursor-pointer h-full flex flex-col"
+            className="group border-none shadow-none bg-transparent cursor-pointer h-full flex flex-col transition-transform hover:scale-[1.02] duration-300"
             onClick={() => navigate(`/short-stay/${property.id}`)}
         >
-            <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted mb-3">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-muted mb-2 shadow-sm">
                 <img
                     src={property.image}
                     alt={property.title}
@@ -39,34 +39,50 @@ export function PropertyCard({ property }: PropertyCardProps) {
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute top-3 right-3 text-white hover:bg-white/20 hover:text-white rounded-full h-8 w-8 backdrop-blur-sm bg-black/10"
+                    className="absolute top-2 right-2 text-white hover:bg-white/20 hover:text-white rounded-full h-7 w-7 backdrop-blur-sm bg-black/10 transition-all hover:scale-110"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        // Add favorite logic here
+                    }}
                 >
-                    <Heart className="w-5 h-5" />
+                    <Heart className="w-4 h-4" />
                 </Button>
-                {property.superhost && (
-                    <Badge className="absolute top-3 left-3 bg-white/90 text-black hover:bg-white shadow-sm backdrop-blur-sm">
-                        Superhost
+
+                {/* Guest Favorite Badge - All Devices */}
+                {property.rating >= 4.8 && (
+                    <Badge className="absolute top-2 left-2 bg-white/95 text-black hover:bg-white shadow-md backdrop-blur-sm flex items-center gap-1 px-2 py-1 rounded-full border-none">
+                        <Heart className="w-3 h-3 fill-red-500 text-red-500" />
+                        <span className="font-medium text-[10px]">Guest favorite</span>
                     </Badge>
                 )}
-                {property.badgeLabel && (
-                    <Badge className="absolute top-3 left-3 bg-white/90 text-black hover:bg-white shadow-sm backdrop-blur-sm">
-                        {property.badgeLabel}
+
+                {/* Superhost Badge - Fallback if not Guest Favorite */}
+                {property.rating < 4.8 && property.superhost && (
+                    <Badge className="absolute top-2 left-2 bg-white/95 text-black hover:bg-white shadow-md backdrop-blur-sm px-2 py-1 rounded-full border-none">
+                        <span className="font-medium text-[10px]">Superhost</span>
+                    </Badge>
+                )}
+
+                {/* Custom Badge Label - Fallback */}
+                {property.rating < 4.8 && !property.superhost && property.badgeLabel && (
+                    <Badge className="absolute top-2 left-2 bg-white/95 text-black hover:bg-white shadow-md backdrop-blur-sm px-2 py-1 rounded-full border-none">
+                        <span className="font-medium text-[10px]">{property.badgeLabel}</span>
                     </Badge>
                 )}
             </div>
-            <div className="space-y-1 flex-1">
-                <div className="flex justify-between items-start">
-                    <h3 className="font-semibold truncate pr-2 text-base">{property.location}</h3>
-                    <div className="flex items-center gap-1 text-sm shrink-0">
-                        <Star className="w-3 h-3 fill-primary text-primary" />
-                        <span>{property.rating}</span>
+            <div className="space-y-0.5 flex-1">
+                <div className="flex justify-between items-start gap-1">
+                    <h3 className="font-semibold truncate text-sm md:text-[15px] flex-1">{property.location}</h3>
+                    <div className="flex items-center gap-0.5 text-xs shrink-0">
+                        <Star className="w-3 h-3 fill-black text-black" />
+                        <span className="font-medium">{property.rating}</span>
                     </div>
                 </div>
-                <p className="text-muted-foreground text-sm line-clamp-1">{property.title}</p>
-                <p className="text-muted-foreground text-sm">Nov 15 - 20</p>
-                <div className="flex items-baseline gap-1 mt-1">
-                    <span className="font-semibold text-base">KSh {property.price.toLocaleString()}</span>
-                    <span className="text-sm text-muted-foreground">night</span>
+                <p className="text-muted-foreground text-xs line-clamp-1">{property.title}</p>
+                <p className="text-muted-foreground text-xs">Nov 15 - 20</p>
+                <div className="flex items-baseline gap-0.5 mt-0.5">
+                    <span className="font-semibold text-sm md:text-[15px]">KSh {property.price.toLocaleString()}</span>
+                    <span className="text-xs text-muted-foreground">night</span>
                 </div>
             </div>
         </Card>

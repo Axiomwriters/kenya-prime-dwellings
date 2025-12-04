@@ -50,7 +50,7 @@ export default function BookingConfirmation() {
 
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                 <Button size="lg" className="gap-2" onClick={() => navigate("/short-stay/trips")}>
-                    <Home className="w-4 h-4" /> Go to My Trips
+                    <Home className="w-4 h-4" /> Go to My Stays
                 </Button>
                 <Button variant="outline" size="lg" className="gap-2">
                     <MessageSquare className="w-4 h-4" /> Message Host

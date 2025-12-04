@@ -28,6 +28,7 @@ import {
     ChevronRight
 } from "lucide-react";
 import { LocationCarousel } from "@/components/short-stay/LocationCarousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 // Mock Data (In a real app, fetch based on ID)
 const property = {
@@ -84,22 +85,9 @@ export default function ShortStayDetails() {
     const [checkInDate, setCheckInDate] = useState<Date | undefined>(new Date());
     const [checkOutDate, setCheckOutDate] = useState<Date | undefined>(new Date(new Date().getTime() + 5 * 24 * 60 * 60 * 1000));
     const [guests, setGuests] = useState(1);
-    const carouselRef = useRef<HTMLDivElement>(null);
+    // const carouselRef = useRef<HTMLDivElement>(null); // Removed unused ref
 
-    const scroll = (direction: "left" | "right") => {
-        if (carouselRef.current) {
-            const scrollAmount = 400;
-            const newScrollLeft =
-                direction === "left"
-                    ? carouselRef.current.scrollLeft - scrollAmount
-                    : carouselRef.current.scrollLeft + scrollAmount;
-
-            carouselRef.current.scrollTo({
-                left: newScrollLeft,
-                behavior: "smooth",
-            });
-        }
-    };
+    // Removed unused scroll function
 
     // Calculate total
     const nights = checkInDate && checkOutDate
@@ -149,48 +137,37 @@ export default function ShortStayDetails() {
             </div>
 
             {/* Photo Carousel */}
-            <div className="relative mb-8">
-                <div
-                    ref={carouselRef}
-                    className="flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory no-scrollbar scroll-smooth"
-                    style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            <div className="relative mb-8 group">
+                <Carousel
+                    opts={{
+                        align: "start",
+                        loop: true,
+                    }}
+                    className="w-full"
                 >
-                    {property.images.map((image, index) => (
-                        <div
-                            key={index}
-                            className="relative flex-shrink-0 w-full md:w-[400px] h-[300px] md:h-[350px] snap-start rounded-xl overflow-hidden group cursor-pointer"
-                        >
-                            <img
-                                src={image.url}
-                                alt={image.category}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                            <div className="absolute bottom-3 left-3">
-                                <Badge className="bg-black/60 text-white hover:bg-black/70 backdrop-blur-sm">
-                                    {image.category}
-                                </Badge>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Navigation Arrows */}
-                <Button
-                    variant="secondary"
-                    size="icon"
-                    className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 rounded-full shadow-lg hover:scale-110 transition-transform z-10"
-                    onClick={() => scroll("left")}
-                >
-                    <ChevronLeft className="w-5 h-5" />
-                </Button>
-                <Button
-                    variant="secondary"
-                    size="icon"
-                    className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 rounded-full shadow-lg hover:scale-110 transition-transform z-10"
-                    onClick={() => scroll("right")}
-                >
-                    <ChevronRight className="w-5 h-5" />
-                </Button>
+                    <CarouselContent className="-ml-2 md:-ml-4">
+                        {property.images.map((image, index) => (
+                            <CarouselItem key={index} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3">
+                                <div
+                                    className="relative w-full h-[300px] md:h-[350px] rounded-xl overflow-hidden group/image cursor-pointer"
+                                >
+                                    <img
+                                        src={image.url}
+                                        alt={image.category}
+                                        className="w-full h-full object-cover group-hover/image:scale-105 transition-transform duration-500"
+                                    />
+                                    <div className="absolute bottom-3 left-3">
+                                        <Badge className="bg-black/60 text-white hover:bg-black/70 backdrop-blur-sm border-none">
+                                            {image.category}
+                                        </Badge>
+                                    </div>
+                                </div>
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 hover:bg-white text-black shadow-lg backdrop-blur-sm border-none opacity-0 group-hover:opacity-100 transition-all duration-300 disabled:opacity-0" />
+                    <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 hover:bg-white text-black shadow-lg backdrop-blur-sm border-none opacity-0 group-hover:opacity-100 transition-all duration-300 disabled:opacity-0" />
+                </Carousel>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">

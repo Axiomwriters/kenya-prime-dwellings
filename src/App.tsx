@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Preloader } from "@/components/Preloader";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import Dashboard from "./pages/Dashboard";
 import Properties from "./pages/Properties";
 import PropertyDetail from "./pages/PropertyDetail";
@@ -59,6 +60,7 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <AuthProvider>
+              <ScrollToTop />
               <Routes>
                 <Route element={<MainLayout />}>
                   <Route path="/" element={<Dashboard />} />
