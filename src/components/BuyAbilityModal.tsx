@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { QuickCheckForm, QuickCheckData } from "./buy-ability/QuickCheckForm";
 import { AffordabilityResult } from "./buy-ability/AffordabilityResult";
@@ -52,6 +52,14 @@ export function BuyAbilityModal({ open, onOpenChange }: BuyAbilityModalProps) {
     const [step, setStep] = useState<Step>("quick-check");
     const [formData, setFormData] = useState<QuickCheckData | null>(null);
     const [results, setResults] = useState<{ affordableAmount: number; monthlyPayment: number; ltv: number } | null>(null);
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    // Scroll to top when step changes
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }, [step]);
 
     const handleCalculate = (data: QuickCheckData) => {
         setFormData(data);
@@ -92,30 +100,35 @@ export function BuyAbilityModal({ open, onOpenChange }: BuyAbilityModalProps) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto overflow-x-hidden">
-                <DialogHeader>
+            <DialogContent className="sm:max-w-[600px] h-[90vh] sm:h-[85vh] p-0 gap-0 overflow-hidden flex flex-col border-none bg-background shadow-2xl">
+                <DialogHeader className="px-6 py-4 border-b shrink-0 bg-background/95 backdrop-blur z-10">
                     <div className="flex items-center gap-2">
                         {step !== "quick-check" && (
-                            <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2" onClick={handleBack}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2 hover:bg-muted/50 rounded-full" onClick={handleBack}>
                                 <ArrowLeft className="w-4 h-4" />
                             </Button>
                         )}
-                        <DialogTitle>
+                        <DialogTitle className="text-lg font-semibold tracking-tight">
                             {step === "quick-check" && "Know Your BuyAbility"}
                             {step === "results" && "Your Affordability Results"}
                             {step === "lenders" && "Matched Lenders"}
                         </DialogTitle>
                     </div>
-                    <DialogDescription>
+                    <DialogDescription className="text-xs text-muted-foreground mt-1">
                         {step === "quick-check" && "Discover what you can afford and get matched with the best lenders."}
                         {step === "results" && "Based on your income and deposit, here is what you can afford."}
                         {step === "lenders" && "These lenders match your profile and affordability."}
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="py-4">
+                <div
+                    ref={scrollRef}
+                    className="flex-1 overflow-y-auto overflow-x-hidden relative bg-muted/5 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
+                >
                     {step === "quick-check" && (
-                        <QuickCheckForm onCalculate={handleCalculate} />
+                        <div className="p-6">
+                            <QuickCheckForm onCalculate={handleCalculate} />
+                        </div>
                     )}
 
                     {step === "results" && results && (
@@ -129,7 +142,7 @@ export function BuyAbilityModal({ open, onOpenChange }: BuyAbilityModalProps) {
                     )}
 
                     {step === "lenders" && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
+                        <div className="p-6 space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
                             {MOCK_LENDERS.map((lender) => (
                                 <LenderCard
                                     key={lender.name}

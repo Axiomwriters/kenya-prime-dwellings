@@ -6,9 +6,9 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.s
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'placeholder-key';
 
 // Warn if environment variables are missing
-if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) {
-  console.warn('⚠️ Supabase environment variables are missing. Auth functionality will not work. Please add VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY to your .env file.');
-}
+// if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) {
+//   console.warn('⚠️ Supabase environment variables are missing. Auth functionality will not work. Please add VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY to your .env file.');
+// }
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";

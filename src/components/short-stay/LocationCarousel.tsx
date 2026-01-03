@@ -17,13 +17,14 @@ interface Property {
     badgeLabel?: string;
 }
 
-interface LocationCarouselProps {
+export interface LocationCarouselProps {
     title: string;
     subtitle?: string;
     properties: Property[];
+    showTotalPrice?: boolean;
 }
 
-export function LocationCarousel({ title, subtitle, properties }: LocationCarouselProps) {
+export function LocationCarousel({ title, subtitle, properties, showTotalPrice }: LocationCarouselProps) {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     const scroll = (direction: "left" | "right") => {
@@ -75,7 +76,7 @@ export function LocationCarousel({ title, subtitle, properties }: LocationCarous
             >
                 {properties.map((property) => (
                     <div key={property.id} className="flex-shrink-0 w-[calc(100vw-80px)] md:w-[220px] lg:w-[235px] xl:w-[245px] snap-start">
-                        <PropertyCard property={property} />
+                        <PropertyCard property={property} showTotalPrice={showTotalPrice} />
                     </div>
                 ))}
             </div>

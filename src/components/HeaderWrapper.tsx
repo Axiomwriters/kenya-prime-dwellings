@@ -36,11 +36,11 @@ export function HeaderWrapper() {
     };
 
     return (
-        <div className="flex flex-col w-full z-[60] sticky top-0">
+        <div className="flex flex-col w-full z-[60] top-0">
             <div
                 className={cn(
-                    "bg-background/95 backdrop-blur-xl border-b border-border/20 overflow-hidden transition-all duration-500 ease-in-out",
-                    isScrolled ? "h-0 opacity-0" : "h-[40px] opacity-100"
+                    "bg-background/95 backdrop-blur-xl border-border/20 overflow-hidden transition-all duration-75 ease-out",
+                    isScrolled ? "h-0 opacity-0 border-none" : "h-[40px] opacity-100 border-b"
                 )}
             >
                 <TopHeaderBar />

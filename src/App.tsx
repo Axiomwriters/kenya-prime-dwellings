@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Preloader } from "@/components/Preloader";
+import { ScrollToTopHandler } from "@/components/ScrollToTopHandler";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import Dashboard from "./pages/Dashboard";
 import Properties from "./pages/Properties";
@@ -58,8 +59,9 @@ const App = () => {
           {isLoading && <Preloader />}
           <Toaster />
           <Sonner />
-          <BrowserRouter>
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <AuthProvider>
+              <ScrollToTopHandler />
               <ScrollToTop />
               <Routes>
                 <Route element={<MainLayout />}>

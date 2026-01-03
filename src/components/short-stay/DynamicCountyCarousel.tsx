@@ -31,11 +31,12 @@ interface Property {
 
 interface DynamicCountyCarouselProps {
     properties: Property[];
+    showTotalPrice?: boolean;
 }
 
 type FilterType = "popular" | "nextMonth" | "future";
 
-export function DynamicCountyCarousel({ properties }: DynamicCountyCarouselProps) {
+export function DynamicCountyCarousel({ properties, showTotalPrice }: DynamicCountyCarouselProps) {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [currentCountyIndex, setCurrentCountyIndex] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
@@ -186,7 +187,7 @@ export function DynamicCountyCarousel({ properties }: DynamicCountyCarouselProps
             >
                 {filteredProperties.map((property) => (
                     <div key={property.id} className="flex-shrink-0 w-[calc(100vw-80px)] md:w-[220px] lg:w-[235px] xl:w-[245px] snap-start">
-                        <PropertyCard property={property} />
+                        <PropertyCard property={property} showTotalPrice={showTotalPrice} />
                     </div>
                 ))}
             </div>

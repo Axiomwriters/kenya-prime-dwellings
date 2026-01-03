@@ -87,8 +87,8 @@ export function AppSidebar() {
       <Sidebar
         collapsible="icon"
         className={cn(
-          "border-r border-primary/10 z-50 fixed left-0 shadow-2xl transition-all duration-300",
-          isScrolled ? "top-[56px] h-[calc(100vh-56px)]" : "top-[96px] h-[calc(100vh-96px)]"
+          "border-r border-primary/10 z-50 fixed left-0 shadow-2xl transition-all duration-75",
+          isScrolled ? "top-[64px] h-[calc(100vh-64px)]" : "top-[104px] h-[calc(100vh-104px)]"
         )}
       >
         <SidebarContent className={cn(

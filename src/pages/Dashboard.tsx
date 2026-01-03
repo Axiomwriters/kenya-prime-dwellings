@@ -1,5 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { mockProperties } from "@/data/mockListings";
 import { StatsSection } from "@/components/StatsSection";
 import { BestAgentsSection } from "@/components/BestAgentsSection";
 import { BestLocationsSection } from "@/components/BestLocationsSection";
@@ -10,13 +13,17 @@ import { FAQSection } from "@/components/FAQSection";
 import { Footer } from "@/components/Footer";
 import { PropertyFilters } from "@/components/PropertyFilters";
 import { PropertyCard } from "@/components/PropertyCard";
+import { ListingCTAcard } from "@/components/ListingCTAcard";
+import { TrendingUp, Wallet, Map, Loader2, Home } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel";
 
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Home, Loader2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-
-import { mockProperties } from "@/data/mockListings";
+// ... (other imports)
 
 export default function Dashboard() {
   const [searchParams] = useSearchParams();
@@ -24,30 +31,37 @@ export default function Dashboard() {
 
   const [activeFilter, setActiveFilter] = useState("all");
   const [activeType, setActiveType] = useState("all");
+  const [activeUseCase, setActiveUseCase] = useState("All");
 
+  /* Use Query for properties */
   const { data: properties, isLoading } = useQuery({
     queryKey: ["dashboard-properties"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("agent_listings")
-        .select("*")
-        .eq("status", "approved")
-        .order("created_at", { ascending: false })
-        .limit(10);
+      try {
+        const { data, error } = await supabase
+          .from("agent_listings")
+          .select("*")
+          .eq("status", "approved")
+          .order("created_at", { ascending: false })
+          .limit(10);
 
-      if (error) throw error;
-
-      // Combine Supabase data with mock data
-      return [...(data || []), ...mockProperties];
+        if (error) {
+          console.warn("Supabase fetch error (falling back to mocks):", error);
+          return mockProperties;
+        }
+        return [...(data || []), ...mockProperties];
+      } catch (err) {
+        console.warn("Supabase connection error (falling back to mocks):", err);
+        return mockProperties;
+      }
     },
   });
 
-  // Filter properties based on search term, status filter, and type filter
+  // Filter properties logic
   const filteredProperties = useMemo(() => {
     if (!properties) return [];
     let filtered = properties;
 
-    // Filter by search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -59,28 +73,65 @@ export default function Dashboard() {
       );
     }
 
-    // Filter by status (sale/rent/short_stay)
     if (activeFilter !== "all") {
       filtered = filtered.filter((property) => property.listing_type === activeFilter);
     }
 
-    // Filter by property type
     if (activeType !== "all") {
       filtered = filtered.filter((property) => property.category === activeType);
     }
 
-    return filtered;
-  }, [properties, searchTerm, activeFilter, activeType]);
+    // Filter by Use Case (Case-Insensitive)
+    if (activeUseCase !== "All") {
+      const lowerUseCase = activeUseCase.toLowerCase();
+      filtered = filtered.filter(p => {
+        const lowerTitle = p.title.toLowerCase();
+        const lowerCat = (p.category || "").toLowerCase();
 
-  const growthCount = filteredProperties.length; // Simplified for now
+        if (activeUseCase === "Student Housing" && (p.price < 35000 || lowerTitle.includes("studio") || lowerTitle.includes("hostel"))) return true;
+        if (activeUseCase === "Investment" && (p.price < 15000000 || lowerCat === 'land' || lowerTitle.includes('plot'))) return true;
+        if (activeUseCase === "Mixed-Use" && (lowerCat === 'commercial' || lowerCat === 'land')) return true;
+        if (activeUseCase === "Warehouses" && (lowerCat === 'commercial' || lowerTitle.includes("godown"))) return true;
+        if (activeUseCase === "Co-working" && (lowerCat === 'commercial' || lowerTitle.includes("office"))) return true;
+        return false;
+      });
+    }
+
+    return filtered;
+  }, [properties, searchTerm, activeFilter, activeType, activeUseCase]);
+
+  const growthCount = filteredProperties.length;
+
+  // Helpers
+  const getIntentTags = (property: any) => {
+    const tags = [];
+    const lowerCat = (property.category || "").toLowerCase();
+    if (property.price > 40000000) tags.push("Luxury Collection");
+    if (property.price < 18000000 && lowerCat.includes('house')) tags.push("Best Value");
+    if (property.listing_type === 'rent' && property.price < 50000) tags.push("Fast Moving");
+    if (lowerCat.includes('land') && property.price < 5000000) tags.push("High ROI");
+    return tags.splice(0, 2);
+  };
+
+  const getMicroData = (property: any) => {
+    const data = [];
+    const lowerCat = (property.category || "").toLowerCase();
+    if (lowerCat.includes('land')) {
+      data.push({ icon: Map, value: "Residential", label: "Zoning" });
+      data.push({ icon: TrendingUp, value: "+12%", label: "Proj. ROI" });
+    } else if (lowerCat.includes('house') || lowerCat.includes('apartment')) {
+      data.push({ icon: Wallet, value: `KSh ${Math.floor(property.price / 240).toLocaleString()}`, label: "Est. Mortgage" });
+      data.push({ icon: TrendingUp, value: "High Demand", label: "Area" });
+    }
+    return data;
+  };
 
   const PropertyCardWrapper = ({ property, index }: { property: any; index: number }) => {
-    // Handle image display: check property.image (mock) or property.images[0] (Supabase)
     const displayImage = property.image || (property.images && property.images.length > 0 ? property.images[0] : "/placeholder.svg");
 
     return (
       <div
-        className="animate-scale-in w-full"
+        className="animate-scale-in w-full h-full"
         style={{ animationDelay: `${index * 0.1}s` }}
       >
         <PropertyCard
@@ -95,9 +146,11 @@ export default function Dashboard() {
             sqm: property.land_size ? (typeof property.land_size === 'string' ? parseInt(property.land_size) : property.land_size) : 0,
             type: property.listing_type === "sale" ? "For Sale" : property.listing_type === "rent" ? "For Rent" : "Short Stay",
             status: property.listing_type,
-            isHighGrowth: false, // Not in DB yet
+            isHighGrowth: false,
             propertyType: property.category
           }}
+          intentTags={getIntentTags(property)}
+          microData={getMicroData(property)}
         />
       </div>
     );
@@ -117,6 +170,8 @@ export default function Dashboard() {
               setActiveFilter={setActiveFilter}
               activeType={activeType}
               setActiveType={setActiveType}
+              activeUseCase={activeUseCase}
+              setActiveUseCase={setActiveUseCase}
               propertyCount={filteredProperties.length}
               growthCount={growthCount}
             />
@@ -131,17 +186,27 @@ export default function Dashboard() {
                 <Carousel
                   opts={{
                     align: "start",
-                    loop: true,
+                    loop: false, // Changed to false so end is reachable for CTA
                     slidesToScroll: 1,
                   }}
                   className="w-full"
                 >
                   <CarouselContent className="-ml-2 md:-ml-4">
                     {filteredProperties.map((property, index) => (
-                      <CarouselItem key={property.id} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/4">
+                      <CarouselItem key={property.id} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3 xl:basis-1/4 h-full">
                         <PropertyCardWrapper property={property} index={index} />
                       </CarouselItem>
                     ))}
+
+                    {/* View More CTA Card at the end of Carousel */}
+                    <CarouselItem className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3 xl:basis-1/4 h-full">
+                      <div className="h-full min-h-[400px]">
+                        <ListingCTAcard
+                          onViewMore={() => setActiveUseCase("All")}
+                          context={activeType !== 'all' ? activeType : 'properties'}
+                        />
+                      </div>
+                    </CarouselItem>
                   </CarouselContent>
                   <CarouselPrevious className="left-2 bg-background/80 backdrop-blur-sm border-border/50 hover:bg-background" />
                   <CarouselNext className="right-2 bg-background/80 backdrop-blur-sm border-border/50 hover:bg-background" />
