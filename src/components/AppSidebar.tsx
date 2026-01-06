@@ -8,6 +8,7 @@ import {
   Settings,
   FileText,
   ChevronLeft,
+  Calculator,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -43,6 +44,7 @@ const menuItems = [
     url: "/short-stay",
     icon: Home,
   },
+
   {
     title: "Agents",
     url: "/agent",

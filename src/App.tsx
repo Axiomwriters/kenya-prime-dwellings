@@ -13,6 +13,9 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import Dashboard from "./pages/Dashboard";
 import Properties from "./pages/Properties";
 import PropertyDetail from "./pages/PropertyDetail";
+import AffordabilityPage from "./pages/AffordabilityPage";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import AgentDashboard from "./pages/AgentDashboard";
@@ -68,6 +71,7 @@ const App = () => {
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/properties" element={<Properties />} />
                   <Route path="/properties/:id" element={<PropertyDetail />} />
+                  <Route path="/affordability" element={<AffordabilityPage />} />
                 </Route>
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/auth/reset" element={<ResetPassword />} />
@@ -109,6 +113,11 @@ const App = () => {
                   <Route path="trips" element={<GuestDashboard />} />
                   <Route path="trips/:id" element={<TripDetails />} />
                 </Route>
+
+
+                {/* Admin Portal Routes */}
+                <Route path="/admin-portal" element={<AdminLogin />} />
+                <Route path="/admin-dashboard" element={<AdminDashboard />} />
 
                 <Route path="/unauthorized" element={<Unauthorized />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

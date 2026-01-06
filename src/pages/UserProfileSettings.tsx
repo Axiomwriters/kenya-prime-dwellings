@@ -39,6 +39,7 @@ import {
 import { toast } from "sonner";
 import { uploadFile, generateFileName, compressImage } from "@/utils/uploadHelpers";
 import { useNavigate } from "react-router-dom";
+import { DocumentVerification } from "@/components/agents/DocumentVerification";
 
 const PROPERTY_TYPES = [
   "Apartment",
@@ -795,6 +796,9 @@ export default function UserProfileSettings() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Identity Verification Agent */}
+          {user && <DocumentVerification userId={user.id} />}
 
           {/* Security Settings Card */}
           <Card>

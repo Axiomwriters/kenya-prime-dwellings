@@ -1,10 +1,10 @@
 import { useEffect, useCallback, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { Home, TrendingUp } from "lucide-react";
-import { BuyAbilityModal } from "@/components/BuyAbilityModal";
 
 // Import property images
 import houseThikaRoad from "@/assets/house-thika-road.jpg";
@@ -54,7 +54,7 @@ const buyAbilityProperties = [
 export function BuyAbilitySection() {
   const [api, setApi] = useState<CarouselApi>();
   const [isHovered, setIsHovered] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   // Auto-scroll carousel every 5 seconds
   useEffect(() => {
@@ -107,15 +107,13 @@ export function BuyAbilitySection() {
                 {/* CTA Button */}
                 <Button
                   className="w-full h-14 text-base font-semibold rounded-xl shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300 bg-primary hover:bg-primary/90"
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={() => navigate('/affordability')}
                 >
                   Let's get started
                 </Button>
               </CardContent>
             </Card>
           </div>
-
-          <BuyAbilityModal open={isModalOpen} onOpenChange={setIsModalOpen} />
 
           {/* Right: Property Carousel */}
           <div

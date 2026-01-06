@@ -20,6 +20,7 @@ import {
 import { MapComponent } from "@/components/MapComponent";
 import { cn } from "@/lib/utils";
 import { mockProperties } from "@/data/mockListings";
+import { MarketInsight } from "@/components/agents/MarketInsight";
 
 
 export default function PropertyDetail() {
@@ -194,10 +195,18 @@ export default function PropertyDetail() {
 
           </div>
 
+
           {/* RIGHT COLUMN (Sticky Agent) */}
-          <div className="lg:col-span-4 relative h-full">
-            <div className="sticky top-[90px]">
+          <div className="lg:col-span-4 relative h-full space-y-8">
+            <div className="sticky top-[90px] space-y-6">
               <PropertyAgentCard agent={agentData} />
+
+              {/* AI Market Insight Agent */}
+              <MarketInsight
+                price={property.price}
+                location={property.location}
+                size={property.landSize || `${property.bedrooms}bd`}
+              />
             </div>
           </div>
 
