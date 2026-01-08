@@ -98,7 +98,7 @@ export const MarketInsight = ({ price, location, size }: MarketInsightProps) => 
                                 <div>
                                     <div className="font-medium text-sm">{pro.name}</div>
                                     <div className="text-xs text-muted-foreground">{pro.role} • {pro.company}</div>
-                                </div>
+                                </div>BBDJOJB KAKJONSCOLPOJUS8BQII0
                                 <Button variant="ghost" size="sm" className="h-7 text-xs">Request Info</Button>
                             </div>
                         ))}

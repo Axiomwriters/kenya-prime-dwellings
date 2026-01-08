@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Home, Landmark, Users, Building2, TreePine } from "lucide-react";
+import { Search, MapPin, Home, Landmark, Users, Building2, TreePine, Sparkles } from "lucide-react";
 import { KENYAN_COUNTIES } from "@/data/counties";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -42,7 +42,33 @@ const PROFESSIONAL_TYPES = [
 export function SearchAutocomplete({ onSearch, initialValue = "", className, placeholder = "Search properties, locations, bespoke..." }: SearchAutocompleteProps) {
     const [inputValue, setInputValue] = useState(initialValue);
     const [isOpen, setIsOpen] = useState(false);
+    const [searchHistory, setSearchHistory] = useState<string[]>([]);
     const wrapperRef = useRef<HTMLDivElement>(null);
+
+    // SEO / Trending Picks for Nakuru
+    const SEO_PICKS = [
+        "Nakuru CBD Commercial",
+        "Njoro 50x100 Plots",
+        "Section 58 Apartments",
+        "Kiamunyi Homes",
+        "Milimani Luxury"
+    ];
+
+    // Load history
+    useEffect(() => {
+        const loadHistory = () => {
+            try {
+                const history = JSON.parse(localStorage.getItem('property_hub_search_history') || '[]');
+                setSearchHistory(history);
+            } catch (e) {
+                console.error(e);
+            }
+        };
+
+        loadHistory();
+        window.addEventListener('storage', loadHistory);
+        return () => window.removeEventListener('storage', loadHistory);
+    }, []);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -61,7 +87,7 @@ export function SearchAutocomplete({ onSearch, initialValue = "", className, pla
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setInputValue(value);
-        setIsOpen(value.trim().length > 0);
+        setIsOpen(true); // Always open whilst typing or empty-focused
     };
 
     const handleSelect = (value: string) => {
@@ -100,6 +126,8 @@ export function SearchAutocomplete({ onSearch, initialValue = "", className, pla
         filteredLand.length > 0 ||
         filteredProfessionals.length > 0;
 
+    const showHistoryMode = inputValue.trim().length === 0;
+
     const getIconForType = (type: string) => {
         switch (type) {
             case 'county':
@@ -110,10 +138,18 @@ export function SearchAutocomplete({ onSearch, initialValue = "", className, pla
                 return <TreePine className="w-4 h-4" />;
             case 'professional':
                 return <Users className="w-4 h-4" />;
+            case 'history':
+                return <Search className="w-4 h-4" />; // specific icon for history
+            case 'seo':
+                return <Sparkles className="w-4 h-4" />; // specific icon for seo
             default:
                 return <Search className="w-4 h-4" />;
         }
     };
+
+    // Import Sparkles safely if not already imported, or reuse existing
+    // We already have Sparkles imported in HeroAI, let's assume it might not be here. 
+    // Actually, checking imports... Sparkles is NOT in imports line 3. I will add it.
 
     const getBadgeForCategory = (type: string, category?: string) => {
         if (!category) return null;
@@ -132,126 +168,191 @@ export function SearchAutocomplete({ onSearch, initialValue = "", className, pla
             <div className="relative w-full">
                 <Input
                     placeholder={placeholder}
-                    className="pl-10 rounded-full bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary shadow-sm w-full h-9 text-sm placeholder:text-xs sm:placeholder:text-sm"
+                    className="pl-10 rounded-full bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary shadow-sm w-full h-9 text-sm placeholder:text-xs sm:placeholder:text-sm transition-all"
                     value={inputValue}
                     onChange={handleInputChange}
-                    onFocus={() => {
-                        if (inputValue.trim().length > 0 && hasAnySuggestions) setIsOpen(true);
-                    }}
+                    onFocus={() => setIsOpen(true)}
                 />
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground w-4 h-4 pointer-events-none" />
             </div>
 
-            {isOpen && hasAnySuggestions && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-background backdrop-blur-xl border border-border rounded-2xl shadow-2xl overflow-hidden z-[9999] animate-in fade-in zoom-in-95 duration-200">
+            {isOpen && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-xl border border-border rounded-2xl shadow-2xl overflow-hidden z-[9999] animate-in fade-in zoom-in-95 duration-200">
                     <div className="max-h-[500px] overflow-y-auto py-3 px-2 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
-                        {/* Counties Section */}
-                        {groupedSuggestions.counties.length > 0 && (
-                            <div className="mb-3">
-                                <div className="flex items-center gap-2 px-3 py-2 mb-1">
-                                    <MapPin className="w-4 h-4 text-primary" />
-                                    <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
-                                        Counties
-                                    </h3>
-                                </div>
-                                <div className="space-y-0.5">
-                                    {groupedSuggestions.counties.slice(0, 5).map((suggestion) => (
-                                        <button
-                                            key={suggestion.value}
-                                            onClick={() => handleSelect(suggestion.value)}
-                                            className="w-full text-left px-3 py-2.5 hover:bg-primary/10 rounded-xl flex items-center gap-3 text-sm transition-all duration-200 group"
-                                        >
-                                            <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all">
-                                                {getIconForType(suggestion.type)}
-                                            </div>
-                                            <span className="font-medium">{suggestion.value}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
 
-                        {/* Properties Section */}
-                        {groupedSuggestions.properties.length > 0 && (
-                            <div className="mb-3">
-                                <div className="flex items-center gap-2 px-3 py-2 mb-1 border-t border-border/30 pt-3">
-                                    <Building2 className="w-4 h-4 text-success" />
-                                    <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
-                                        Properties
-                                    </h3>
-                                </div>
-                                <div className="space-y-0.5">
-                                    {groupedSuggestions.properties.map((suggestion) => (
-                                        <button
-                                            key={suggestion.value}
-                                            onClick={() => handleSelect(suggestion.value)}
-                                            className="w-full text-left px-3 py-2.5 hover:bg-success/10 rounded-xl flex items-center justify-between gap-3 text-sm transition-all duration-200 group"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 rounded-lg bg-success/10 text-success group-hover:bg-success group-hover:text-success-foreground transition-all">
-                                                    {getIconForType(suggestion.type)}
+                        {/* CASE 1: EMPTY INPUT (Show History + SEO) */}
+                        {showHistoryMode && (
+                            <>
+                                {searchHistory.length > 0 && (
+                                    <div className="mb-3">
+                                        <div className="flex items-center gap-2 px-3 py-2 mb-1">
+                                            <Search className="w-4 h-4 text-primary" />
+                                            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                                                Based on your AI Chat
+                                            </h3>
+                                        </div>
+                                        <div className="space-y-0.5">
+                                            {searchHistory.map((term, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    onClick={() => handleSelect(term)}
+                                                    className="w-full text-left px-3 py-2.5 hover:bg-primary/10 rounded-xl flex items-center gap-3 text-sm transition-all duration-200 group"
+                                                >
+                                                    <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                                                        <Search className="w-4 h-4" />
+                                                    </div>
+                                                    <span className="font-medium truncate">{term}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="mb-3">
+                                    <div className="flex items-center gap-2 px-3 py-2 mb-1 border-t border-border/30 pt-3">
+                                        <div className="w-4 h-4 text-purple-500 animate-pulse">✨</div>
+                                        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                                            Trending in Nakuru
+                                        </h3>
+                                    </div>
+                                    <div className="space-y-0.5">
+                                        {SEO_PICKS.map((term, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => handleSelect(term)}
+                                                className="w-full text-left px-3 py-2.5 hover:bg-purple-500/10 rounded-xl flex items-center gap-3 text-sm transition-all duration-200 group"
+                                            >
+                                                <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500 group-hover:bg-purple-500 group-hover:text-white transition-all">
+                                                    <MapPin className="w-4 h-4" />
                                                 </div>
-                                                <span className="font-medium">{suggestion.value}</span>
-                                            </div>
-                                            {getBadgeForCategory(suggestion.type, suggestion.category)}
-                                        </button>
-                                    ))}
+                                                <span className="font-medium">{term}</span>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
+                            </>
                         )}
 
-                        {/* Land Section */}
-                        {groupedSuggestions.land.length > 0 && (
-                            <div className="mb-3">
-                                <div className="flex items-center gap-2 px-3 py-2 mb-1 border-t border-border/30 pt-3">
-                                    <TreePine className="w-4 h-4 text-accent" />
-                                    <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
-                                        Land
-                                    </h3>
-                                </div>
-                                <div className="space-y-0.5">
-                                    {groupedSuggestions.land.map((suggestion) => (
-                                        <button
-                                            key={suggestion.value}
-                                            onClick={() => handleSelect(suggestion.value)}
-                                            className="w-full text-left px-3 py-2.5 hover:bg-accent/10 rounded-xl flex items-center justify-between gap-3 text-sm transition-all duration-200 group"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 rounded-lg bg-accent/10 text-accent group-hover:bg-accent group-hover:text-accent-foreground transition-all">
-                                                    {getIconForType(suggestion.type)}
-                                                </div>
-                                                <span className="font-medium">{suggestion.value}</span>
-                                            </div>
-                                            {getBadgeForCategory(suggestion.type, suggestion.category)}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+
+                        {/* CASE 2: SEARCHING (Show Filters) */}
+                        {!showHistoryMode && hasAnySuggestions && (
+                            <>
+                                {/* Counties Section */}
+                                {groupedSuggestions.counties.length > 0 && (
+                                    <div className="mb-3">
+                                        <div className="flex items-center gap-2 px-3 py-2 mb-1">
+                                            <MapPin className="w-4 h-4 text-primary" />
+                                            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                                                Counties
+                                            </h3>
+                                        </div>
+                                        <div className="space-y-0.5">
+                                            {groupedSuggestions.counties.slice(0, 5).map((suggestion) => (
+                                                <button
+                                                    key={suggestion.value}
+                                                    onClick={() => handleSelect(suggestion.value)}
+                                                    className="w-full text-left px-3 py-2.5 hover:bg-primary/10 rounded-xl flex items-center gap-3 text-sm transition-all duration-200 group"
+                                                >
+                                                    <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                                                        {getIconForType(suggestion.type)}
+                                                    </div>
+                                                    <span className="font-medium">{suggestion.value}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Properties Section */}
+                                {groupedSuggestions.properties.length > 0 && (
+                                    <div className="mb-3">
+                                        <div className="flex items-center gap-2 px-3 py-2 mb-1 border-t border-border/30 pt-3">
+                                            <Building2 className="w-4 h-4 text-success" />
+                                            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                                                Properties
+                                            </h3>
+                                        </div>
+                                        <div className="space-y-0.5">
+                                            {groupedSuggestions.properties.map((suggestion) => (
+                                                <button
+                                                    key={suggestion.value}
+                                                    onClick={() => handleSelect(suggestion.value)}
+                                                    className="w-full text-left px-3 py-2.5 hover:bg-success/10 rounded-xl flex items-center justify-between gap-3 text-sm transition-all duration-200 group"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-2 rounded-lg bg-success/10 text-success group-hover:bg-success group-hover:text-success-foreground transition-all">
+                                                            {getIconForType(suggestion.type)}
+                                                        </div>
+                                                        <span className="font-medium">{suggestion.value}</span>
+                                                    </div>
+                                                    {getBadgeForCategory(suggestion.type, suggestion.category)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Land Section */}
+                                {groupedSuggestions.land.length > 0 && (
+                                    <div className="mb-3">
+                                        <div className="flex items-center gap-2 px-3 py-2 mb-1 border-t border-border/30 pt-3">
+                                            <TreePine className="w-4 h-4 text-accent" />
+                                            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                                                Land
+                                            </h3>
+                                        </div>
+                                        <div className="space-y-0.5">
+                                            {groupedSuggestions.land.map((suggestion) => (
+                                                <button
+                                                    key={suggestion.value}
+                                                    onClick={() => handleSelect(suggestion.value)}
+                                                    className="w-full text-left px-3 py-2.5 hover:bg-accent/10 rounded-xl flex items-center justify-between gap-3 text-sm transition-all duration-200 group"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-2 rounded-lg bg-accent/10 text-accent group-hover:bg-accent group-hover:text-accent-foreground transition-all">
+                                                            {getIconForType(suggestion.type)}
+                                                        </div>
+                                                        <span className="font-medium">{suggestion.value}</span>
+                                                    </div>
+                                                    {getBadgeForCategory(suggestion.type, suggestion.category)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Professionals Section */}
+                                {groupedSuggestions.professionals.length > 0 && (
+                                    <div className="mb-1">
+                                        <div className="flex items-center gap-2 px-3 py-2 mb-1 border-t border-border/30 pt-3">
+                                            <Users className="w-4 h-4 text-purple-500" />
+                                            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                                                Professional Experts
+                                            </h3>
+                                        </div>
+                                        <div className="space-y-0.5">
+                                            {groupedSuggestions.professionals.map((suggestion) => (
+                                                <button
+                                                    key={suggestion.value}
+                                                    onClick={() => handleSelect(suggestion.value)}
+                                                    className="w-full text-left px-3 py-2.5 hover:bg-purple-500/10 rounded-xl flex items-center gap-3 text-sm transition-all duration-200 group"
+                                                >
+                                                    <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500 group-hover:bg-purple-500 group-hover:text-white transition-all">
+                                                        {getIconForType(suggestion.type)}
+                                                    </div>
+                                                    <span className="font-medium">{suggestion.value}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </>
                         )}
 
-                        {/* Professionals Section */}
-                        {groupedSuggestions.professionals.length > 0 && (
-                            <div className="mb-1">
-                                <div className="flex items-center gap-2 px-3 py-2 mb-1 border-t border-border/30 pt-3">
-                                    <Users className="w-4 h-4 text-purple-500" />
-                                    <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
-                                        Professional Experts
-                                    </h3>
-                                </div>
-                                <div className="space-y-0.5">
-                                    {groupedSuggestions.professionals.map((suggestion) => (
-                                        <button
-                                            key={suggestion.value}
-                                            onClick={() => handleSelect(suggestion.value)}
-                                            className="w-full text-left px-3 py-2.5 hover:bg-purple-500/10 rounded-xl flex items-center gap-3 text-sm transition-all duration-200 group"
-                                        >
-                                            <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500 group-hover:bg-purple-500 group-hover:text-white transition-all">
-                                                {getIconForType(suggestion.type)}
-                                            </div>
-                                            <span className="font-medium">{suggestion.value}</span>
-                                        </button>
-                                    ))}
-                                </div>
+                        {!showHistoryMode && !hasAnySuggestions && (
+                            <div className="py-8 text-center text-muted-foreground">
+                                <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                <p>No matching results found</p>
                             </div>
                         )}
                     </div>

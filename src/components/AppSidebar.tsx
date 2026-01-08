@@ -8,7 +8,18 @@ import {
   Settings,
   FileText,
   ChevronLeft,
+  ChevronRight,
   Calculator,
+  GraduationCap,
+  Baby, // For Family Homes
+  Coins, // For Investment
+  Shield, // For Gated Communities
+  Sparkles, // For First-Time Buyers
+  Crown, // For Luxury Living
+  Warehouse, // For Warehouses
+  Building2, // For Mixed-Use
+  Search,
+  Compass,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -21,12 +32,19 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { UserProfileCard } from "@/components/UserProfileCard";
 import { ProfileDrawer } from "@/components/ProfileDrawer";
 import { useAuth } from "@/hooks/useAuth";
-import { Shield } from "lucide-react";
 
 const menuItems = [
   {
@@ -35,9 +53,52 @@ const menuItems = [
     icon: Home,
   },
   {
-    title: "Properties",
+    title: "Explore", // Renamed from Properties
     url: "/properties",
-    icon: MapPin,
+    icon: Compass, // Changed icon to Compass to represent exploration
+    isCollapsible: true, // Flag to identify dropdown
+    items: [
+      {
+        title: "Student Housing",
+        url: "/properties?purpose=student-housing",
+        icon: GraduationCap,
+      },
+      {
+        title: "Family Homes",
+        url: "/properties?purpose=family-homes",
+        icon: Baby,
+      },
+      {
+        title: "Investment",
+        url: "/properties?purpose=investment",
+        icon: Coins,
+      },
+      {
+        title: "Gated Communities",
+        url: "/properties?purpose=gated-communities",
+        icon: Shield,
+      },
+      {
+        title: "First-Time Buyers",
+        url: "/properties?purpose=first-time-buyers",
+        icon: Sparkles,
+      },
+      {
+        title: "Luxury Living",
+        url: "/properties?purpose=luxury-living",
+        icon: Crown,
+      },
+      {
+        title: "Warehouses",
+        url: "/properties?purpose=warehouses",
+        icon: Warehouse,
+      },
+      {
+        title: "Mixed-Use",
+        url: "/properties?purpose=mixed-use",
+        icon: Building2,
+      },
+    ]
   },
   {
     title: "Short Stay",
@@ -116,15 +177,73 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {menuItems.map((item) => {
-                  const isActive = location.pathname === item.url;
+                  const isActive = location.pathname.startsWith(item.url) && item.url !== '/';
+                  // Dashboard special case
+                  const isDashboardActive = item.url === '/' && location.pathname === '/';
+
+                  if (item.isCollapsible && item.items) {
+                    return (
+                      <Collapsible
+                        key={item.title}
+                        asChild
+                        defaultOpen={isActive}
+                        className="group/collapsible"
+                      >
+                        <SidebarMenuItem>
+                          <CollapsibleTrigger asChild>
+                            <SidebarMenuButton
+                              tooltip={isCollapsed ? item.title : undefined}
+                              className={cn(
+                                "transition-all duration-200 group-data-[state=open]/collapsible:bg-primary/5",
+                                isActive ? 'text-primary' : 'hover:bg-primary/5 hover:text-primary'
+                              )}
+                            >
+                              <item.icon className="w-5 h-5" />
+                              {!isCollapsed && (
+                                <>
+                                  <span>{item.title}</span>
+                                  <ChevronRight className="ml-auto w-4 h-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                                </>
+                              )}
+                            </SidebarMenuButton>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <SidebarMenuSub>
+                              {item.items.map((subItem) => {
+                                const isSubActive = location.search.includes(subItem.url.split('?')[1] || 'non-existent-param');
+                                return (
+                                  <SidebarMenuSubItem key={subItem.title}>
+                                    <SidebarMenuSubButton
+                                      asChild
+                                      isActive={isSubActive}
+                                      className={cn(
+                                        "transition-all duration-200",
+                                        isSubActive ? 'text-primary font-medium bg-primary/10' : 'hover:text-primary'
+                                      )}
+                                    >
+                                      <Link to={subItem.url} className="flex items-center gap-2">
+                                        <subItem.icon className="w-4 h-4 opacity-70" />
+                                        <span>{subItem.title}</span>
+                                      </Link>
+                                    </SidebarMenuSubButton>
+                                  </SidebarMenuSubItem>
+                                );
+                              })}
+                            </SidebarMenuSub>
+                          </CollapsibleContent>
+                        </SidebarMenuItem>
+                      </Collapsible>
+                    );
+                  }
+
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
-                        isActive={isActive}
+                        isActive={isDashboardActive || (isActive && !item.isCollapsible)}
                         className={`
                           transition-all duration-200
-                          ${isActive
+                          ${(isDashboardActive || (isActive && !item.isCollapsible))
                             ? 'bg-primary/10 text-primary hover:bg-primary/15 font-semibold border-l-2 border-primary'
                             : 'hover:bg-primary/5 hover:text-primary'
                           }
@@ -132,7 +251,7 @@ export function AppSidebar() {
                         tooltip={isCollapsed ? item.title : undefined}
                       >
                         <Link to={item.url} className="flex items-center gap-3">
-                          <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : ''}`} />
+                          <item.icon className={`w-5 h-5 ${(isDashboardActive || (isActive && !item.isCollapsible)) ? 'text-primary' : ''}`} />
                           {!isCollapsed && <span>{item.title}</span>}
                         </Link>
                       </SidebarMenuButton>

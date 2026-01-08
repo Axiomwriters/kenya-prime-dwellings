@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,15 +19,15 @@ export default function Auth() {
     email: "",
     password: "",
   });
-  const { signIn, signUp, isAuthenticated } = useAuth();
+  const { signIn, signUp, isAuthenticated, mockSignIn } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/");
-    }
-  }, [isAuthenticated, navigate]);
+  // Get the page they were trying to visit, or default to home
+  // @ts-ignore - 'from' might not exist on state type
+  const from = location.state?.from?.pathname || "/";
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +49,7 @@ export default function Auth() {
           // Redirect based on login type (simulated for now as role is handled by backend)
           if (loginType === "agent") navigate("/agent");
           else if (loginType === "professional") navigate("/professional");
-          else navigate("/");
+          else navigate("/", { replace: true });
         }, 1500);
       } else {
         if (!formData.name) {
@@ -72,7 +72,7 @@ export default function Auth() {
           // In a real app, we would assign the role here. For now, we redirect.
           if (loginType === "agent") navigate("/agent");
           else if (loginType === "professional") navigate("/professional");
-          else navigate("/");
+          else navigate("/", { replace: true });
         }, 1500);
       }
     } catch (error) {
@@ -81,7 +81,24 @@ export default function Auth() {
     }
   };
 
-  const handleSocialLogin = (provider: string) => {
+  const handleSocialLogin = async (provider: string) => {
+    if (provider === "Google") {
+      setIsLoading(true);
+
+      // Simulate network delay for realism
+      setTimeout(async () => {
+        await mockSignIn(); // Use our new mock sign in
+        setIsLoading(false);
+        setShowSuccess(true);
+
+        setTimeout(() => {
+          toast.success("Login successful");
+          navigate("/", { replace: true });
+        }, 1500);
+      }, 1000);
+
+      return;
+    }
     toast.info(`${provider} login coming soon!`);
   };
 

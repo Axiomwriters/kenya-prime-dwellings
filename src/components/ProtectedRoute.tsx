@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
@@ -14,7 +14,8 @@ export function ProtectedRoute({
   requiredRole,
   redirectTo = '/auth'
 }: ProtectedRouteProps) {
-  const { isAuthenticated, userRole, loading } = useAuth();
+  const location = useLocation();
+  const { isAuthenticated, loading, userRole } = useAuth();
 
   if (loading) {
     return (
@@ -25,7 +26,7 @@ export function ProtectedRoute({
   }
 
   if (!isAuthenticated) {
-    return <Navigate to={redirectTo} replace />;
+    return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
   // If authenticated but role not loaded yet, show loader

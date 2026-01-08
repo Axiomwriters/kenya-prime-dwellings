@@ -47,10 +47,10 @@ const mockBlogPosts: BlogPost[] = [
     image: "/api/placeholder/300/200"
   },
   {
-    id: "4", 
+    id: "4",
     title: "Affordable Housing Initiative: What You Need to Know",
     excerpt: "Government's latest affordable housing program offers new pathways to homeownership for middle-income Kenyans.",
-    author: "Peter Ochieng", 
+    author: "Peter Ochieng",
     date: "2024-01-08",
     readTime: "7 min read",
     category: "Policy",
@@ -62,7 +62,7 @@ const mockBlogPosts: BlogPost[] = [
     excerpt: "Green building technologies and eco-friendly materials are becoming the new standard in Kenya's construction industry.",
     author: "Mary Njeri",
     date: "2024-01-05",
-    readTime: "4 min read", 
+    readTime: "4 min read",
     category: "Sustainability",
     image: "/api/placeholder/300/200"
   },
@@ -80,18 +80,18 @@ const mockBlogPosts: BlogPost[] = [
 
 export function NewsBlogSection() {
   const isMobile = useIsMobile();
-  
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
       day: 'numeric',
-      year: 'numeric' 
+      year: 'numeric'
     });
   };
 
   const BlogCard = ({ post, index }: { post: BlogPost; index: number }) => (
-    <Card 
+    <Card
       className="group hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] animate-scale-in w-full border-border/50"
       style={{ animationDelay: `${index * 0.1}s` }}
     >
@@ -102,30 +102,30 @@ export function NewsBlogSection() {
           </div>
         </div>
         {/* Category badge overlay */}
-        <Badge 
-          variant="secondary" 
+        <Badge
+          variant="secondary"
           className="absolute top-3 right-3 text-xs shadow-lg backdrop-blur-sm bg-background/80"
         >
           {post.category}
         </Badge>
       </div>
-      
+
       <CardHeader className="pb-3">
         <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-tight mb-2">
           {post.title}
         </h3>
-        
+
         <div className="flex items-center text-xs text-muted-foreground">
           <Clock className="w-3 h-3 mr-1" />
           {post.readTime}
         </div>
       </CardHeader>
-      
+
       <CardContent className="pt-0">
         <p className="text-sm text-muted-foreground/80 mb-4 line-clamp-3 leading-relaxed">
           {post.excerpt}
         </p>
-        
+
         <div className="flex items-center justify-between pt-3 border-t border-border/50">
           <div className="flex items-center text-xs text-muted-foreground">
             <Calendar className="w-3 h-3 mr-1 flex-shrink-0" />
@@ -135,7 +135,7 @@ export function NewsBlogSection() {
               <span className="text-[11px] sm:text-xs">{post.author}</span>
             </div>
           </div>
-          
+
           <ArrowRight className="w-4 h-4 text-primary group-hover:translate-x-2 transition-transform flex-shrink-0" />
         </div>
       </CardContent>
@@ -156,38 +156,30 @@ export function NewsBlogSection() {
             Stay informed with the latest market trends and tips
           </p>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Expert insights and analysis to help you make informed decisions 
+            Expert insights and analysis to help you make informed decisions
             in Kenya's dynamic real estate market.
           </p>
         </div>
 
-        {isMobile ? (
-          <div className="relative">
-            <Carousel
-              opts={{
-                align: "start",
-                loop: true,
-              }}
-              className="w-full"
-            >
-              <CarouselContent className="-ml-2 md:-ml-4">
-                {mockBlogPosts.map((post, index) => (
-                  <CarouselItem key={post.id} className="pl-2 md:pl-4 basis-4/5 sm:basis-3/4">
-                    <BlogCard post={post} index={index} />
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="left-2" />
-              <CarouselNext className="right-2" />
-            </Carousel>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockBlogPosts.map((post, index) => (
-              <BlogCard key={post.id} post={post} index={index} />
-            ))}
-          </div>
-        )}
+        <div className="relative">
+          <Carousel
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-2 md:-ml-4">
+              {mockBlogPosts.map((post, index) => (
+                <CarouselItem key={post.id} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3">
+                  <BlogCard post={post} index={index} />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-2 bg-background/80 backdrop-blur-sm border-border/50 hover:bg-background hidden md:flex" />
+            <CarouselNext className="right-2 bg-background/80 backdrop-blur-sm border-border/50 hover:bg-background hidden md:flex" />
+          </Carousel>
+        </div>
 
         <div className="text-center mt-12 animate-fade-in">
           <button className="inline-flex items-center gap-2 px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105">

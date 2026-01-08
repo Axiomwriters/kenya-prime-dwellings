@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { mockProperties } from "@/data/mockListings";
-import { StatsSection } from "@/components/StatsSection";
+import { HeroAI } from "@/components/HeroAI";
 import { BestAgentsSection } from "@/components/BestAgentsSection";
 import { BestLocationsSection } from "@/components/BestLocationsSection";
 import { BuyAbilitySection } from "@/components/BuyAbilitySection";
@@ -160,9 +160,9 @@ export default function Dashboard() {
     <div className="flex-1 w-full">
       <div className="min-h-screen bg-background animate-fade-in">
 
-        <StatsSection />
+        <HeroAI />
 
-        <main className="max-w-7xl mx-auto py-8 px-[20px]">
+        <main id="property-listings" className="max-w-7xl mx-auto py-8 px-[20px]">
           <div className="space-y-8">
             {/* Filters */}
             <PropertyFilters
