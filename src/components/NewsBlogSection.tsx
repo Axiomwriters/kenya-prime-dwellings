@@ -190,4 +190,4 @@ export function NewsBlogSection() {
       </div>
     </section>
   );
-}
+} 

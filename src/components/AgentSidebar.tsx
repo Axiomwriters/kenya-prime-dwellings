@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -14,6 +15,7 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   LayoutDashboard,
   User,
@@ -28,12 +30,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { SponsoredSpotlight } from "./agent-sidebar-widgets/SponsoredSpotlight";
+import { AccountTierWidget } from "./agent-sidebar-widgets/AccountTierWidget";
 
 const mainItems = [
   { title: "Dashboard", url: "/agent", icon: LayoutDashboard },
   { title: "My Profile", url: "/agent/profile", icon: User },
   { title: "My Listings", url: "/agent/listings", icon: HomeIcon },
-  { title: "Add New Listing", url: "/agent/listings/new", icon: Plus },
+  // { title: "Add New Listing", url: "/agent/listings/new", icon: Plus }, // Removed as per Smart Modal request
   { title: "Notifications", url: "/agent/notifications", icon: Bell, badge: 3 },
   { title: "Settings", url: "/agent/settings", icon: Settings },
 ];
@@ -120,6 +124,15 @@ export function AgentSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        <div className="mt-auto">
+          {!isCollapsed && (
+            <>
+              <SponsoredSpotlight />
+              <AccountTierWidget />
+            </>
+          )}
+        </div>
+
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -134,22 +147,43 @@ export function AgentSidebar() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start gap-3 hover:bg-destructive/10 hover:text-destructive"
-                    onClick={handleLogout}
-                  >
-                    <LogOut className="w-4 h-4" />
-                    {!isCollapsed && <span>Logout</span>}
-                  </Button>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            >
+              <Avatar className="h-8 w-8 rounded-lg">
+                <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.user_metadata?.full_name} />
+                <AvatarFallback className="rounded-lg">
+                  {(user?.user_metadata?.full_name || user?.email || "AG").slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold">{user?.user_metadata?.full_name || 'Agent'}</span>
+                <span className="truncate text-xs">{user?.email}</span>
+              </div>
+              <div
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleLogout();
+                }}
+                className="ml-auto hover:bg-destructive/10 hover:text-destructive p-2 rounded-md transition-colors cursor-pointer"
+                title="Logout"
+              >
+                <LogOut className="size-4" />
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }
