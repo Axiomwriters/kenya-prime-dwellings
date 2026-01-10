@@ -14,11 +14,7 @@ export function TopHeaderBar() {
   const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
 
   return (
-    <div
-      className={cn(
-        "w-full bg-background/95 backdrop-blur-xl border-b border-border/50 transition-all duration-300 ease-in-out z-[70]",
-      )}
-    >
+    <div className="w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-10 text-sm">
           {/* Left side - Phone */}

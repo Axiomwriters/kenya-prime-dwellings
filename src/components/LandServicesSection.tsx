@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, DollarSign, Users, MapPin, Home, Handshake, Building, Landmark } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { AnimatedCountyText } from "@/components/AnimatedCountyText";
 
 // Import land service images
@@ -307,7 +306,6 @@ const categoryLabels = {
 
 export function LandServicesSection() {
   const [activeCategory, setActiveCategory] = useState<keyof typeof landServicesData>("all");
-  const isMobile = useIsMobile();
 
   const currentServices = landServicesData[activeCategory];
 
@@ -412,39 +410,27 @@ export function LandServicesSection() {
           </div>
         </div>
 
-        {isMobile ? (
-          <div className="relative">
-            <Carousel
-              opts={{
-                align: "start",
-                loop: true,
-              }}
-              className="w-full"
-            >
-              <CarouselContent className="-ml-2 md:-ml-4">
-                {currentServices.map((service, index) => (
-                  <CarouselItem key={service.id} className="pl-2 md:pl-4 basis-4/5 sm:basis-3/4">
+        <div className="relative px-4 sm:px-12">
+          <Carousel
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-4">
+              {currentServices.map((service, index) => (
+                <CarouselItem key={service.id} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
+                  <div className="h-full">
                     <ServiceCard service={service} index={index} />
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="left-2" />
-              <CarouselNext className="right-2" />
-            </Carousel>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentServices.map((service, index) => (
-              <div
-                key={service.id}
-                className={`rounded-xl p-4 ${index % 2 === 0 ? 'bg-background' : 'bg-muted/30'
-                  }`}
-              >
-                <ServiceCard service={service} index={index} />
-              </div>
-            ))}
-          </div>
-        )}
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="absolute left-0 -translate-x-1/2 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary hover:text-white h-12 w-12 shadow-lg z-30 opacity-70 hover:opacity-100 transition-all duration-300" />
+            <CarouselNext className="absolute right-0 translate-x-1/2 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary hover:text-white h-12 w-12 shadow-lg z-30 opacity-70 hover:opacity-100 transition-all duration-300" />
+          </Carousel>
+        </div>
       </div>
     </section>
   );

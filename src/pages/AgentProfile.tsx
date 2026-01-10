@@ -147,6 +147,10 @@ export default function AgentProfile() {
                 <span className="font-bold">{agent.rating}</span>
                 <span className="text-xs opacity-80 decoration-dotted underline cursor-pointer hover:opacity-100">({agent.reviews} Reviews)</span>
               </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 cursor-default">
+                <Sparkles className="w-4 h-4" />
+                <span className="text-sm font-bold">98% Reputation Score</span>
+              </div>
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-muted-foreground bg-muted/50 dark:bg-white/5 border border-transparent hover:border-border transition-colors cursor-default">
                 <Trophy className="w-4 h-4" />
                 <span className="text-sm">Top 5% Agent in Nairobi</span>

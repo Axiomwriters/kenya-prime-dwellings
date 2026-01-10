@@ -40,7 +40,7 @@ export function PropertyHeroGallery({ images, title, location, labels }: Propert
     return (
         <div className="relative rounded-2xl overflow-hidden shadow-2xl group">
             {/* Desktop Grid Layout */}
-            <div className="hidden md:grid grid-cols-4 grid-rows-2 h-[600px] gap-2">
+            <div className="hidden md:grid grid-cols-4 grid-rows-2 h-[500px] gap-2">
                 {/* Main Hero Image (Span 2 cols, 2 rows -> 50% width effectively, but 60% visually via col-span-2 if we do 5 cols. Let's do 4 cols: Main is 2x2) */}
                 <div
                     className="col-span-2 row-span-2 relative cursor-pointer overflow-hidden"

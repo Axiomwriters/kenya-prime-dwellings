@@ -4,6 +4,7 @@ import { PropertyHeroGallery } from "@/components/property/PropertyHeroGallery";
 import { PropertyAgentCard } from "@/components/property/PropertyAgentCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { SimilarProperties } from "@/components/SimilarProperties";
 import {
   ArrowLeft,
@@ -21,6 +22,7 @@ import { MapComponent } from "@/components/MapComponent";
 import { cn } from "@/lib/utils";
 import { mockProperties } from "@/data/mockListings";
 import { MarketInsight } from "@/components/agents/MarketInsight";
+import { MortgageConnectCard } from "@/components/property/MortgageConnectCard";
 
 
 export default function PropertyDetail() {
@@ -83,8 +85,16 @@ export default function PropertyDetail() {
     deals: 24,
     phone: "+254 700 000000",
     email: "sarah@example.com",
+    id: "elena-rodriguez",
     verified: true,
-    isOnline: true
+    isOnline: true,
+    lastActive: "12 mins ago",
+    avgResponseTime: "under 1 hr",
+    reputationScore: 94,
+    dealsLast90Days: 8,
+    avgDaysToClose: 21,
+    agencyRegistered: true,
+    listingsVerified: true
   };
 
   return (
@@ -166,6 +176,11 @@ export default function PropertyDetail() {
 
             <div className="h-px bg-border/50" />
 
+            {/* Mortgage & Lenders Section */}
+            <MortgageConnectCard propertyValue={property.price} />
+
+            <div className="h-px bg-border/50" />
+
             {/* Map & Highlights */}
             <div className="space-y-6">
               <h2 className="text-2xl font-bold">Location & Nearby</h2>
@@ -198,15 +213,25 @@ export default function PropertyDetail() {
 
           {/* RIGHT COLUMN (Sticky Agent) */}
           <div className="lg:col-span-4 relative h-full space-y-8">
-            <div className="sticky top-[90px] space-y-6">
-              <PropertyAgentCard agent={agentData} />
+            <div className="sticky top-[90px]">
+              <ScrollArea className="h-[calc(100vh-100px)] lg:pr-4">
+                <div className="space-y-6 pb-10">
+                  <PropertyAgentCard agent={agentData} property={{
+                    id: property.id,
+                    title: property.title,
+                    location: property.location,
+                    price: property.priceFormatted,
+                    image: property.images[0]
+                  }} />
 
-              {/* AI Market Insight Agent */}
-              <MarketInsight
-                price={property.price}
-                location={property.location}
-                size={property.landSize || `${property.bedrooms}bd`}
-              />
+                  {/* AI Market Insight Agent */}
+                  <MarketInsight
+                    price={property.price}
+                    location={property.location}
+                    size={property.landSize || `${property.bedrooms}bd`}
+                  />
+                </div>
+              </ScrollArea>
             </div>
           </div>
 

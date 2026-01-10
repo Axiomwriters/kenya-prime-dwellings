@@ -6,7 +6,8 @@ import {
   Moon,
   Sun,
   Home,
-  Search
+  Search,
+  Map
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
@@ -17,9 +18,10 @@ import { SearchAutocomplete } from "@/components/SearchAutocomplete";
 interface DashboardHeaderProps {
   searchTerm?: string;
   onSearchChange?: (term: string) => void;
+  onOpenTrip?: () => void;
 }
 
-export function DashboardHeader({ searchTerm = "", onSearchChange }: DashboardHeaderProps) {
+export function DashboardHeader({ searchTerm = "", onSearchChange, onOpenTrip }: DashboardHeaderProps) {
   const { theme, setTheme } = useTheme();
   const { isAuthenticated } = useAuth();
 
@@ -67,6 +69,18 @@ export function DashboardHeader({ searchTerm = "", onSearchChange }: DashboardHe
 
           {/* Right: Actions */}
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            {/* Trip Builder Trigger */}
+            {onOpenTrip && (
+              <Button
+                variant="ghost" 
+                size="icon"
+                onClick={onOpenTrip}
+                className="relative hover:bg-purple-100 hover:text-purple-600 dark:hover:bg-purple-900/40 dark:hover:text-purple-400 transition-colors h-9 w-9"
+              >
+                <Map className="w-4 h-4 sm:w-5 sm:h-5" />
+              </Button>
+            )}
+
             {/* Notifications */}
             {isAuthenticated && (
               <Button

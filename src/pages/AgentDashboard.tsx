@@ -9,6 +9,7 @@ import MyListings from "./AgentDashboard/MyListings";
 import CreateListing from "./AgentDashboard/CreateListing";
 import Notifications from "./AgentDashboard/Notifications";
 import AgentSettings from "./AgentDashboard/AgentSettings";
+import { AgentTripsPanel } from "./AgentDashboard/components/AgentTripsPanel";
 import { cn } from "@/lib/utils";
 
 export default function AgentDashboard() {
@@ -41,6 +42,7 @@ export default function AgentDashboard() {
               <Route path="listings/new" element={<CreateListing />} />
               <Route path="listings/edit/:id" element={<CreateListing />} />
               <Route path="notifications" element={<Notifications />} />
+              <Route path="trips" element={<AgentTripsPanel />} />
               <Route path="settings" element={<AgentSettings />} />
             </Routes>
           </main>

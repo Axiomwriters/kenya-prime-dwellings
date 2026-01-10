@@ -20,6 +20,7 @@ import {
   LayoutDashboard,
   User,
   Home as HomeIcon,
+  Map,
   Plus,
   Bell,
   Settings,
@@ -37,6 +38,7 @@ const mainItems = [
   { title: "Dashboard", url: "/agent", icon: LayoutDashboard },
   { title: "My Profile", url: "/agent/profile", icon: User },
   { title: "My Listings", url: "/agent/listings", icon: HomeIcon },
+  { title: "Trips & Viewings", url: "/agent/trips", icon: Map },
   // { title: "Add New Listing", url: "/agent/listings/new", icon: Plus }, // Removed as per Smart Modal request
   { title: "Notifications", url: "/agent/notifications", icon: Bell, badge: 3 },
   { title: "Settings", url: "/agent/settings", icon: Settings },

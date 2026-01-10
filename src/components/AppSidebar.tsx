@@ -35,6 +35,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  SidebarMenuSubItem as SidebarMenuSubItemType,
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
@@ -121,36 +122,21 @@ const menuItems = [
     url: "/reports",
     icon: FileText,
   },
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
-  },
 ];
 
-export function AppSidebar() {
+export function AppSidebar({ isScrolled }: { isScrolled: boolean }) {
   const location = useLocation();
   const { state, isMobile } = useSidebar();
   const { isAdmin } = useAuth();
   const isCollapsed = state === "collapsed" && !isMobile;
   const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0.5);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   return (
     <>
       <Sidebar
         collapsible="icon"
         className={cn(
-          "border-r border-primary/10 z-50 fixed left-0 shadow-2xl transition-all duration-75",
+          "border-r border-primary/10 z-50 fixed left-0 shadow-2xl transition-all duration-150 ease-out",
           isScrolled ? "top-[64px] h-[calc(100vh-64px)]" : "top-[104px] h-[calc(100vh-104px)]"
         )}
       >

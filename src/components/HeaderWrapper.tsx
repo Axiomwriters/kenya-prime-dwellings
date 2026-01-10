@@ -3,28 +3,20 @@ import { useSearchParams } from "react-router-dom";
 import { TopHeaderBar } from "@/components/TopHeaderBar";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
 
-export function HeaderWrapper() {
+interface HeaderWrapperProps {
+    isScrolled: boolean;
+    onOpenTrip?: () => void;
+}
+
+export function HeaderWrapper({ isScrolled, onOpenTrip }: HeaderWrapperProps) {
     const [searchParams, setSearchParams] = useSearchParams();
     const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
-    const [isScrolled, setIsScrolled] = useState(false);
 
     // Sync local state with URL params
     useEffect(() => {
         setSearchTerm(searchParams.get("search") || "");
     }, [searchParams]);
-
-    // Handle scroll effect
-    useEffect(() => {
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 0.5);
-        };
-
-        window.addEventListener("scroll", handleScroll);
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
 
     const handleSearch = (term: string) => {
         setSearchTerm(term);
@@ -37,25 +29,32 @@ export function HeaderWrapper() {
 
     return (
         <div className="flex flex-col w-full z-[60] top-0">
+            {/* Unified Header Component */}
             <div
                 className={cn(
-                    "bg-background/95 backdrop-blur-xl border-border/20 overflow-hidden transition-all duration-75 ease-out",
-                    isScrolled ? "h-0 opacity-0 border-none" : "h-[40px] opacity-100 border-b"
-                )}
-            >
-                <TopHeaderBar />
-            </div>
-            <div
-                className={cn(
-                    "w-full border-b border-border/40 transition-all duration-300",
+                    "w-full border-b border-border/40 transition-all duration-150 ease-out",
                     isScrolled
-                        ? "bg-background/70 backdrop-blur-xl shadow-md"
+                        ? "bg-background/80 backdrop-blur-md shadow-md"
                         : "bg-background shadow-sm"
                 )}
             >
+                {/* Collapsible Utility Bar with Separator */}
+                <div
+                    className={cn(
+                        "w-full overflow-hidden transition-[height,opacity] duration-150 ease-out",
+                        isScrolled ? "h-0 opacity-0" : "h-[40px] opacity-100"
+                    )}
+                >
+                    <div className="border-b border-border/10">
+                        <TopHeaderBar />
+                    </div>
+                </div>
+
+                {/* Main Header */}
                 <DashboardHeader
                     searchTerm={searchTerm}
                     onSearchChange={handleSearch}
+                    onOpenTrip={onOpenTrip}
                 />
             </div>
         </div>
