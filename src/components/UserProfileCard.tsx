@@ -2,13 +2,7 @@ import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { AgentRegistrationDialog } from "@/components/AgentRegistrationDialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import {
   Tooltip,
   TooltipContent,
@@ -18,15 +12,12 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useSidebar } from "@/components/ui/sidebar";
 import {
-  MoreVertical,
   Eye,
-  LogOut,
   BadgeCheck,
   Briefcase,
   Key,
   Wallet,
-  User,
-  Settings
+  User
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -37,7 +28,7 @@ interface UserProfileCardProps {
 }
 
 export function UserProfileCard({ onOpenProfile }: UserProfileCardProps) {
-  const { user, userRole, isAuthenticated, signOut } = useAuth();
+  const { user, userRole, isAuthenticated, signOut, viewMode, toggleViewMode } = useAuth();
   const { state, isMobile } = useSidebar();
   const location = useLocation();
   const isCollapsed = state === "collapsed" && !isMobile;
@@ -198,39 +189,24 @@ export function UserProfileCard({ onOpenProfile }: UserProfileCardProps) {
             </div>
 
             {/* Dropdown Menu */}
-            <DropdownMenu modal={false}>
-              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 -mr-1 text-muted-foreground hover:text-foreground hover:bg-background/80"
-                >
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 glass-card border-primary/20 z-50">
-                <div className="px-2 py-1.5 text-xs text-muted-foreground font-medium bg-muted/50 mb-1">
-                  My Account
-                </div>
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onOpenProfile(); }}>
-                  <User className="w-4 h-4 mr-2" /> Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); }}>
-                  <Settings className="w-4 h-4 mr-2" /> Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={(e) => { e.stopPropagation(); handleLogout(); }}
-                  className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/20"
-                >
-                  <LogOut className="w-4 h-4 mr-2" /> Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+
           </div>
 
           {/* Badges / Interactive Pills */}
           <div className="flex flex-wrap gap-1.5">
+            {/* Explicit Trigger for Profile Drawer */}
+            <div
+              role="button"
+              onClick={(e) => { e.stopPropagation(); onOpenProfile(); }}
+            >
+              <BadgeWrapper
+                icon={<User size={10} />}
+                label="My Hub"
+                color="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 cursor-pointer shadow-sm"
+                tooltip="Open My Real Estate Hub"
+              />
+            </div>
+
             {isAgent && (
               <BadgeWrapper icon={<Briefcase size={10} />} label="Agent" color="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20" />
             )}
@@ -238,22 +214,32 @@ export function UserProfileCard({ onOpenProfile }: UserProfileCardProps) {
               <BadgeWrapper icon={<Key size={10} />} label="Admin" color="bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20" />
             )}
 
-            {/* User Type Badges - Interactive */}
-            {(isBuyer || isRenter) && (
-              <>
-                <BadgeWrapper
-                  icon={<Wallet size={10} />}
-                  label="Buyer"
-                  color="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
-                  tooltip="Looking to purchase properties"
-                />
-                <BadgeWrapper
-                  icon={<HomeIcon size={10} />}
-                  label="Renter"
-                  color="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 hover:bg-blue-500/20"
-                  tooltip="Searching for rental properties"
-                />
-              </>
+            {/* Live Buyer/Renter Toggle */}
+            {(!isAgent && !isAdmin) && (
+              <div className="flex bg-muted/60 p-0.5 rounded-lg border border-border/50 shadow-inner">
+                <button
+                  onClick={(e) => { e.stopPropagation(); if (viewMode !== 'buyer') toggleViewMode(); }}
+                  className={`
+                      px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide rounded-md transition-all duration-300 flex items-center gap-1
+                      ${viewMode === 'buyer'
+                      ? 'bg-emerald-500 text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'}
+                   `}
+                >
+                  <Wallet size={9} /> Buyer
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); if (viewMode !== 'renter') toggleViewMode(); }}
+                  className={`
+                      px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide rounded-md transition-all duration-300 flex items-center gap-1
+                      ${viewMode === 'renter'
+                      ? 'bg-blue-500 text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'}
+                   `}
+                >
+                  <HomeIcon size={9} /> Renter
+                </button>
+              </div>
             )}
           </div>
 

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Home, Building, Building2, MapPin, Store } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLocationAgent } from "@/contexts/LocationAgentContext";
 
 interface FilterProps {
   activeFilter: string;
@@ -27,9 +28,10 @@ export function PropertyFilters({
 }: FilterProps) {
   // Removed unused state and ref
 
+  const { currentLocationFocus } = useLocationAgent();
 
   const statusFilters = [
-    { key: "all", label: "All Properties" },
+    { key: "all", label: currentLocationFocus ? `All in ${currentLocationFocus.name}` : "All Properties" },
     { key: "sale", label: "Buy" },
     { key: "rent", label: "Rent" },
     // { key: "short_stay", label: "Short Stay" } // Included if needed, but user emphasized "All | Buy | Rent | Land"
@@ -112,7 +114,7 @@ export function PropertyFilters({
         <div className="flex items-center justify-between px-1">
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Explore by Purpose</span>
         </div>
-        <div 
+        <div
           className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 text-sm -mx-1 px-1 [&::-webkit-scrollbar]:hidden"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >

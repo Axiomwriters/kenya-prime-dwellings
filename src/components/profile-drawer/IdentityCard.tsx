@@ -20,7 +20,7 @@ export function IdentityCard({ user, profile }: IdentityCardProps) {
     const journeyProgress = 60; // 60% based on "Viewing"
 
     return (
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-background to-primary/5 border border-primary/10 p-6 shadow-sm group hover:shadow-md transition-all duration-300">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-background to-primary/5 p-5 shadow-sm group hover:shadow-md transition-all duration-300 mt-2">
             <div className="flex items-start justify-between gap-4">
                 <div className="relative">
                     <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />

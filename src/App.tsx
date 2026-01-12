@@ -11,7 +11,11 @@ import { Preloader } from "@/components/Preloader";
 import { ScrollToTopHandler } from "@/components/ScrollToTopHandler";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { TripProvider } from "@/contexts/TripContext";
+import { LocationAgentProvider } from "@/contexts/LocationAgentContext";
 import Dashboard from "./pages/Dashboard";
+import ExplorePage from "./pages/ExplorePage";
+import BecomeAgent from "./pages/BecomeAgent";
+import HydrateData from "./pages/HydrateData";
 import Properties from "./pages/Properties";
 import PropertyDetail from "./pages/PropertyDetail";
 import AffordabilityPage from "./pages/AffordabilityPage";
@@ -61,72 +65,81 @@ const App = () => {
       >
         <TooltipProvider>
           <TripProvider>
-            {isLoading && <Preloader />}
-            <Toaster />
-            <Sonner />
-            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-              <AuthProvider>
-                <ScrollToTopHandler />
-                <ScrollToTop />
-                <Routes>
-                  <Route element={<MainLayout />}>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/properties" element={<Properties />} />
-                    <Route path="/properties/:id" element={<PropertyDetail />} />
-                    <Route path="/affordability" element={<AffordabilityPage />} />
-                  </Route>
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/auth/reset" element={<ResetPassword />} />
-                  <Route path="/profile/settings" element={<UserProfileSettings />} />
-                  <Route path="/saved-properties" element={<SavedProperties />} />
-                  <Route path="/account/settings" element={<AccountSettings />} />
-                  <Route path="/agents/profile/:id" element={<AgentProfile />} />
-                  <Route
-                    path="/professional/*"
-                    element={
-                      <ProtectedRoute requiredRole="professional">
-                        <ProfessionalDashboard />
+            <LocationAgentProvider>
+              {isLoading && <Preloader />}
+              <Toaster />
+              <Sonner />
+              <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <AuthProvider>
+                  <ScrollToTopHandler />
+                  <ScrollToTop />
+                  <Routes>
+                    <Route element={<MainLayout />}>
+                      <Route path="/" element={<Dashboard />} />
+                      <Route path="/properties" element={<Properties />} />
+                      <Route path="/properties/:id" element={<PropertyDetail />} />
+                      <Route path="/explore/:category" element={<ExplorePage />} />
+                      <Route path="/affordability" element={<AffordabilityPage />} />
+                    </Route>
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/auth/reset" element={<ResetPassword />} />
+                    <Route path="/profile/settings" element={<UserProfileSettings />} />
+                    <Route path="/saved-properties" element={<SavedProperties />} />
+                    <Route path="/account/settings" element={<AccountSettings />} />
+                    <Route path="/agents/profile/:id" element={<AgentProfile />} />
+                    <Route path="/become-agent" element={
+                      <ProtectedRoute>
+                        <BecomeAgent />
                       </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/agent/*"
-                    element={
-                      <ProtectedRoute requiredRole="agent">
-                        <AgentDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/host/*"
-                    element={
-                      <ProtectedRoute requiredRole="agent">
-                        <HostDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
+                    } />
+                    <Route
+                      path="/professional/*"
+                      element={
+                        <ProtectedRoute requiredRole="professional">
+                          <ProfessionalDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/agent/*"
+                      element={
+                        <ProtectedRoute requiredRole="agent">
+                          <AgentDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/host/*"
+                      element={
+                        <ProtectedRoute requiredRole="agent">
+                          <HostDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  {/* Short Stay Routes */}
-                  <Route path="/short-stay" element={<ShortStayLayout />}>
-                    <Route index element={<ShortStaySearch />} />
-                    <Route path=":id" element={<ShortStayDetails />} />
-                    <Route path="book/:id" element={<BookingCheckout />} />
-                    <Route path="confirmation" element={<BookingConfirmation />} />
-                    <Route path="trips" element={<GuestDashboard />} />
-                    <Route path="trips/:id" element={<TripDetails />} />
-                  </Route>
+                    {/* Short Stay Routes */}
+                    <Route path="/short-stay" element={<ShortStayLayout />}>
+                      <Route index element={<ShortStaySearch />} />
+                      <Route path=":id" element={<ShortStayDetails />} />
+                      <Route path="book/:id" element={<BookingCheckout />} />
+                      <Route path="confirmation" element={<BookingConfirmation />} />
+                      <Route path="trips" element={<GuestDashboard />} />
+                      <Route path="trips/:id" element={<TripDetails />} />
+                    </Route>
 
 
-                  {/* Admin Portal Routes */}
-                  <Route path="/admin-portal" element={<AdminLogin />} />
-                  <Route path="/admin-dashboard" element={<AdminDashboard />} />
+                    {/* Admin Portal Routes */}
+                    <Route path="/admin-portal" element={<AdminLogin />} />
+                    <Route path="/admin-dashboard" element={<AdminDashboard />} />
+                    <Route path="/hydrate" element={<HydrateData />} />
 
-                  <Route path="/unauthorized" element={<Unauthorized />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </AuthProvider>
-            </BrowserRouter>
+                    <Route path="/unauthorized" element={<Unauthorized />} />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </AuthProvider>
+              </BrowserRouter>
+            </LocationAgentProvider>
           </TripProvider>
         </TooltipProvider>
       </ThemeProvider>

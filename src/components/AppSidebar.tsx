@@ -1,15 +1,11 @@
-import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
   Home,
-  MapPin,
   Users,
   TrendingUp,
-  Settings,
   FileText,
   ChevronLeft,
   ChevronRight,
-  Calculator,
   GraduationCap,
   Baby, // For Family Homes
   Coins, // For Investment
@@ -18,7 +14,6 @@ import {
   Crown, // For Luxury Living
   Warehouse, // For Warehouses
   Building2, // For Mixed-Use
-  Search,
   Compass,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
@@ -35,7 +30,6 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  SidebarMenuSubItem as SidebarMenuSubItemType,
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
@@ -44,7 +38,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { UserProfileCard } from "@/components/UserProfileCard";
-import { ProfileDrawer } from "@/components/ProfileDrawer";
 import { useAuth } from "@/hooks/useAuth";
 
 const menuItems = [
@@ -61,42 +54,42 @@ const menuItems = [
     items: [
       {
         title: "Student Housing",
-        url: "/properties?purpose=student-housing",
+        url: "/explore/student-housing",
         icon: GraduationCap,
       },
       {
         title: "Family Homes",
-        url: "/properties?purpose=family-homes",
+        url: "/explore/family-homes",
         icon: Baby,
       },
       {
         title: "Investment",
-        url: "/properties?purpose=investment",
+        url: "/explore/investment",
         icon: Coins,
       },
       {
         title: "Gated Communities",
-        url: "/properties?purpose=gated-communities",
+        url: "/explore/gated-communities",
         icon: Shield,
       },
       {
         title: "First-Time Buyers",
-        url: "/properties?purpose=first-time-buyers",
+        url: "/explore/first-time-buyers",
         icon: Sparkles,
       },
       {
         title: "Luxury Living",
-        url: "/properties?purpose=luxury-living",
+        url: "/explore/luxury-living",
         icon: Crown,
       },
       {
         title: "Warehouses",
-        url: "/properties?purpose=warehouses",
+        url: "/explore/warehouses",
         icon: Warehouse,
       },
       {
         title: "Mixed-Use",
-        url: "/properties?purpose=mixed-use",
+        url: "/explore/mixed-use",
         icon: Building2,
       },
     ]
@@ -124,12 +117,16 @@ const menuItems = [
   },
 ];
 
-export function AppSidebar({ isScrolled }: { isScrolled: boolean }) {
+interface AppSidebarProps {
+  isScrolled: boolean;
+  onOpenProfile: () => void;
+}
+
+export function AppSidebar({ isScrolled, onOpenProfile }: AppSidebarProps) {
   const location = useLocation();
   const { state, isMobile } = useSidebar();
   const { isAdmin } = useAuth();
   const isCollapsed = state === "collapsed" && !isMobile;
-  const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState(false);
 
   return (
     <>
@@ -196,7 +193,7 @@ export function AppSidebar({ isScrolled }: { isScrolled: boolean }) {
                           <CollapsibleContent>
                             <SidebarMenuSub>
                               {item.items.map((subItem) => {
-                                const isSubActive = location.search.includes(subItem.url.split('?')[1] || 'non-existent-param');
+                                const isSubActive = location.pathname === subItem.url || location.search.includes(subItem.url.split('?')[1] || 'non-existent-param');
                                 return (
                                   <SidebarMenuSubItem key={subItem.title}>
                                     <SidebarMenuSubButton
@@ -312,15 +309,9 @@ export function AppSidebar({ isScrolled }: { isScrolled: boolean }) {
 
         {/* User Profile Card at Bottom */}
         <SidebarFooter className="mt-auto border-t border-primary/10 bg-background/95 backdrop-blur-xl p-0">
-          <UserProfileCard onOpenProfile={() => setIsProfileDrawerOpen(true)} />
+          <UserProfileCard onOpenProfile={onOpenProfile} />
         </SidebarFooter>
       </Sidebar>
-
-      {/* Profile Drawer */}
-      <ProfileDrawer
-        open={isProfileDrawerOpen}
-        onOpenChange={setIsProfileDrawerOpen}
-      />
     </>
   );
 }

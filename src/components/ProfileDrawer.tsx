@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/drawer";
 import { Settings, X, LogOut, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -55,11 +55,32 @@ export function ProfileDrawer({ open, onOpenChange }: ProfileDrawerProps) {
     }
   };
 
-  const handleLogout = async () => {
-    await signOut();
-    onOpenChange(false);
-    navigate("/");
-    toast.success("Logged out successfully");
+  const handleLogout = async (e?: React.MouseEvent) => {
+    // Prevent any default behavior/bubbling if event is passed
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    console.log("Sign Out initiated");
+
+    try {
+      // Close drawer immediately for immediate feedback
+      onOpenChange(false);
+
+      // Perform sign out
+      await signOut();
+
+      toast.success("Logged out successfully");
+      // Navigation is handled within signOut, but as a safety net:
+      if (window.location.pathname !== '/auth') {
+        navigate('/auth');
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Fallback
+      window.location.href = '/auth';
+    }
   };
 
   const handleNavigation = (path: string) => {
@@ -70,27 +91,26 @@ export function ProfileDrawer({ open, onOpenChange }: ProfileDrawerProps) {
   return (
     <Drawer open={open} onOpenChange={onOpenChange} direction="right">
       <DrawerContent
-        className="h-full w-full sm:w-[450px] ml-auto border-l border-primary/20 bg-background/95 backdrop-blur-2xl shadow-2xl"
-        style={{
-          background: 'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--card)) 100%)',
-        }}
+        className="flex flex-col h-full w-full sm:w-[450px] ml-auto !border-l-0 !border-none bg-background/95 backdrop-blur-2xl shadow-2xl pt-0"
       >
-        <DrawerHeader className="flex items-center justify-between px-6 py-4 border-b border-border/40">
-          <DrawerTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground/80">
-            My Real Estate Hub
-          </DrawerTitle>
-          <DrawerClose asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="hover:bg-primary/10 hover:text-primary transition-colors rounded-full"
-            >
-              <X className="w-5 h-5" />
-            </Button>
-          </DrawerClose>
-        </DrawerHeader>
+        <div className="flex-none pt-10 pb-2 px-6 border-b border-border/40 relative z-10 bg-background/50 backdrop-blur-xl">
+          <div className="flex items-center justify-between">
+            <DrawerTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground/80 mt-2">
+              My Real Estate Hub
+            </DrawerTitle>
+            <DrawerClose asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hover:bg-primary/10 hover:text-primary transition-colors rounded-full"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </DrawerClose>
+          </div>
+        </div>
 
-        <ScrollArea className="h-full px-6 py-6" classNameViewport="space-y-8 pb-20">
+        <ScrollArea className="flex-1 px-6 py-6" classNameViewport="space-y-6 pb-20">
           {/* 1. Identity & Trust Layer */}
           <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <IdentityCard user={user} profile={profile} />

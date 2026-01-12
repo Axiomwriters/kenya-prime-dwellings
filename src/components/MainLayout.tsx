@@ -4,14 +4,14 @@ import { cn } from "@/lib/utils";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { HeaderWrapper } from "@/components/HeaderWrapper";
-import { ViewingTripSidebar } from "@/components/trips/ViewingTripSidebar";
-import { useTrip } from "@/contexts/TripContext";
+import { ProfileDrawer } from "@/components/ProfileDrawer";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { LocationAgentWidget } from "@/components/LocationAgentWidget";
 
 export default function MainLayout() {
     const [isScrolled, setIsScrolled] = useState(false);
-    const { isSidebarOpen, setSidebarOpen } = useTrip();
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -36,7 +36,10 @@ export default function MainLayout() {
             <div className="min-h-screen flex w-full bg-background relative">
                 {/* Fixed Full-Width Header */}
                 <div className="fixed top-0 left-0 right-0 z-[60]">
-                    <HeaderWrapper isScrolled={isScrolled} onOpenTrip={() => setSidebarOpen(true)} />
+                    <HeaderWrapper
+                        isScrolled={isScrolled}
+                        onOpenTrip={() => setIsProfileOpen(true)}
+                    />
                 </div>
 
                 {/* Sidebar - Pushed down by header */}
@@ -46,7 +49,10 @@ export default function MainLayout() {
                         isScrolled ? "top-[64px] h-[calc(100vh-64px)]" : "top-[104px] h-[calc(100vh-104px)]"
                     )}
                 >
-                    <AppSidebar isScrolled={isScrolled} />
+                    <AppSidebar
+                        isScrolled={isScrolled}
+                        onOpenProfile={() => setIsProfileOpen(true)}
+                    />
                 </div>
 
                 {/* Main Content Area */}
@@ -75,7 +81,11 @@ export default function MainLayout() {
                 </SidebarInset>
 
                 {/* Global Components */}
-                <ViewingTripSidebar open={isSidebarOpen} onOpenChange={setSidebarOpen} />
+                <ProfileDrawer
+                    open={isProfileOpen}
+                    onOpenChange={setIsProfileOpen}
+                />
+                <LocationAgentWidget />
             </div>
         </SidebarProvider>
     );

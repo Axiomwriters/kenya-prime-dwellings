@@ -6,10 +6,10 @@ import { cn } from "@/lib/utils";
 
 interface HeaderWrapperProps {
     isScrolled: boolean;
-    onOpenTrip?: () => void;
+    onOpenTrip?: () => void; // Keeping prop optional to avoid breaking other files if any
 }
 
-export function HeaderWrapper({ isScrolled, onOpenTrip }: HeaderWrapperProps) {
+export function HeaderWrapper({ isScrolled }: HeaderWrapperProps) {
     const [searchParams, setSearchParams] = useSearchParams();
     const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
 
@@ -54,7 +54,6 @@ export function HeaderWrapper({ isScrolled, onOpenTrip }: HeaderWrapperProps) {
                 <DashboardHeader
                     searchTerm={searchTerm}
                     onSearchChange={handleSearch}
-                    onOpenTrip={onOpenTrip}
                 />
             </div>
         </div>

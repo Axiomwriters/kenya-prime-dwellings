@@ -38,10 +38,10 @@ export function ProtectedRoute({
     );
   }
 
-  // Role check - TEMPORARILY DISABLED FOR TESTING
-  // if (requiredRole && userRole !== requiredRole && userRole !== 'admin') {
-  //   return <Navigate to="/unauthorized" replace />;
-  // }
+  // Role check
+  if (requiredRole && userRole !== requiredRole && userRole !== 'admin') {
+    return <Navigate to="/unauthorized" replace />;
+  }
 
   return <>{children}</>;
 }

@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface AuthContextType {
   user: User | null;
@@ -14,127 +16,128 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshRole: () => Promise<void>;
-  mockSignIn: () => Promise<{ error: Error | null }>;
+  mockSignIn: () => Promise<{ error: Error | null }>; // Kept for interface compatibility but will warn
+  viewMode: 'buyer' | 'renter';
+  toggleViewMode: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Mock data
-const MOCK_USER = {
-  id: 'mock-user-id',
-  app_metadata: {},
-  user_metadata: { full_name: 'Mock User' },
-  aud: 'authenticated',
-  created_at: new Date().toISOString(),
-  email: 'user@example.com',
-  phone: '',
-  role: 'authenticated',
-  updated_at: new Date().toISOString(),
-} as User;
-
-const MOCK_SESSION = {
-  access_token: 'mock-access-token',
-  refresh_token: 'mock-refresh-token',
-  expires_in: 3600,
-  token_type: 'bearer',
-  user: MOCK_USER,
-} as Session;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [userRole, setUserRole] = useState<'user' | 'agent' | 'admin' | null>(null);
-  const [loading, setLoading] = useState(true); // No initial loading needed for mock
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Mock checking session on load (optional: could check localStorage)
-  useEffect(() => {
-    // Check local storage for mock session
-    const storedSession = localStorage.getItem('mock_session');
-    if (storedSession) {
-      try {
-        const parsedSession = JSON.parse(storedSession);
-        setSession(parsedSession);
-        setUser(parsedSession.user);
-        setUserRole('user'); // Default role
-      } catch (e) {
-        console.error("Failed to parse stored session", e);
-      }
+  // --- View Mode Toggle (Buyer/Renter) ---
+  const [viewMode, setViewMode] = useState<'buyer' | 'renter'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('user_view_mode');
+      return (saved === 'buyer' || saved === 'renter') ? saved : 'buyer';
     }
-    setLoading(false);
-  }, []);
+    return 'buyer';
+  });
 
-  const refreshRole = async () => {
-    // Mock refresh role
-    setUserRole('user');
+  const toggleViewMode = () => {
+    setViewMode(prev => {
+      const next = prev === 'buyer' ? 'renter' : 'buyer';
+      localStorage.setItem('user_view_mode', next);
+      toast.success(`Switched to ${next === 'buyer' ? 'Buyer' : 'Renter'} mode`);
+      return next;
+    });
   };
 
-  const persistSession = (session: Session) => {
-    localStorage.setItem('mock_session', JSON.stringify(session));
-    setSession(session);
-    setUser(session.user);
-    // Determine role based on email or random/default
-    if (session.user.email?.includes('admin')) {
-      setUserRole('admin');
-    } else if (session.user.email?.includes('agent')) {
-      setUserRole('agent');
-    } else {
-      setUserRole('user');
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchUserRole(session.user.id);
+      } else {
+        setLoading(false);
+      }
+    });
+
+    // Listen for changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+
+      if (session?.user) {
+        await fetchUserRole(session.user.id);
+      } else {
+        setUserRole(null);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchUserRole = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching role:', error);
+      } else {
+        setUserRole(data?.role as 'user' | 'agent' | 'admin');
+      }
+    } catch (e) {
+      console.error('Exception fetching role:', e);
+    } finally {
+      setLoading(false);
     }
   };
 
   const signIn = async (email: string, password: string) => {
-    // Allow any email/password for mock
-    if (!email || !password) {
-      return { error: new Error("Email and password are required") };
-    }
-
-    const mockUser = {
-      ...MOCK_USER,
-      email: email,
-      user_metadata: { ...MOCK_USER.user_metadata, full_name: email.split('@')[0] }
-    } as User;
-
-    const session = {
-      ...MOCK_SESSION,
-      user: mockUser
-    } as Session;
-
-    persistSession(session);
-    return { error: null };
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    return { error };
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    if (!email || !password || !fullName) {
-      return { error: new Error("All fields are required") };
-    }
-
-    const mockUser = {
-      ...MOCK_USER,
-      email: email,
-      user_metadata: { ...MOCK_USER.user_metadata, full_name: fullName }
-    } as User;
-
-    const session = {
-      ...MOCK_SESSION,
-      user: mockUser
-    } as Session;
-
-    persistSession(session);
-    return { error: null };
-  };
-
-  const mockSignIn = async () => {
-    persistSession(MOCK_SESSION);
-    return { error: null };
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+        },
+      },
+    });
+    return { error };
   };
 
   const signOut = async () => {
-    localStorage.removeItem('mock_session');
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error("Error signing out:", error);
     setUser(null);
     setSession(null);
     setUserRole(null);
     navigate("/auth");
+  };
+
+  const refreshRole = async () => {
+    if (user) {
+      await fetchUserRole(user.id);
+    }
+  };
+
+  const mockSignIn = async () => {
+    // Deprecated in favor of real auth
+    toast.info("Using Supabase Auth now. Please use Email/Password.");
+    return { error: new Error("Mock login deprecated") };
   };
 
   const isAuthenticated = !!session;
@@ -154,7 +157,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUp,
       signOut,
       refreshRole,
-      mockSignIn
+      mockSignIn,
+      viewMode,
+      toggleViewMode
     }}>
       {children}
     </AuthContext.Provider>

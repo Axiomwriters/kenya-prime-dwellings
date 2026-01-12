@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,8 @@ import heroBackground from "@/assets/hero-background.jpg";
 import apartmentImg from "@/assets/apartment-kilimani.jpg";
 import bungalowImg from "@/assets/bungalow-karen.jpg";
 import { StatCounter } from "@/components/StatCounter";
+import { useLocationAgent } from "@/contexts/LocationAgentContext";
+import { MOCK_GENIE_PROPERTIES } from "@/data/mockGenieProperties";
 
 export function HeroAI() {
   const [inputValue, setInputValue] = useState("");
@@ -16,86 +19,125 @@ export function HeroAI() {
   const [isTyping, setIsTyping] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [resultType, setResultType] = useState<"homes" | "land">("homes");
+  const { detectLocationFromText, setLocationFocus } = useLocationAgent();
+  const navigate = useNavigate();
 
-  // Extended Mock Data for Specific Locations
-  const allMockProperties = [
-    // Homes
-    { id: 1, type: 'home', title: "Modern 2-Bed Apartment", location: "Section 58, Nakuru", price: "KSh 7.5M", image: apartmentImg },
-    { id: 2, type: 'home', title: "Cozy 3-Bed Bungalow", location: "Milimani, Nakuru", price: "KSh 12.5M", image: bungalowImg },
-    { id: 3, type: 'home', title: "Luxury 5-Bed Villa", location: "Kiamunyi, Nakuru", price: "KSh 18.5M", image: "https://images.unsplash.com/photo-1613977257363-707ba9348227?q=80&w=1000&auto=format&fit=crop" },
-    { id: 7, type: 'home', title: "3 Bedroom Family Home", location: "Lanet, Nakuru", price: "KSh 8.5M", image: "https://images.unsplash.com/photo-1580587771525-78b9dba3b91d?q=80&w=1000&auto=format&fit=crop" },
-    { id: 8, type: 'home', title: "Affordable 2-Bed Unit", location: "Lanet, Nakuru", price: "KSh 4.5M", image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=1000&auto=format&fit=crop" },
-    { id: 9, type: 'home', title: "Spacious Maisonette", location: "Njoro, Nakuru", price: "KSh 9.2M", image: "https://images.unsplash.com/photo-1576941089067-dbdeab5204db?q=80&w=1000&auto=format&fit=crop" },
+  const allMockProperties = MOCK_GENIE_PROPERTIES;
 
-    // Land
-    { id: 4, type: 'land', title: "50x100 Plot", location: "Kiamunyi, Nakuru", price: "KSh 1.5M", image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1000&auto=format&fit=crop" },
-    { id: 5, type: 'land', title: "1 Acre Agricultural", location: "Njoro, Nakuru", price: "KSh 2.8M", image: "https://images.unsplash.com/photo-1516156008625-3a9d6067fab5?q=80&w=1000&auto=format&fit=crop" },
-    { id: 6, type: 'land', title: "Commercial Plot", location: "Nakuru CBD", price: "KSh 15M", image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=1000&auto=format&fit=crop" },
-    { id: 10, type: 'land', title: "1/4 Acre Residential", location: "Lanet, Nakuru", price: "KSh 2.2M", image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1000&auto=format&fit=crop" },
-  ];
 
-  const [currentResults, setCurrentResults] = useState<typeof allMockProperties>([]);
+
+  const [currentResults, setCurrentResults] = useState<any[]>([]);
   const [detectedLocation, setDetectedLocation] = useState<string | null>(null);
+  const [pipelineInstance, setPipelineInstance] = useState<any>(null);
 
-  const handleSearch = () => {
+  useEffect(() => {
+    // Preload model
+    import("@xenova/transformers").then(({ pipeline }) => {
+      pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2").then((pipe) => {
+        setPipelineInstance(() => pipe);
+      });
+    });
+  }, []);
+
+  const handleSearch = async () => {
     if (!inputValue) return;
 
     setSearchQuery(inputValue);
+    setIsTyping(true);
+    setShowResults(false);
 
-    // Save to History (kept same)
     try {
+      // Save History
       const history = JSON.parse(localStorage.getItem('property_hub_search_history') || '[]');
       const newHistory = [inputValue, ...history.filter((h: string) => h !== inputValue)].slice(0, 5);
       localStorage.setItem('property_hub_search_history', JSON.stringify(newHistory));
       window.dispatchEvent(new Event('storage'));
-    } catch (e) {
-      console.error("Failed to save history", e);
-    }
 
-    const lowerInput = inputValue.toLowerCase();
+      // AI Search Logic
+      let results: any[] = [];
 
-    // 1. Detect Result Type
-    let type = "homes";
-    if (lowerInput.includes("land") || lowerInput.includes("plot") || lowerInput.includes("acre") || lowerInput.includes("shamba")) {
-      type = "land";
-      setResultType("land");
-    } else {
-      setResultType("homes");
-    }
+      if (pipelineInstance) {
+        // 1. Generate Embedding
+        const output = await pipelineInstance(inputValue, { pooling: 'mean', normalize: true });
+        const embedding = Array.from(output.data);
 
-    // 2. Detect Location (Basic Keyword Matching)
-    const locations = ["lanet", "njoro", "kiamunyi", "milimani", "section 58", "cbd", "town", "bahati", "ngata"];
-    const foundLocation = locations.find(loc => lowerInput.includes(loc));
+        // 2. Search via RPC
+        const { data, error } = await import("@/integrations/supabase/client")
+          .then(m => m.supabase.rpc('match_properties', {
+            query_embedding: embedding,
+            match_threshold: 0.2, // Lower threshold for better recall in demo
+            match_count: 5
+          }));
 
-    // 3. Filter Results
-    let filtered = allMockProperties.filter(p => p.type === (type === 'land' ? 'land' : 'home'));
-
-    if (foundLocation) {
-      setDetectedLocation(foundLocation.charAt(0).toUpperCase() + foundLocation.slice(1));
-      // Strict filter if location found
-      const locationFiltered = filtered.filter(p => p.location.toLowerCase().includes(foundLocation));
-      if (locationFiltered.length > 0) {
-        filtered = locationFiltered;
-      } else {
-        // Fallback if location found but no specific mock data for it
-        // For demo purposes, we might keep "filtered" as is or show empty. 
-        // Let's just keep 'filtered' broad but maybe sort? 
-        // OR: Let's actually filter, so if they ask for "Lanet" and we have Lanet, show it.
-        // If we don't have it in mocks, we show nothing? No, let's just show general to avoid empty state in demo.
+        results = data.map((p: any) => ({
+          id: p.id,
+          title: p.title,
+          location: p.location,
+          price: `KSh ${p.price.toLocaleString()}`,
+          image: p.image_url || apartmentImg
+        }));
       }
-    } else {
-      setDetectedLocation(null);
-    }
 
-    setCurrentResults(filtered);
+      // 3. Fallback/Local Mock Search (Crucial for "Inbuilt" feel with no backend)
+      // If AI returns nothing or we just want to force a match for demo:
+      if (results.length === 0) {
+        const lowerInput = inputValue.toLowerCase();
+        const detected = detectLocationFromText(inputValue);
 
-    setIsTyping(true);
-    setShowResults(false);
+        const filteredMocks = MOCK_GENIE_PROPERTIES.filter(p => {
+          // Filter by Location if detected
+          if (detected && !p.location.toLowerCase().includes(detected.name.toLowerCase())) return false;
+          // Filter by Type if detected
+          if (lowerInput.includes("land") || lowerInput.includes("plot")) {
+            if (p.type !== 'land') return false;
+          } else if (lowerInput.includes("house") || lowerInput.includes("home") || lowerInput.includes("apartment")) {
+            if (p.type !== 'home') return false;
+          }
+          return true;
+        });
 
-    setTimeout(() => {
+        // If we have close matches, use them
+        if (filteredMocks.length > 0) {
+          results = filteredMocks;
+        } else {
+          // Just show some random ones if completely no match, but preferred to show empty
+          results = [];
+        }
+      }
+
+      // Fallback/Simulated delay if no AI or empty results (for UX feel)
+      setTimeout(() => {
+        setCurrentResults(results);
+
+        // Simple regex for 'Land' vs 'Home' just for UI tag
+        const lowerInput = inputValue.toLowerCase();
+        if (lowerInput.includes("land") || lowerInput.includes("plot")) {
+          setResultType("land");
+        } else {
+          setResultType("homes");
+        }
+
+
+        // Detect location name from result or query using Location Agent
+        const detected = detectLocationFromText(inputValue);
+        if (detected) {
+          setDetectedLocation(detected.name);
+          setLocationFocus(detected);
+        } else if (results.length > 0) {
+          // Fallback to result location if agent doesn't detect it in query
+          setDetectedLocation(results[0].location.split(',')[0]);
+        } else {
+          setDetectedLocation(null);
+        }
+
+        setIsTyping(false);
+        setShowResults(true);
+      }, 1500);
+
+    } catch (e) {
+      console.error("Search failed", e);
       setIsTyping(false);
-      setShowResults(true);
-    }, 1500);
+    }
   };
 
   return (
@@ -220,6 +262,18 @@ export function HeroAI() {
                     <div className="space-y-3 w-full max-w-full overflow-hidden">
                       <div className="bg-muted/50 rounded-2xl rounded-tl-none p-3 text-sm text-foreground/90 break-words shadow-sm">
                         <p>Found {currentResults.length} matching {resultType === 'land' ? 'plots/land' : 'properties'} in <strong>{detectedLocation || 'Nakuru'}</strong>.</p>
+
+                        {detectedLocation && detectedLocation !== 'Nakuru' && (
+                          <div className="mt-2 text-xs text-muted-foreground bg-background/50 p-2 rounded-lg border border-border/50">
+                            <span className="font-semibold text-primary block mb-1">Targeting: {detectedLocation}</span>
+                            Popular here:
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {['Apartment', 'House', 'Land'].map(tag => (
+                                <span key={tag} className="text-[10px] px-1.5 py-0.5 bg-primary/10 text-primary rounded-md">{tag}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Result Preview Carousel */}
@@ -236,20 +290,34 @@ export function HeroAI() {
                                   <p className="text-[10px] text-muted-foreground truncate">{result.location}</p>
                                   <p className="text-xs font-bold text-primary mt-0.5">{result.price}</p>
                                 </div>
-                                <Button size="icon" variant="ghost" className="h-6 w-6 flex-shrink-0">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-6 w-6 flex-shrink-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(`/properties/${result.id}`);
+                                  }}
+                                >
                                   <ArrowRight className="w-3 h-3" />
                                 </Button>
                               </div>
                             </CarouselItem>
                           ))}
                         </CarouselContent>
-                        <div className="hidden">
-                          <CarouselPrevious />
-                          <CarouselNext />
+                        <div className="absolute -left-3 top-1/2 -translate-y-1/2 z-10">
+                          <CarouselPrevious className="h-6 w-6 relative left-0 translate-x-0 hover:bg-primary hover:text-primary-foreground border-border/50" />
+                        </div>
+                        <div className="absolute -right-3 top-1/2 -translate-y-1/2 z-10">
+                          <CarouselNext className="h-6 w-6 relative right-0 translate-x-0 hover:bg-primary hover:text-primary-foreground border-border/50" />
                         </div>
                       </Carousel>
 
-                      <Button variant="link" className="h-auto p-0 text-[10px] text-primary">
+                      <Button
+                        variant="link"
+                        className="h-auto p-0 text-[10px] text-primary"
+                        onClick={() => navigate(detectedLocation ? `/properties?search=${detectedLocation}` : '/properties')}
+                      >
                         View all results →
                       </Button>
                     </div>
@@ -278,7 +346,7 @@ export function HeroAI() {
               {/* Trust Fallback */}
               <div className="mt-3 text-center">
                 <button
-                  onClick={() => document.getElementById('property-listings')?.scrollIntoView({ behavior: 'smooth' })}
+                  onClick={() => navigate('/properties')}
                   className="text-[10px] text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-1 mx-auto group"
                 >
                   Prefer traditional search? use filters <ArrowRight className="w-2.5 h-2.5 group-hover:translate-x-0.5 transition-transform" />

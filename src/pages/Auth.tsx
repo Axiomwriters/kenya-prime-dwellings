@@ -69,8 +69,8 @@ export default function Auth() {
         setShowSuccess(true);
         setTimeout(() => {
           toast.success(`Account created! Welcome, ${loginType === 'professional' ? 'Professional' : loginType === 'agent' ? 'Agent' : 'User'}!`);
-          // In a real app, we would assign the role here. For now, we redirect.
-          if (loginType === "agent") navigate("/agent");
+
+          if (loginType === "agent") navigate("/become-agent");
           else if (loginType === "professional") navigate("/professional");
           else navigate("/", { replace: true });
         }, 1500);
