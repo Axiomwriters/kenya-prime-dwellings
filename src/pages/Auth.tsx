@@ -87,13 +87,21 @@ export default function Auth() {
 
       // Simulate network delay for realism
       setTimeout(async () => {
-        await mockSignIn(); // Use our new mock sign in
+        const { error } = await mockSignIn(loginType);
         setIsLoading(false);
+        
+        if (error) {
+          toast.error(error.message || "Failed to sign in");
+          return;
+        }
+
         setShowSuccess(true);
 
         setTimeout(() => {
-          toast.success("Login successful");
-          navigate("/", { replace: true });
+          toast.success(`Successfully logged in as ${loginType}!`);
+          if (loginType === "agent") navigate("/agent");
+          else if (loginType === "professional") navigate("/professional");
+          else navigate("/", { replace: true });
         }, 1500);
       }, 1000);
 

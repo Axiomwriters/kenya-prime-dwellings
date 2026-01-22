@@ -16,7 +16,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshRole: () => Promise<void>;
-  mockSignIn: () => Promise<{ error: Error | null }>; // Kept for interface compatibility but will warn
+  mockSignIn: (role?: 'user' | 'agent' | 'professional') => Promise<{ error: Error | null }>;
   viewMode: 'buyer' | 'renter';
   toggleViewMode: () => void;
 }
@@ -134,10 +134,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const mockSignIn = async () => {
-    // Deprecated in favor of real auth
-    toast.info("Using Supabase Auth now. Please use Email/Password.");
-    return { error: new Error("Mock login deprecated") };
+  const mockSignIn = async (role: 'user' | 'agent' | 'professional' = 'user') => {
+    setLoading(true);
+    // Simulate a user object
+    const mockUser = {
+      id: 'mock-id',
+      email: 'mock@example.com',
+      user_metadata: { full_name: 'Mock User' }
+    } as any;
+    
+    const mockSession = {
+      user: mockUser,
+      access_token: 'mock-token',
+    } as any;
+
+    setSession(mockSession);
+    setUser(mockUser);
+    setUserRole(role === 'professional' ? 'agent' : role as any); // Mapping professional to agent role for dashboard access
+    setLoading(false);
+    
+    return { error: null };
   };
 
   const isAuthenticated = !!session;
