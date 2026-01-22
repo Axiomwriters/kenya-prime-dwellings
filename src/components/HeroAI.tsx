@@ -5,138 +5,92 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Sparkles, Send, ArrowRight, Home, Users, TrendingUp } from "lucide-react";
+import { Sparkles, Send, ArrowRight, Home, Users, TrendingUp, MapPin } from "lucide-react";
 import heroBackground from "@/assets/hero-background.jpg";
 import apartmentImg from "@/assets/apartment-kilimani.jpg";
 import bungalowImg from "@/assets/bungalow-karen.jpg";
 import { StatCounter } from "@/components/StatCounter";
 import { useLocationAgent } from "@/contexts/LocationAgentContext";
 import { MOCK_GENIE_PROPERTIES } from "@/data/mockGenieProperties";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export function HeroAI() {
   const [inputValue, setInputValue] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [resultType, setResultType] = useState<"homes" | "land">("homes");
+  const [currentResults, setCurrentResults] = useState<any[]>([]);
+  const [detectedLocation, setDetectedLocation] = useState<string | null>(null);
   const { detectLocationFromText, setLocationFocus } = useLocationAgent();
   const navigate = useNavigate();
 
-  const allMockProperties = MOCK_GENIE_PROPERTIES;
-
-
-
-  const [currentResults, setCurrentResults] = useState<any[]>([]);
-  const [detectedLocation, setDetectedLocation] = useState<string | null>(null);
-  const [pipelineInstance, setPipelineInstance] = useState<any>(null);
-
-  useEffect(() => {
-    // Preload model
-    import("@xenova/transformers").then(({ pipeline }) => {
-      pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2").then((pipe) => {
-        setPipelineInstance(() => pipe);
-      });
-    });
-  }, []);
+  const [messages, setMessages] = useState<{role: 'ai' | 'user', content: string | React.ReactNode}[]>([
+    {role: 'ai', content: "Tell me what you're looking for. I can search by location, budget, or lifestyle."}
+  ]);
+  const [tripList, setTripList] = useState<string[]>([]);
 
   const handleSearch = async () => {
     if (!inputValue) return;
 
-    setSearchQuery(inputValue);
+    const userMsg = inputValue;
+    setInputValue("");
+    setMessages(prev => [...prev, {role: 'user', content: userMsg}]);
     setIsTyping(true);
-    setShowResults(false);
 
     try {
-      // Save History
-      const history = JSON.parse(localStorage.getItem('property_hub_search_history') || '[]');
-      const newHistory = [inputValue, ...history.filter((h: string) => h !== inputValue)].slice(0, 5);
-      localStorage.setItem('property_hub_search_history', JSON.stringify(newHistory));
-      window.dispatchEvent(new Event('storage'));
-
-      // AI Search Logic
+      const detected = detectLocationFromText(userMsg);
       let results: any[] = [];
+      const lowerInput = userMsg.toLowerCase();
 
-      if (pipelineInstance) {
-        // 1. Generate Embedding
-        const output = await pipelineInstance(inputValue, { pooling: 'mean', normalize: true });
-        const embedding = Array.from(output.data);
+      // Simulated Intelligence: Paraphrase intent
+      let aiResponse = "Got it. I'm looking for properties";
+      if (detected) aiResponse += ` in ${detected.name}`;
+      if (lowerInput.includes("3 bedroom") || lowerInput.includes("3bd")) aiResponse += " with 3 bedrooms";
+      aiResponse += ". Let me see what I can find...";
 
-        // 2. Search via RPC
-        const { data, error } = await import("@/integrations/supabase/client")
-          .then(m => m.supabase.rpc('match_properties', {
-            query_embedding: embedding,
-            match_threshold: 0.2, // Lower threshold for better recall in demo
-            match_count: 5
-          }));
+      setMessages(prev => [...prev, {role: 'ai', content: aiResponse}]);
 
-        results = data.map((p: any) => ({
-          id: p.id,
-          title: p.title,
-          location: p.location,
-          price: `KSh ${p.price.toLocaleString()}`,
-          image: p.image_url || apartmentImg
-        }));
-      }
-
-      // 3. Fallback/Local Mock Search (Crucial for "Inbuilt" feel with no backend)
-      // If AI returns nothing or we just want to force a match for demo:
-      if (results.length === 0) {
-        const lowerInput = inputValue.toLowerCase();
-        const detected = detectLocationFromText(inputValue);
-
-        const filteredMocks = MOCK_GENIE_PROPERTIES.filter(p => {
-          // Filter by Location if detected
-          if (detected && !p.location.toLowerCase().includes(detected.name.toLowerCase())) return false;
-          // Filter by Type if detected
-          if (lowerInput.includes("land") || lowerInput.includes("plot")) {
-            if (p.type !== 'land') return false;
-          } else if (lowerInput.includes("house") || lowerInput.includes("home") || lowerInput.includes("apartment")) {
-            if (p.type !== 'home') return false;
-          }
-          return true;
-        });
-
-        // If we have close matches, use them
-        if (filteredMocks.length > 0) {
-          results = filteredMocks;
+      // Logic for filtering
+      const filteredMocks = MOCK_GENIE_PROPERTIES.filter(p => {
+        if (detected && !p.location.toLowerCase().includes(detected.name.toLowerCase())) return false;
+        if (lowerInput.includes("land") || lowerInput.includes("plot")) {
+          if (p.type !== 'land') return false;
         } else {
-          // Just show some random ones if completely no match, but preferred to show empty
-          results = [];
+          if (p.type !== 'home') return false;
         }
-      }
+        return true;
+      });
 
-      // Fallback/Simulated delay if no AI or empty results (for UX feel)
+      results = filteredMocks.length > 0 ? filteredMocks : MOCK_GENIE_PROPERTIES.slice(0, 3);
+
       setTimeout(() => {
         setCurrentResults(results);
-
-        // Simple regex for 'Land' vs 'Home' just for UI tag
-        const lowerInput = inputValue.toLowerCase();
-        if (lowerInput.includes("land") || lowerInput.includes("plot")) {
-          setResultType("land");
-        } else {
-          setResultType("homes");
-        }
-
-
-        // Detect location name from result or query using Location Agent
-        const detected = detectLocationFromText(inputValue);
-        if (detected) {
-          setDetectedLocation(detected.name);
-          setLocationFocus(detected);
-        } else if (results.length > 0) {
-          // Fallback to result location if agent doesn't detect it in query
-          setDetectedLocation(results[0].location.split(',')[0]);
-        } else {
-          setDetectedLocation(null);
-        }
-
+        const loc = detected ? detected.name : (results[0]?.location.split(',')[0] || 'Nakuru');
+        setDetectedLocation(loc);
         setIsTyping(false);
         setShowResults(true);
+
+        const foundMsg = `I found ${results.length} homes that match what you’re looking for. You can tap any listing to view details, or add them to a trip.`;
+        setMessages(prev => [...prev, {role: 'ai', content: foundMsg}]);
       }, 1500);
 
     } catch (e) {
       console.error("Search failed", e);
       setIsTyping(false);
+    }
+  };
+
+  const addToTrip = (id: string) => {
+    if (tripList.includes(id)) return;
+    const newList = [...tripList, id];
+    setTripList(newList);
+    toast.success("Added to your viewing trip!");
+    
+    if (newList.length === 5) {
+      setMessages(prev => [...prev, {
+        role: 'ai', 
+        content: "You’ve selected enough homes for a viewing trip. Would you like me to help you schedule visits?"
+      }]);
     }
   };
 
@@ -207,119 +161,34 @@ export function HeroAI() {
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
               <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-accent/20 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
 
-              {/* Chat Header */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
-                    <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-75"></div>
-                  </div>
-                  <span className="font-medium text-sm text-foreground">Genie Agent</span>
-                </div>
-                <Badge variant="outline" className="text-[10px] px-1.5 h-5 bg-background/50">Beta</Badge>
-              </div>
-
-              {/* Chat Output Area (Simulated) */}
-              <div className="space-y-3 mb-4 h-[220px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-primary/10 scrollbar-track-transparent">
-                <div className="flex gap-2.5">
-                  <div className="w-7 h-7 rounded-full bg-primary flex-shrink-0 flex items-center justify-center text-primary-foreground">
-                    <Sparkles className="w-3.5 h-3.5" />
-                  </div>
-                  <div className="bg-muted/50 rounded-2xl rounded-tl-none p-3 text-sm text-foreground/90 max-w-[90%] break-words shadow-sm">
-                    <p>Tell me what you're looking for. I can search by location, budget, or lifestyle.</p>
-                  </div>
-                </div>
-
-                {searchQuery && (isTyping || showResults) && (
-                  <div className="flex gap-2.5 flex-row-reverse animate-fade-in">
-                    <div className="w-7 h-7 rounded-full bg-secondary flex-shrink-0 flex items-center justify-center text-secondary-foreground">
-                      <Users className="w-3.5 h-3.5" />
+              {/* Chat Output Area - Concierge Style */}
+              <div className="space-y-4 mb-4 h-[300px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-primary/10 scrollbar-track-transparent">
+                {messages.map((msg, idx) => (
+                  <div key={idx} className={cn("flex gap-2.5 animate-fade-in", msg.role === 'user' ? "flex-row-reverse" : "")}>
+                    <div className={cn(
+                      "w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center",
+                      msg.role === 'ai' ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
+                    )}>
+                      {msg.role === 'ai' ? <Sparkles className="w-3.5 h-3.5" /> : <Users className="w-3.5 h-3.5" />}
                     </div>
-                    <div className="bg-primary/10 rounded-2xl rounded-tr-none p-3 text-sm text-foreground/90 max-w-[90%] break-words shadow-sm">
-                      <p>{searchQuery}</p>
+                    <div className={cn(
+                      "rounded-2xl p-3 text-sm shadow-sm max-w-[85%] break-words",
+                      msg.role === 'ai' ? "bg-muted/50 rounded-tl-none text-foreground/90" : "bg-primary/10 rounded-tr-none text-foreground/90"
+                    )}>
+                      {typeof msg.content === 'string' ? <p>{msg.content}</p> : msg.content}
                     </div>
                   </div>
-                )}
+                ))}
 
                 {isTyping && (
                   <div className="flex gap-2.5 animate-fade-in">
                     <div className="w-7 h-7 rounded-full bg-primary flex-shrink-0 flex items-center justify-center text-primary-foreground">
                       <Sparkles className="w-3.5 h-3.5" />
                     </div>
-                    <div className="bg-muted/50 rounded-2xl rounded-tl-none p-3 max-w-[90%] flex items-center gap-1">
+                    <div className="bg-muted/50 rounded-2xl rounded-tl-none p-3 flex items-center gap-1">
                       <div className="w-1.5 h-1.5 bg-foreground/50 rounded-full animate-bounce"></div>
                       <div className="w-1.5 h-1.5 bg-foreground/50 rounded-full animate-bounce [animation-delay:0.2s]"></div>
                       <div className="w-1.5 h-1.5 bg-foreground/50 rounded-full animate-bounce [animation-delay:0.4s]"></div>
-                    </div>
-                  </div>
-                )}
-
-                {showResults && !isTyping && (
-                  <div className="flex gap-2.5 animate-fade-in">
-                    <div className="w-7 h-7 rounded-full bg-primary flex-shrink-0 flex items-center justify-center text-primary-foreground">
-                      <Sparkles className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="space-y-3 w-full max-w-full overflow-hidden">
-                      <div className="bg-muted/50 rounded-2xl rounded-tl-none p-3 text-sm text-foreground/90 break-words shadow-sm">
-                        <p>Found {currentResults.length} matching {resultType === 'land' ? 'plots/land' : 'properties'} in <strong>{detectedLocation || 'Nakuru'}</strong>.</p>
-
-                        {detectedLocation && detectedLocation !== 'Nakuru' && (
-                          <div className="mt-2 text-xs text-muted-foreground bg-background/50 p-2 rounded-lg border border-border/50">
-                            <span className="font-semibold text-primary block mb-1">Targeting: {detectedLocation}</span>
-                            Popular here:
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {['Apartment', 'House', 'Land'].map(tag => (
-                                <span key={tag} className="text-[10px] px-1.5 py-0.5 bg-primary/10 text-primary rounded-md">{tag}</span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Result Preview Carousel */}
-                      <Carousel className="w-full" opts={{ align: "start", loop: true }}>
-                        <CarouselContent>
-                          {currentResults.map((result) => (
-                            <CarouselItem key={result.id} className="basis-full">
-                              <div className="bg-background rounded-xl p-2.5 border border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer flex gap-3 items-center group min-w-0">
-                                <div className="w-12 h-12 bg-muted rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
-                                  <img src={result.image} alt={result.title} className="w-full h-full object-cover" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="font-semibold text-xs group-hover:text-primary transition-colors truncate">{result.title}</h4>
-                                  <p className="text-[10px] text-muted-foreground truncate">{result.location}</p>
-                                  <p className="text-xs font-bold text-primary mt-0.5">{result.price}</p>
-                                </div>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-6 w-6 flex-shrink-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/properties/${result.id}`);
-                                  }}
-                                >
-                                  <ArrowRight className="w-3 h-3" />
-                                </Button>
-                              </div>
-                            </CarouselItem>
-                          ))}
-                        </CarouselContent>
-                        <div className="absolute -left-3 top-1/2 -translate-y-1/2 z-10">
-                          <CarouselPrevious className="h-6 w-6 relative left-0 translate-x-0 hover:bg-primary hover:text-primary-foreground border-border/50" />
-                        </div>
-                        <div className="absolute -right-3 top-1/2 -translate-y-1/2 z-10">
-                          <CarouselNext className="h-6 w-6 relative right-0 translate-x-0 hover:bg-primary hover:text-primary-foreground border-border/50" />
-                        </div>
-                      </Carousel>
-
-                      <Button
-                        variant="link"
-                        className="h-auto p-0 text-[10px] text-primary"
-                        onClick={() => navigate(detectedLocation ? `/properties?search=${detectedLocation}` : '/properties')}
-                      >
-                        View all results →
-                      </Button>
                     </div>
                   </div>
                 )}
@@ -329,19 +198,90 @@ export function HeroAI() {
               <div className="relative">
                 <Input
                   placeholder="e.g. 3 bedroom house in Karen..."
-                  className="pr-10 py-3 md:py-4 bg-background/50 border-border/50 backdrop-blur-sm focus:bg-background transition-all shadow-inner text-sm"
+                  className="pr-10 py-4 bg-background/50 border-border/50 backdrop-blur-sm focus:bg-background transition-all shadow-inner text-sm"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 />
                 <Button
                   size="icon"
-                  className="absolute right-1 top-1 h-8 w-8 rounded-lg shadow-sm"
+                  className="absolute right-1.5 top-1.5 h-8 w-8 rounded-lg shadow-sm"
                   onClick={handleSearch}
                 >
                   <Send className="w-3.5 h-3.5" />
                 </Button>
               </div>
+
+              {/* Results Panel - Scrollable Cards below Chat */}
+              {showResults && currentResults.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-border/50 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold flex items-center gap-2">
+                      <Home className="w-4 h-4 text-primary" />
+                      Matches in {detectedLocation}
+                    </h3>
+                    <Badge variant="secondary" className="text-[10px]">{currentResults.length} Found</Badge>
+                  </div>
+                  
+                  <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide">
+                    {currentResults.map((result) => (
+                      <div key={result.id} className="bg-background rounded-xl overflow-hidden border border-border shadow-sm hover:shadow-md transition-all group">
+                        <div className="aspect-video w-full overflow-hidden relative">
+                          <img src={result.image} alt={result.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <div className="absolute top-2 right-2">
+                            <Badge className="bg-background/90 backdrop-blur text-primary border-none shadow-sm">{result.price}</Badge>
+                          </div>
+                        </div>
+                        <div className="p-3">
+                          <h4 className="font-bold text-sm truncate">{result.title}</h4>
+                          <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-1">
+                            <MapPin className="w-3 h-3" /> {result.location}
+                          </p>
+                          
+                          <div className="flex flex-wrap gap-1.5 mt-3">
+                            <Badge variant="outline" className="text-[9px] h-5">Pet-friendly</Badge>
+                            <Badge variant="outline" className="text-[9px] h-5">Parking</Badge>
+                            <Badge variant="outline" className="text-[9px] h-5">Garden</Badge>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 mt-4">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="text-[10px] h-8"
+                              onClick={() => navigate(`/properties/${result.id}`)}
+                            >
+                              View Details
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant={tripList.includes(result.id) ? "secondary" : "default"}
+                              className="text-[10px] h-8 gap-1"
+                              onClick={() => addToTrip(result.id)}
+                            >
+                              {tripList.includes(result.id) ? "✓ Added" : "+ Add to Trip"}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {tripList.length > 0 && (
+                    <div className="mt-4 p-3 bg-primary/5 rounded-xl border border-primary/10 flex items-center justify-between animate-in fade-in">
+                      <div className="flex items-center gap-2">
+                        <div className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          Trip: {tripList.length} / 7
+                        </div>
+                        <span className="text-[10px] text-muted-foreground font-medium">listings added</span>
+                      </div>
+                      <Button size="sm" className="h-7 text-[10px] px-3" onClick={() => navigate('/trips')}>
+                        Plan Visit
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Trust Fallback */}
               <div className="mt-3 text-center">
