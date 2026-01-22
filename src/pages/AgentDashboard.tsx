@@ -1,16 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AgentSidebar } from "@/components/AgentSidebar";
 import { HeaderWrapper } from "@/components/HeaderWrapper";
-import DashboardOverview from "./AgentDashboard/DashboardOverview";
-import AgentProfile from "./AgentDashboard/AgentProfile";
-import MyListings from "./AgentDashboard/MyListings";
-import CreateListing from "./AgentDashboard/CreateListing";
-import Notifications from "./AgentDashboard/Notifications";
-import AgentSettings from "./AgentDashboard/AgentSettings";
-import { AgentTripsPanel } from "./AgentDashboard/components/AgentTripsPanel";
 import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
+
+const DashboardOverview = lazy(() => import("./AgentDashboard/DashboardOverview"));
+const AgentProfile = lazy(() => import("./AgentDashboard/AgentProfile"));
+const MyListings = lazy(() => import("./AgentDashboard/MyListings"));
+const CreateListing = lazy(() => import("./AgentDashboard/CreateListing"));
+const Notifications = lazy(() => import("./AgentDashboard/Notifications"));
+const AgentSettings = lazy(() => import("./AgentDashboard/AgentSettings"));
+const AgentTripsPanel = lazy(() => import("./AgentDashboard/components/AgentTripsPanel").then(m => ({ default: m.AgentTripsPanel })));
 
 export default function AgentDashboard() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -35,16 +37,22 @@ export default function AgentDashboard() {
           </div>
 
           <main className={cn("p-6 transition-all duration-300")}>
-            <Routes>
-              <Route index element={<DashboardOverview />} />
-              <Route path="profile" element={<AgentProfile />} />
-              <Route path="listings" element={<MyListings />} />
-              <Route path="listings/new" element={<CreateListing />} />
-              <Route path="listings/edit/:id" element={<CreateListing />} />
-              <Route path="notifications" element={<Notifications />} />
-              <Route path="trips" element={<AgentTripsPanel />} />
-              <Route path="settings" element={<AgentSettings />} />
-            </Routes>
+            <Suspense fallback={
+              <div className="flex h-[50vh] w-full items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            }>
+              <Routes>
+                <Route index element={<DashboardOverview />} />
+                <Route path="profile" element={<AgentProfile />} />
+                <Route path="listings" element={<MyListings />} />
+                <Route path="listings/new" element={<CreateListing />} />
+                <Route path="listings/edit/:id" element={<CreateListing />} />
+                <Route path="notifications" element={<Notifications />} />
+                <Route path="trips" element={<AgentTripsPanel />} />
+                <Route path="settings" element={<AgentSettings />} />
+              </Routes>
+            </Suspense>
           </main>
         </SidebarInset>
       </div>

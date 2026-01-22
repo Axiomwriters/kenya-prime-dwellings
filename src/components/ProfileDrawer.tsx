@@ -12,7 +12,7 @@ import {
 import { Settings, X, LogOut, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 // Import new widgets
