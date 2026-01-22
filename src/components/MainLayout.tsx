@@ -63,7 +63,7 @@ export default function MainLayout() {
                             isScrolled ? "pt-[64px]" : "pt-[104px]"
                         )}
                     >
-                        {showBackButton && (
+                        {/* {showBackButton && (
                             <div className="w-full px-4 md:px-8 pt-4 pb-2 animate-in fade-in slide-in-from-left-4 duration-300">
                                 <Button
                                     variant="ghost"
@@ -75,7 +75,7 @@ export default function MainLayout() {
                                     Back
                                 </Button>
                             </div>
-                        )}
+                        )} */}
                         <Outlet />
                     </div>
                 </SidebarInset>
