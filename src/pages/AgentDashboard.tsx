@@ -33,7 +33,7 @@ export default function AgentDashboard() {
 
         <SidebarInset className="flex-1 w-full relative">
           <div className="sticky top-0 z-50 w-full transition-all duration-300">
-            <HeaderWrapper />
+            <HeaderWrapper isScrolled={isScrolled} />
           </div>
 
           <main className={cn("p-6 transition-all duration-300")}>
