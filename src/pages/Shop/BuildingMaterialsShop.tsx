@@ -158,6 +158,12 @@ export default function BuildingMaterialsShop() {
     }
   };
 
+  const updateQuantity = (id: string, delta: number) => {
+    setCart(prev => prev.map(item => 
+      item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
+    ));
+  };
+
   const totalCost = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   return (
