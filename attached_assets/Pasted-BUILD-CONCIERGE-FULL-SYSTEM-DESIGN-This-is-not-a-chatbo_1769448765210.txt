@@ -1,0 +1,333 @@
+BUILD CONCIERGE — FULL SYSTEM DESIGN
+
+This is not a chatbot.
+It’s a guided construction intelligence flow that controls money, materials, and trust.
+
+1️⃣ FULL CONCIERGE CONVERSATION SCRIPT (PRIMARY FLOW)
+🟢 System Greeting (Fixed)
+
+Habari! I’m your Build Concierge.
+Tell me what you’re building and I’ll handle estimates, materials, and sourcing.
+
+STEP 1: PROJECT TYPE (User Intent)
+
+Quick chips (already perfect on your UI):
+
+🏠 3-Bedroom Bungalow
+
+🏢 Apartments
+
+🏗 Rental Units
+
+💰 Just estimating costs
+
+📐 I already have drawings
+
+👉 Selecting one creates a Project Draft silently.
+
+STEP 2: LOCATION (Critical for pricing)
+
+AI:
+
+“Where is the project located?”
+
+Options:
+
+County dropdown
+
+Area / estate (free text)
+
+💡 This instantly sets:
+
+Material pricing bands
+
+Transport costs
+
+County approvals logic
+
+STEP 3: BUDGET ALIGNMENT (Trust Builder)
+
+AI:
+
+“What budget range are you working with?”
+
+Buttons:
+
+KSh 1M–2M
+
+KSh 2M–4M
+
+KSh 4M+
+
+“Not sure yet”
+
+⚠️ No judgement language. Ever.
+
+STEP 4: BUILD DETAILS (Progressive)
+
+AI asks only what’s necessary:
+
+Floors (1 / 2+)
+
+Timeline (rush / flexible)
+
+Using a professional? (Yes / Need one)
+
+Each answer updates the Project Intelligence Model.
+
+STEP 5: CONFIRMATION MOMENT (Power Move)
+
+AI:
+
+“Got it. I’ve prepared a recommended materials and services list for your project.”
+
+Buttons:
+
+✅ View Project Board
+
+🔧 Customize Materials
+
+🤖 Optimize for Budget
+
+This is where users feel handled.
+
+2️⃣ PROJECT BOARD LAYOUT (CORE CONTROL PANEL)
+🧱 Project Board Sections
+A. Project Summary (Top)
+
+Project name
+
+Location
+
+Estimated total cost (range)
+
+Timeline indicator
+
+B. Materials by Phase (Expandable)
+
+Foundation
+
+Structural
+
+Roofing
+
+Plumbing
+
+Electrical
+
+Finishing
+
+Each item shows:
+
+Quantity
+
+Price range
+
+Supplier rating
+
+Delivery area
+
+Buttons:
+
+➕ Adjust quantity
+
+🔁 Suggest alternative
+
+❌ Remove
+
+C. Services Needed (Smart Suggestions)
+
+Cards for:
+
+Architect
+
+QS
+
+Contractor
+
+Engineer
+
+Each card:
+
+“Recommended for your project”
+
+Price range
+
+Verified badge
+
+CTA:
+
+“Request quote”
+
+D. Project Actions (Sticky Footer)
+
+🛒 Proceed to Order
+
+💬 Ask Concierge
+
+📤 Share with Professional
+
+3️⃣ AI: CHAT → QUANTITIES → SUPPLIERS (THE BRAIN)
+How it actually works (important for partners):
+Input Sources:
+
+Project type
+
+Location
+
+Budget
+
+Kenyan standards
+
+Historical builds
+
+AI Logic:
+
+Selects reference build model (e.g. 3-bed bungalow, Rift Valley)
+
+Applies:
+
+Local material ratios
+
+County cost modifiers
+
+Calculates:
+
+Cement bags
+
+Steel tonnage
+
+Roofing units
+
+Maps to:
+
+Available suppliers
+
+Stock levels
+
+Delivery zones
+
+Output:
+
+“Here’s what your project realistically needs.”
+
+No guesswork. No vendor bias.
+
+4️⃣ SHOP MODE (MANUAL BUT SECONDARY)
+
+Tabs you already have are perfect:
+
+Concierge (default)
+
+Project Board
+
+Manual Shop
+
+Manual Shop Enhancements:
+
+Each product card:
+
+Price
+
+Supplier rating
+
+Delivery counties
+
+Stock status
+
+CTA:
+👉 Add to Project (never “Add to Cart”)
+
+Power users feel respected. New users stay guided.
+
+5️⃣ CHECKOUT & ORDER FLOW (CONTROL + TRUST)
+When user clicks “Proceed to Order”
+Step 1: Order Review
+
+Materials list
+
+Delivery estimate
+
+No payment yet ⚠️
+
+Message:
+
+“We verify availability and pricing before fulfillment.”
+
+Step 2: PLACE ORDER (Button)
+
+Instead of payment:
+
+🔔 POP-UP CONFIRMATION MODAL
+
+Title: Order Submitted
+Body:
+
+Your order has been received and is being reviewed.
+One of our representatives will contact you shortly to confirm pricing, delivery, and next steps.
+
+Buttons:
+
+✅ Okay
+
+📞 Request a Call Now
+
+This protects you legally + operationally.
+
+Step 3: Backend Action
+
+System:
+
+Locks project snapshot
+
+Notifies ops team
+
+Assigns human rep
+
+Logs commission eligibility
+
+6️⃣ CART ICON (YES, BUT SMART)
+
+Cart icon shows:
+
+Active project
+
+Number of materials
+
+Status badge:
+
+Draft
+
+Submitted
+
+In Review
+
+Fulfilled
+
+Click → opens Project Board, not a dumb cart.
+
+7️⃣ REVENUE TRIGGERS (BUILT-IN, NOT PUSHY)
+
+Inside chat:
+
+“Want verified professionals?” → lead fee
+
+“Optimize to save 12%?” → premium AI
+
+“Lock materials price?” → margin capture
+
+“Managed delivery?” → service fee
+
+Users feel helped, not sold.
+
+8️⃣ REMOVE “POWERED BY CHUMA MART AI”
+
+You’re past that.
+
+Replace with:
+
+PropertyHub Intelligence™
+or
+Powered by PropertyHub Build Concierge
+
+This is your IP now.
