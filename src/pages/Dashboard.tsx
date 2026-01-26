@@ -145,7 +145,7 @@ export default function Dashboard() {
             baths: property.bathrooms || 0,
             sqm: property.land_size ? (typeof property.land_size === 'string' ? parseInt(property.land_size) : property.land_size) : 0,
             type: property.listing_type === "sale" ? "For Sale" : property.listing_type === "rent" ? "For Rent" : "Short Stay",
-            status: property.listing_type,
+            status: property.listing_type as "sale" | "rent",
             isHighGrowth: false,
             propertyType: property.category
           }}
