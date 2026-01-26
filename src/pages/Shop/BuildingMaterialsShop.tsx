@@ -24,7 +24,8 @@ import {
   Calendar,
   Wallet,
   PhoneCall,
-  Loader2
+  Loader2,
+  ChevronLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,8 +69,9 @@ import { toast } from "sonner";
 interface Message {
   role: 'user' | 'assistant';
   content: string;
-  type?: 'text' | 'suggestion' | 'options';
+  type?: 'text' | 'suggestion' | 'options' | 'carousel';
   options?: string[];
+  items?: any[];
   step?: string;
 }
 
@@ -203,9 +205,10 @@ export default function BuildingMaterialsShop() {
           setProjectModel(p => ({ ...p, floors: text, progress: 90 }));
           nextMsg = { 
             role: 'assistant', 
-            content: "Excellent. I've prepared a recommended materials and services list for your project. Would you like to view your Project Board?", 
+            content: "Excellent. I've prepared a recommended materials list for your project. You can swipe through them here or head to the Project Board for the full breakdown.", 
             step: 'final',
-            type: 'options',
+            type: 'carousel',
+            items: PRODUCTS,
             options: ["✅ View Project Board", "🔧 Customize", "🤖 Optimize"] 
           };
           setCurrentStep('final');
@@ -293,7 +296,7 @@ export default function BuildingMaterialsShop() {
           {view === 'concierge' && (
             <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full p-4 md:p-8">
               {/* Chat Window */}
-              <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-6 pb-32 scroll-smooth pr-4 custom-scrollbar">
+              <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-6 pb-32 scroll-smooth pr-4 custom-scrollbar-premium">
                 {messages.map((m, i) => (
                   <div key={i} className={cn(
                     "flex flex-col max-w-[80%] animate-in fade-in slide-in-from-bottom-3 duration-500 ease-out",
@@ -307,6 +310,37 @@ export default function BuildingMaterialsShop() {
                     )}>
                       {m.content}
                     </div>
+                    
+                    {m.type === 'carousel' && m.items && (
+                      <div className="w-full mt-4 relative group/carousel">
+                        <ScrollArea className="w-full whitespace-nowrap rounded-2xl border bg-white/50 backdrop-blur-sm">
+                          <div className="flex w-max p-4 gap-4">
+                            {m.items.map((item, idx) => (
+                              <div key={idx} className="w-[280px] bg-white rounded-2xl border border-[#EEE] p-4 flex flex-col gap-3 shadow-sm hover:shadow-md transition-all">
+                                <div className="aspect-square rounded-xl overflow-hidden bg-muted">
+                                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                </div>
+                                <div className="space-y-1">
+                                  <h4 className="font-bold text-sm truncate">{item.name}</h4>
+                                  <p className="text-[10px] font-bold text-primary uppercase">{item.supplier}</p>
+                                  <p className="font-black text-base">KSh {item.price.toLocaleString()}</p>
+                                </div>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="w-full rounded-xl text-[10px] font-black uppercase tracking-widest h-8"
+                                  onClick={() => handleOptionClick("✅ View Project Board")}
+                                >
+                                  Add to Project
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                          <ScrollBar orientation="horizontal" className="h-1.5" />
+                        </ScrollArea>
+                      </div>
+                    )}
+
                     {m.options && (
                       <div className="flex flex-wrap gap-2 mt-4">
                         {m.options.map(opt => (
