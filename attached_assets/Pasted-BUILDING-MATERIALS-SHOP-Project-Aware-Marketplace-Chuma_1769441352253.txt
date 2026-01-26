@@ -1,0 +1,284 @@
+BUILDING MATERIALS SHOP
+
+Project-Aware Marketplace (Chuma Mart but with a brain)
+
+This isn’t e-commerce.
+This is construction intelligence wrapped in clean UI.
+
+1️⃣ THE FEEL (NON-NEGOTIABLE)
+
+Before features: vibes.
+
+Design language
+
+Apple-clean, not hardware-store chaos
+
+Soft neutrals (cement gray, off-white, charcoal)
+
+One accent color (deep green or clay red = Kenyan, premium)
+
+Motion = subtle, not circus
+
+Micro-interaction philosophy
+
+Every action acknowledges intent
+
+No dead clicks
+
+Everything slides, fades, expands — never jumps
+
+If Webflow feels stiff → you overdid components.
+
+2️⃣ SHOP PAGE STRUCTURE (SMART, NOT LOUD)
+A. Top Section (Above the Fold)
+
+Instead of “Shop Materials” 👎
+You say:
+
+Build smarter. Buy exactly what your project needs.
+
+Below it:
+
+Project selector dropdown
+Active Project: 3-Bedroom Maisonette – Nakuru
+
+Or CTA: Create a Project to unlock smart quantities
+
+This sets context immediately.
+
+B. Category Navigation (Sticky + Horizontal)
+
+Not a sidebar.
+Sidebars are old-money e-commerce.
+
+Sticky horizontal scroll:
+
+Cement & Aggregates
+
+Steel
+
+Roofing
+
+Plumbing
+
+Electrical
+
+Finishing
+
+Prefab
+
+Active category gets a smooth underline animation.
+No page reloads — just content morphing.
+
+3️⃣ PRODUCT CARDS (THIS IS WHERE IQ SHOWS)
+
+Each card is calm. No clutter.
+
+Card Layout
+
+Product image (neutral background)
+
+Product name + spec
+
+Price (per unit)
+
+Supplier rating ⭐
+
+Delivery coverage (county chips)
+
+Stock status (green = available)
+
+Primary CTA
+
+🔥 Add to Project
+
+Not “Add to Cart”. Ever.
+
+Secondary (tiny):
+
+View specs
+
+Compare
+
+4️⃣ THE KILLER: PROJECT-BASED CART 🧠🔥
+
+Once user clicks Add to Project:
+
+Slide-in Panel (Right Side)
+
+This is key — do NOT redirect.
+
+Panel shows:
+
+Selected project
+
+Auto-estimated quantity
+
+Cost breakdown
+
+Delivery estimate
+
+Example:
+
+Cement (50kg)
+Estimated needed: 220 bags
+Based on: 3-bedroom maisonette (150sqm)
+
+User can:
+
+Adjust quantities
+
+Lock quantity (for pros)
+
+Ask AI: “Why this amount?”
+
+5️⃣ AUTO-QUANTITY LOGIC (YOUR SECRET SAUCE)
+
+Quantities are calculated from:
+
+Project type
+
+Size (sqm)
+
+Floors
+
+Construction method
+
+Example:
+
+If project = Maisonette:
+
+Cement
+
+Steel
+
+Hardcore
+
+Ballast
+
+Sand
+
+Auto-bundled into a Material Set:
+
+Foundation Materials
+Superstructure Materials
+Roofing Materials
+
+Users feel like:
+
+“Oh… this system knows what it’s doing.”
+
+6️⃣ SMART SUGGESTIONS (WHERE AI EARNS ITS SALARY)
+
+Below each product in cart:
+
+“Cheaper alternative – save KSh 12,400”
+
+“Higher quality – longer lifespan”
+
+“Supplier closer to site – faster delivery”
+
+You’re not upselling.
+You’re advising.
+
+That’s trust.
+
+7️⃣ DELIVERY & TIMELINE VIEW
+
+Inside the Project Cart:
+
+Gantt-style delivery timeline
+
+Materials grouped by delivery date
+
+Warnings:
+
+⚠️ Long lead item
+
+⚠️ Stock low
+
+This prevents site delays — huge pain point solved.
+
+8️⃣ CHECKOUT (PROJECT-FIRST)
+
+Checkout is project milestone based, not item based.
+
+User chooses:
+
+Deliver all at once
+
+Phase deliveries
+
+Hold in escrow until milestone
+
+Payment summary:
+
+Materials cost
+
+Delivery
+
+Platform fee (transparent)
+
+Escrow protection badge
+
+No surprises = higher conversion.
+
+9️⃣ WEBFLOW IMPLEMENTATION (REAL TALK)
+How to build this in Webflow without pain:
+
+Collections
+
+Products
+
+Suppliers
+
+Projects
+
+Material Rules (AI-backed later)
+
+Interactions
+
+Slide-in panels (IX2)
+
+Sticky nav
+
+Dynamic filtering
+
+Smooth state changes
+
+Important
+Webflow handles:
+
+UI
+
+CMS
+
+Animations
+
+Your backend (Supabase / Next / whatever):
+
+Quantity logic
+
+AI suggestions
+
+Project linking
+
+Payments
+
+Don’t overburden Webflow with logic — let it shine visually.
+
+10️⃣ WHY THIS WINS (NO SUGARCOATING)
+
+Chuma Mart = inventory dump
+You = construction intelligence
+
+They sell materials.
+You sell confidence + precision.
+
+Once a user builds one project with you:
+
+They won’t go back
+
+Professionals will push clients here
+
+Suppliers will beg to be listed

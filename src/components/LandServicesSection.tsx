@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, DollarSign, Users, MapPin, Home, Handshake, Building, Landmark } from "lucide-react";
@@ -290,7 +290,8 @@ const landServicesData = {
       growth: "+25%",
       listings: 150,
       description: "Quality construction materials and supplies",
-      details: "Sourcing and delivery of building essentials"
+      details: "Sourcing and delivery of building essentials",
+      href: "/shop/building-materials"
     }
   ]
 };
@@ -306,6 +307,7 @@ const categoryLabels = {
 
 export function LandServicesSection() {
   const [activeCategory, setActiveCategory] = useState<keyof typeof landServicesData>("all");
+  const navigate = useNavigate();
 
   const currentServices = landServicesData[activeCategory];
 
@@ -379,6 +381,18 @@ export function LandServicesSection() {
               </div>
               <p className="text-xs text-muted-foreground mt-1">Market performance</p>
             </div>
+            
+            {service.id === "19" && (
+              <div className="pt-4">
+                <Button 
+                  onClick={() => navigate(service.href || "/")}
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-6 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 group-hover:scale-[1.02] transition-transform"
+                >
+                  <Building className="w-5 h-5" />
+                  Shop Building Materials
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

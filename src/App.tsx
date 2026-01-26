@@ -33,6 +33,7 @@ import MainLayout from "@/components/MainLayout";
 import UserProfileSettings from "./pages/UserProfileSettings";
 import SavedProperties from "./pages/SavedProperties";
 import AccountSettings from "./pages/AccountSettings";
+import BuildingMaterialsShop from "./pages/Shop/BuildingMaterialsShop";
 import ShortStayLayout from "@/components/layouts/ShortStayLayout";
 import ShortStaySearch from "./pages/ShortStay/ShortStaySearch";
 import ShortStayDetails from "./pages/ShortStay/ShortStayDetails";
@@ -80,6 +81,7 @@ const App = () => {
                       <Route path="/properties/:id" element={<PropertyDetail />} />
                       <Route path="/explore/:category" element={<ExplorePage />} />
                       <Route path="/affordability" element={<AffordabilityPage />} />
+                      <Route path="/shop/building-materials" element={<BuildingMaterialsShop />} />
                     </Route>
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/auth/reset" element={<ResetPassword />} />
