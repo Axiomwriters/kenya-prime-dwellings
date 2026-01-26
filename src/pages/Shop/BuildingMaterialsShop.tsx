@@ -336,7 +336,7 @@ export default function BuildingMaterialsShop() {
                               </div>
                             ))}
                           </div>
-                          <ScrollBar orientation="horizontal" className="h-1.5" />
+                          <ScrollBar orientation="horizontal" className="h-1.5 custom-scrollbar-premium" />
                         </ScrollArea>
                       </div>
                     )}
@@ -589,8 +589,8 @@ export default function BuildingMaterialsShop() {
 
         </div>
 
-        {/* Live Project Model (Desktop Context Panel) */}
-        {view === 'concierge' && (
+        {/* Live Project Model (Desktop Context Panel) - Only show in board view */}
+        {view === 'board' && (
           <aside className="hidden xl:flex w-[420px] border-l bg-white flex-col animate-in slide-in-from-right-12 duration-1000">
             <div className="p-10 pb-8 border-b">
               <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-8">Live Project Intelligence</h3>
