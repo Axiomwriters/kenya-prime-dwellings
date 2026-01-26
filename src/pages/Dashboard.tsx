@@ -144,10 +144,10 @@ export default function Dashboard() {
             beds: property.bedrooms || 0,
             baths: property.bathrooms || 0,
             sqm: property.land_size ? (typeof property.land_size === 'string' ? parseInt(property.land_size) : property.land_size) : 0,
-            type: property.listing_type === "sale" ? "For Sale" : property.listing_type === "rent" ? "For Rent" : "Short Stay",
-            status: property.listing_type as "sale" | "rent",
+            type: (property.listing_type === "sale" ? "For Sale" : property.listing_type === "rent" ? "For Rent" : "Short Stay") as "For Sale" | "For Rent",
+            status: (property.listing_type === "sale" || property.listing_type === "rent" ? property.listing_type : "sale") as "sale" | "rent",
             isHighGrowth: false,
-            propertyType: property.category
+            propertyType: property.category as any
           }}
           intentTags={getIntentTags(property)}
           microData={getMicroData(property)}

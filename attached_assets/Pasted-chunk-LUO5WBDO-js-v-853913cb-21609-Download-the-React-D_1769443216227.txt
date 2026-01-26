@@ -1,0 +1,76 @@
+chunk-LUO5WBDO.js?v=853913cb:21609 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+axkbcjwlxhjczbjirxyb.supabase.co/rest/v1/agent_listings?select=location&status=eq.approved:1  Failed to load resource: the server responded with a status of 404 ()
+axkbcjwlxhjczbjirxyb.supabase.co/rest/v1/agent_listings?select=*&status=eq.approved&order=created_at.desc&limit=10:1  Failed to load resource: the server responded with a status of 404 ()
+axkbcjwlxhjczbjirxyb.supabase.co/rest/v1/agent_verifications?select=user_id&status=eq.approved:1  Failed to load resource: the server responded with a status of 404 ()
+useLocations.ts:17 Error fetching locations: Object
+queryFn @ useLocations.ts:17
+Dashboard.tsx:49 Supabase fetch error (falling back to mocks): Object
+queryFn @ Dashboard.tsx:49
+BuildingMaterialsShop.tsx:469 Uncaught ReferenceError: MapPin is not defined
+    at BuildingMaterialsShop (BuildingMaterialsShop.tsx:469:22)
+    at renderWithHooks (chunk-LUO5WBDO.js?v=853913cb:11596:26)
+    at mountIndeterminateComponent (chunk-LUO5WBDO.js?v=853913cb:14974:21)
+    at beginWork (chunk-LUO5WBDO.js?v=853913cb:15962:22)
+    at HTMLUnknownElement.callCallback2 (chunk-LUO5WBDO.js?v=853913cb:3680:22)
+    at Object.invokeGuardedCallbackDev (chunk-LUO5WBDO.js?v=853913cb:3705:24)
+    at invokeGuardedCallback (chunk-LUO5WBDO.js?v=853913cb:3739:39)
+    at beginWork$1 (chunk-LUO5WBDO.js?v=853913cb:19818:15)
+    at performUnitOfWork (chunk-LUO5WBDO.js?v=853913cb:19251:20)
+    at workLoopConcurrent (chunk-LUO5WBDO.js?v=853913cb:19242:13)
+BuildingMaterialsShop.tsx:469 Uncaught ReferenceError: MapPin is not defined
+    at BuildingMaterialsShop (BuildingMaterialsShop.tsx:469:22)
+    at renderWithHooks (chunk-LUO5WBDO.js?v=853913cb:11596:26)
+    at mountIndeterminateComponent (chunk-LUO5WBDO.js?v=853913cb:14974:21)
+    at beginWork (chunk-LUO5WBDO.js?v=853913cb:15962:22)
+    at HTMLUnknownElement.callCallback2 (chunk-LUO5WBDO.js?v=853913cb:3680:22)
+    at Object.invokeGuardedCallbackDev (chunk-LUO5WBDO.js?v=853913cb:3705:24)
+    at invokeGuardedCallback (chunk-LUO5WBDO.js?v=853913cb:3739:39)
+    at beginWork$1 (chunk-LUO5WBDO.js?v=853913cb:19818:15)
+    at performUnitOfWork (chunk-LUO5WBDO.js?v=853913cb:19251:20)
+    at workLoopSync (chunk-LUO5WBDO.js?v=853913cb:19190:13)
+chunk-LUO5WBDO.js?v=853913cb:14080 The above error occurred in the <BuildingMaterialsShop> component:
+
+    at BuildingMaterialsShop (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/src/pages/Shop/BuildingMaterialsShop.tsx:213:22)
+    at RenderedRoute (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=853913cb:4130:5)
+    at Outlet (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=853913cb:4536:26)
+    at div
+    at main
+    at _c8 (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/src/components/ui/sidebar.tsx:323:62)
+    at div
+    at div
+    at Provider (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/node_modules/.vite/deps/chunk-I2ULB72V.js?v=853913cb:43:15)
+    at TooltipProvider (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=853913cb:157:5)
+    at https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/src/components/ui/sidebar.tsx:50:72
+    at MainLayout (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/src/components/MainLayout.tsx:32:41)
+    at RenderedRoute (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=853913cb:4130:5)
+    at Routes (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=853913cb:4600:5)
+    at AuthProvider (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/src/hooks/useAuth.tsx:27:32)
+    at Router (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=853913cb:4543:15)
+    at BrowserRouter (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=853913cb:5289:5)
+    at LocationAgentProvider (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/src/contexts/LocationAgentContext.tsx:25:41)
+    at TripProvider (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/src/contexts/TripContext.tsx:25:32)
+    at Provider (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/node_modules/.vite/deps/chunk-I2ULB72V.js?v=853913cb:43:15)
+    at TooltipProvider (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=853913cb:157:5)
+    at V (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/node_modules/.vite/deps/next-themes.js?v=853913cb:44:25)
+    at J (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/node_modules/.vite/deps/next-themes.js?v=853913cb:42:18)
+    at ThemeProvider (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/src/components/ThemeProvider.tsx:22:33)
+    at QueryClientProvider (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/node_modules/.vite/deps/@tanstack_react-query.js?v=853913cb:3028:3)
+    at App (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/src/App.tsx:68:39)
+    at ErrorBoundary (https://5d657b25-e6c5-4877-95e1-f4d6a1b668bc-00-nt93ts0cehm4.picard.replit.dev/src/components/ErrorBoundary.tsx:91:9)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.
+logCapturedError @ chunk-LUO5WBDO.js?v=853913cb:14080
+ErrorBoundary.tsx:23 Uncaught error: ReferenceError: MapPin is not defined
+    at BuildingMaterialsShop (BuildingMaterialsShop.tsx:469:22)
+    at renderWithHooks (chunk-LUO5WBDO.js?v=853913cb:11596:26)
+    at mountIndeterminateComponent (chunk-LUO5WBDO.js?v=853913cb:14974:21)
+    at beginWork (chunk-LUO5WBDO.js?v=853913cb:15962:22)
+    at beginWork$1 (chunk-LUO5WBDO.js?v=853913cb:19806:22)
+    at performUnitOfWork (chunk-LUO5WBDO.js?v=853913cb:19251:20)
+    at workLoopSync (chunk-LUO5WBDO.js?v=853913cb:19190:13)
+    at renderRootSync (chunk-LUO5WBDO.js?v=853913cb:19169:15)
+    at recoverFromConcurrentError (chunk-LUO5WBDO.js?v=853913cb:18786:28)
+    at performConcurrentWorkOnRoot (chunk-LUO5WBDO.js?v=853913cb:18734:30) Object
+componentDidCatch @ ErrorBoundary.tsx:23
+building-materials:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+building-materials:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
