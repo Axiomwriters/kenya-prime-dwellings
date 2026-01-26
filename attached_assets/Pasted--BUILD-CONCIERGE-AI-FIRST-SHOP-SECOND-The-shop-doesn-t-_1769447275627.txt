@@ -1,0 +1,200 @@
+🧠 BUILD CONCIERGE (AI-FIRST, SHOP SECOND)
+
+The shop doesn’t disappear.
+It becomes the execution layer behind a concierge.
+
+Think:
+
+“Tell me what you’re building.”
+Not “Pick cement.”
+
+1️⃣ ENTRY POINT (HOW USERS START)
+
+Instead of landing on products, users see:
+
+💬 Build Concierge
+
+“What are you building?”
+
+Quick-start chips:
+
+🏠 3-Bedroom Bungalow
+
+🏢 Apartments
+
+🏗 Rental Units
+
+🌱 Just estimating costs
+
+🧱 I already have drawings
+
+No pressure. No jargon.
+
+2️⃣ THE CONVERSATION FLOW (THIS IS THE MAGIC)
+Step 1: Understand the Project
+
+AI asks (progressively, not all at once):
+
+Location (county + area)
+
+Budget range
+
+Floors
+
+Timeline
+
+Using a professional? (yes/no)
+
+Every answer:
+
+Updates project model in real time
+
+Prepares materials + services silently
+
+Step 2: Smart Suggestions (NOT QUESTIONS)
+
+Instead of:
+
+“What cement do you want?”
+
+AI says:
+
+“For a 3-bedroom maisonette in Nakuru, you’ll typically need ~220 bags of cement.
+Would you like me to add the recommended set?”
+
+Buttons:
+
+✅ Add Recommended
+
+✏️ Customize
+
+💬 Explain why
+
+This is confidence UX.
+
+3️⃣ CONCIERGE → PROJECT → SHOP (SEAMLESS)
+
+Behind the scenes:
+
+AI creates a Project
+
+Materials auto-populate
+
+Services (architect, QS, surveyor) are suggested
+
+User never sees:
+
+Categories
+
+Filters
+
+Overchoice
+
+But power users can still switch to “Manual View”.
+
+4️⃣ THE PROJECT BOARD (VISUAL, NOT CART)
+
+After chat, user lands on:
+
+🧱 Project Board
+
+Sections:
+
+Materials (grouped by phase)
+
+Services needed
+
+Estimated total cost
+
+Timeline
+
+Everything editable.
+Nothing locked.
+
+This feels like Notion + Builder’s Bible.
+
+5️⃣ CONCIERGE FOR PROS TOO (BIG WIN)
+
+Architects / Contractors get:
+
+“Chat with Project”
+
+AI helps them:
+
+Estimate materials
+
+Quote faster
+
+Adjust specs for budget
+
+This reduces:
+
+Back-and-forth
+
+Ghosting
+
+Price disputes
+
+Pros love speed. You give them speed.
+
+6️⃣ REVENUE INSERTION (SNEAKY BUT CLEAN)
+
+Concierge enables monetization without friction:
+
+“Want a verified contractor for this build?”
+→ lead fee
+
+“Optimize materials to save 12%?”
+→ premium AI
+
+“Lock prices & escrow delivery?”
+→ transaction fee
+
+No hard selling.
+Just “Do you want this handled?”
+
+7️⃣ WHY THIS IS A MOAT 🛡️
+
+Competitors:
+
+Lists
+
+Prices
+
+Vendors
+
+You:
+
+Understanding
+
+Guidance
+
+Control
+
+Once someone starts a build with your concierge:
+👉 they cannot easily leave.
+
+8️⃣ DESIGN DIRECTION (IMPORTANT)
+
+UI rules:
+
+Chat on left
+
+Project summary on right (live updating)
+
+Soft transitions
+
+Calm tone
+
+No chatbot vibes.
+This is a professional assistant, not “Hey bestie”.
+
+STRAIGHT TALK (NO SUGAR)
+
+If you do this right:
+
+You don’t compete with Chuma Mart
+
+You absorb them
+
+You become the default starting point for building in Kenya
