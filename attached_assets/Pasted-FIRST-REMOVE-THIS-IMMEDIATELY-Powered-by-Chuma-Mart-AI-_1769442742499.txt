@@ -1,0 +1,259 @@
+FIRST: REMOVE THIS IMMEDIATELY
+
+“Powered by Chuma Mart AI”
+
+No debate.
+
+Why?
+
+You’re building PropertyHub, not a reseller.
+
+That line kills authority.
+
+Partners will ask: “So who actually owns the user?”
+
+Replace with ONE of these (pick one):
+
+Smart Materials Engine
+
+Project-Aware Materials
+
+Built for Kenyan Projects
+
+Or nothing at all (silence = premium)
+
+Big brands don’t explain themselves. They let the product talk.
+
+🧠 WHAT YOU HAVE RIGHT (KEEP IT)
+
+Let’s give credit where it’s due:
+
+✅ “Build smarter.” headline → strong
+✅ Project selector visible → excellent context
+✅ Horizontal categories → modern
+✅ Add to Project CTA → correct mental model
+✅ Clean cards → premium feel
+
+You’re on the right road. Now we widen the road.
+
+1️⃣ ADD: MATERIAL COMPLETENESS (THIS IS CRITICAL)
+
+Right now it feels… demo-ish.
+
+A builder should land here and think:
+
+“Oh, everything is here.”
+
+Expand categories like this (no new UI needed):
+Cement & Aggregates
+
+Cement (multiple grades)
+
+Sand (river / murram)
+
+Ballast
+
+Hardcore
+
+Concrete blocks
+
+Steel & Metal
+
+TMT bars (8–32mm)
+
+Binding wire
+
+Steel mesh
+
+I-beams / angle bars
+
+Roofing
+
+Mabati (gauges + profiles)
+
+Clay tiles
+
+Gutters & downpipes
+
+Trusses
+
+Plumbing
+
+Pipes (PVC, PPR)
+
+Fittings
+
+Tanks
+
+Sanitary ware
+
+Electrical
+
+Cables (by gauge)
+
+Switches & sockets
+
+DB boards
+
+Lighting
+
+Finishing
+
+Tiles
+
+Paint
+
+Doors & frames
+
+Gypsum & ceilings
+
+Prefab
+
+Panels
+
+Cabins
+
+Modular units
+
+Even if some SKUs are placeholders — breadth builds trust.
+
+2️⃣ ADD: “SMART SETS” (LOW EFFORT, HUGE WIN)
+
+Above product grid, add chips like:
+
+🧱 Foundation Set
+
+🏗 Superstructure Set
+
+🏠 Roofing Set
+
+🎨 Finishing Set
+
+Clicking a set:
+
+Auto-filters materials
+
+Shows “This set covers X% of your project”
+
+This instantly makes the shop feel intent-aware.
+
+3️⃣ EVOLVE THE PRODUCT CARD (WITHOUT CLUTTER)
+
+Current card is good — just missing intelligence.
+
+Add ONE subtle line under price:
+
+Est. needed for your project: 220 bags
+
+Grey text. Quiet confidence.
+
+Hover state:
+
+“Why?” → tooltip explanation
+
+This alone separates you from 99% of shops.
+
+4️⃣ PROJECT CONTEXT SHOULD FEEL ALIVE
+
+Right now “Active Project” is static.
+
+Let’s juice it up 👇
+
+When a project is selected:
+
+Show a tiny progress bar
+
+Materials covered: 32%
+
+Tooltip:
+
+“You’ve added foundation materials”
+
+Psychology: users want to complete things.
+
+5️⃣ ADD A FLOATING PROJECT SUMMARY (GAME-CHANGER)
+
+Bottom-right (desktop only):
+
+🧱 Project Cart
+
+12 items
+
+KSh 1,240,000
+
+View materials →
+
+This should:
+
+Slide in, not redirect
+
+Feel like a control panel, not a checkout
+
+Mobile: bottom sticky bar.
+
+6️⃣ SUPPLIER TRUST (DON’T OVERDO IT)
+
+Right now suppliers are invisible.
+
+Add:
+
+Supplier name (small)
+
+⭐ rating
+
+“Verified Supplier” badge (same logic as pros)
+
+No bios. No walls of text.
+Trust ≠ noise.
+
+7️⃣ SEARCH SHOULD BE PROJECT-AWARE (LATER PHASE, BUT PLAN IT)
+
+When someone types:
+
+“cement”
+
+Results should rank by:
+
+Project relevance
+
+Proximity to site
+
+Stock availability
+
+Even if backend isn’t ready — design for it now.
+
+8️⃣ MICROCOPY TWEAKS (SMALL BUT POWERFUL)
+
+Replace generic text:
+
+“In Stock” → Available near site
+
+“Low Stock” → Limited near Nakuru
+
+“Add to Project” (keep) but on hover:
+
+“Adds recommended quantity”
+
+Words = UX.
+
+9️⃣ BRAND CHECK (REAL TALK)
+
+This page already feels:
+
+More premium than Jiji
+
+Smarter than Chuma Mart
+
+Cleaner than most proptech sites
+
+Once you:
+
+Remove external branding
+
+Add intelligence signals
+
+Increase material depth
+
+You’re no longer “trying something”.
+
+You’re setting the standard.

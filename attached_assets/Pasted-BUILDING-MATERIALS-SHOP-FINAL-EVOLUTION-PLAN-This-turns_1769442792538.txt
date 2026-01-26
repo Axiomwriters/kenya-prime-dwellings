@@ -1,0 +1,208 @@
+BUILDING MATERIALS SHOP — FINAL EVOLUTION PLAN
+
+This turns the shop from “nice UI” into the backbone of the ecosystem.
+
+1️⃣ PROJECT CART (SLIDE-IN CONTROL PANEL)
+
+This is not checkout. This is command center energy.
+
+UI
+
+Bottom-right floating button
+🧱 Project Materials (12 items · KSh 1.24M)
+
+Click → smooth slide-in from right (desktop)
+
+Mobile → bottom sheet
+
+Inside the Slide-In
+
+Project name + location
+
+Materials grouped by phase:
+
+Foundation
+
+Superstructure
+
+Roofing
+
+Finishing
+
+Each item shows:
+
+Quantity
+
+Supplier
+
+Delivery ETA
+
+Actions:
+
+“Optimize Cost”
+
+“Request Supplier Quotes”
+
+“Proceed to Escrow”
+
+💡 Why this wins:
+Users feel like they’re managing a build, not shopping.
+
+2️⃣ MATERIAL QUANTITY INTELLIGENCE (CORE DIFFERENTIATOR)
+
+This is where competitors lose.
+
+How quantities are calculated
+
+Based on:
+
+Project type (bungalow / maisonette / apartments)
+
+Size (sqm)
+
+Floors
+
+County (material norms vary)
+
+Building standards (Kenya-specific)
+
+Example
+
+Bamburi Cement
+
+Est. needed for your project: 220 bags
+
+Hover → explanation:
+
+“Based on 3-bedroom maisonette, 2 floors, Nakuru standards.”
+
+This builds trust + authority instantly.
+
+3️⃣ SMART SETS (ONE-CLICK MAGIC)
+
+Displayed above product grid as chips:
+
+🧱 Foundation Set
+
+🏗 Superstructure Set
+
+🏠 Roofing Set
+
+🎨 Finishing Set
+
+Clicking a Set:
+
+Auto-adds recommended materials
+
+Shows coverage:
+
+“This set covers 48% of your project materials”
+
+User can:
+
+Accept all
+
+Edit quantities
+
+Swap suppliers
+
+This is anti-overwhelm UX.
+
+4️⃣ SUPPLIER TRUST & ONBOARDING RULES
+
+No random suppliers. Ever.
+
+Supplier Requirements
+
+Business registration
+
+County delivery zones
+
+Stock reporting (weekly)
+
+Pricing transparency
+
+Supplier Badge System
+
+✅ Verified Supplier
+
+🚚 Delivers to Nakuru
+
+⭐ Rating (jobs completed, not reviews spam)
+
+Suppliers don’t own the customer.
+You do.
+
+5️⃣ SEARCH & FILTERING (PROJECT-AWARE)
+
+Search results ranked by:
+
+Project compatibility
+
+Delivery proximity
+
+Stock availability
+
+Supplier reliability
+
+Filters:
+
+Available near site
+
+Fits my project
+
+Bulk discount
+
+Fast delivery
+
+This feels intelligent, not e-commerce.
+
+6️⃣ WEBFLOW INTERACTIONS (PREMIUM FEEL)
+Micro-interactions to add:
+
+Add to Project → button morph + checkmark
+
+Quantity auto-fills (with subtle animation)
+
+Progress bar updates in real time
+
+Tooltips fade in, not pop
+
+Motion Rule:
+
+If it moves → it informs.
+No pointless animation.
+
+7️⃣ ESCROW-READY (FUTURE-SAFE)
+
+Even if payments come later, design for it now.
+
+Flow preview:
+
+Materials added
+
+Suppliers confirmed
+
+Funds held in escrow
+
+Release on delivery confirmation
+
+This protects:
+
+Users
+
+You
+
+Serious suppliers only
+
+8️⃣ BRAND POSITIONING (FINAL WORD)
+
+After this:
+
+You’re not “Chuma Mart but online”
+
+You’re BuildOS for Kenya
+
+PropertyHub becomes the operating system of property
+
+Quiet. Confident. Dangerous (to competitors)
