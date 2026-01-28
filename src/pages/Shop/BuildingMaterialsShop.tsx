@@ -25,7 +25,9 @@ import {
   Wallet,
   PhoneCall,
   Loader2,
-  ChevronLeft
+  ChevronLeft,
+  X,
+  ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +39,8 @@ import {
   SheetHeader, 
   SheetTitle,
   SheetDescription,
-  SheetFooter
+  SheetFooter,
+  SheetTrigger
 } from "@/components/ui/sheet";
 import {
   Select,
@@ -115,7 +118,42 @@ const PRODUCTS = [
     brands: ["Bamburi", "Simba", "Devki", "Savannah"],
     stock: "In Stock",
     delivery: "Country-wide"
+  },
+  {
+    id: "steel-1",
+    name: "TMT Steel Bars",
+    spec: "12mm High-Strength",
+    price: 1450,
+    unit: "bar",
+    supplier: "Devki Steel Mills",
+    category: "Steel & Reinforcement",
+    image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=400&auto=format&fit=crop",
+    type: "bar",
+    stock: "In Stock",
+    delivery: "Country-wide"
+  },
+  {
+    id: "ballast-lorry",
+    name: "Ballast (Lorry Load)",
+    spec: "Crushed stone for concrete",
+    price: 22000,
+    unit: "lorry",
+    supplier: "Regional Quarries",
+    category: "Sand & Ballast",
+    image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=400&auto=format&fit=crop",
+    type: "lorry",
+    sizes: ["7T", "10T", "14T", "20T"],
+    stock: "In Stock",
+    delivery: "Same-County"
   }
+];
+
+const KENYA_COUNTIES = [
+  "Nairobi", "Mombasa", "Kwale", "Kilifi", "Tana River", "Lamu", "Taita-Taveta", "Garissa", "Wajir", "Mandera",
+  "Marsabit", "Isiolo", "Meru", "Tharaka-Nithi", "Embu", "Kitui", "Machakos", "Makueni", "Nyandarua", "Nyeri",
+  "Kirinyaga", "Murang'a", "Kiambu", "Turkana", "West Pokot", "Samburu", "Trans Nzoia", "Uasin Gishu", "Elgeyo-Marakwet", "Nandi",
+  "Baringo", "Laikipia", "Nakuru", "Narok", "Kajiado", "Kericho", "Bomet", "Kakamega", "Vihiga", "Bungoma",
+  "Busia", "Siaya", "Kisumu", "Homa Bay", "Migori", "Kisii", "Nyamira"
 ];
 
 const BUDGET_RANGES = ["KSh 1M–2M", "KSh 2M–4M", "KSh 4M+", "Not sure yet"];
@@ -130,6 +168,7 @@ export default function BuildingMaterialsShop() {
   const [cart, setCart] = useState<any[]>([]);
   const [currentStep, setCurrentStep] = useState('type');
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [isCartOpen, setIsCartOpen] = useState(false);
   
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -178,7 +217,7 @@ export default function BuildingMaterialsShop() {
             content: "Got it. Where is the project located?", 
             step: 'location',
             type: 'options',
-            options: ["Nairobi", "Mombasa", "Nakuru", "Kiambu"] 
+            options: KENYA_COUNTIES
           };
           setCurrentStep('location');
           break;
@@ -200,7 +239,7 @@ export default function BuildingMaterialsShop() {
             content: "How many floors are you planning?", 
             step: 'floors',
             type: 'options',
-            options: ["1 Floor", "2+ Floors"] 
+            options: ["1 Floor", "2 Floors", "3 Floors", "4+ Floors", "Skyscraper"] 
           };
           setCurrentStep('floors');
           break;
@@ -208,31 +247,34 @@ export default function BuildingMaterialsShop() {
           setProjectModel(p => ({ ...p, floors: text, progress: 90 }));
           nextMsg = { 
             role: 'assistant', 
-            content: "Excellent. I've prepared a recommended materials list for your project. You can swipe through them here or head to the Order List for the full breakdown.", 
+            content: "Excellent. I've prepared a recommended materials list for your project. Are you okay with this selection? If so, we can proceed to the order curation.", 
             step: 'final',
             type: 'carousel',
             items: PRODUCTS,
-            options: ["✅ View Order List", "🔧 Customize", "🤖 Optimize"] 
+            options: ["✅ Yes, add to cart", "🔧 Customize selection", "🤖 Talk to Rep"] 
           };
           setCurrentStep('final');
+          break;
+        case 'final':
+          if (text.includes("Yes")) {
+            const initialMaterials = PRODUCTS.map(m => ({ ...m, quantity: 1 }));
+            setCart(initialMaterials);
+            nextMsg = { role: 'assistant', content: "Perfect! All materials have been added to your order list. You can now submit it for human verification." };
+            setTimeout(() => setView('board'), 1500);
+          } else {
+            nextMsg = { role: 'assistant', content: "No problem. Let me know what you'd like to adjust." };
+          }
           break;
         default:
           nextMsg = { role: 'assistant', content: "I'm ready when you are. Just let me know if you need to adjust anything." };
       }
       
       setMessages(prev => [...prev, nextMsg]);
-    }, 800);
+    }, 100); // Instant response
   };
 
   const handleOptionClick = (option: string) => {
-    if (option.includes("View Order List")) {
-      const initialMaterials = PRODUCTS.map(m => ({ ...m, quantity: 1 }));
-      setCart(initialMaterials);
-      setView('board');
-      toast.success("Order List initialized with smart estimates.");
-    } else if (currentStep !== 'final') {
-      handleSend(option);
-    }
+    handleSend(option);
   };
 
   const updateQuantity = (id: string, delta: number) => {
@@ -251,6 +293,17 @@ export default function BuildingMaterialsShop() {
     }, 1500);
   };
 
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const productScrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollLeft = (ref: React.RefObject<HTMLDivElement>) => {
+    if (ref.current) ref.current.scrollBy({ left: -300, behavior: 'smooth' });
+  };
+
+  const scrollRight = (ref: React.RefObject<HTMLDivElement>) => {
+    if (ref.current) ref.current.scrollBy({ left: 300, behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen bg-[#FDFDFD] flex flex-col font-sans">
       {/* Header */}
@@ -263,36 +316,100 @@ export default function BuildingMaterialsShop() {
             <h1 className="text-lg font-extrabold tracking-tight text-[#1A1A1A]">Smart Warehouse</h1>
             <p className="text-[10px] font-bold text-primary uppercase tracking-[0.15em]">Materials. Logistics. Done Right.</p>
           </div>
-          <div className="ml-auto flex items-center bg-muted/30 p-1 rounded-full">
-            <Button 
-              variant={view === 'warehouse' ? 'default' : 'ghost'} 
-              size="sm" 
-              onClick={() => setView('warehouse')}
-              className={cn("rounded-full px-5 text-[11px] font-bold uppercase tracking-wider h-8", view === 'warehouse' && "shadow-sm")}
-            >
-              Warehouse
-            </Button>
-            <Button 
-              variant={view === 'board' ? 'default' : 'ghost'} 
-              size="sm" 
-              onClick={() => setView('board')}
-              className={cn("rounded-full px-5 text-[11px] font-bold uppercase tracking-wider h-8", view === 'board' && "shadow-sm")}
-            >
-              Order List
-            </Button>
-            <Button 
-              variant={view === 'concierge' ? 'default' : 'ghost'} 
-              size="sm" 
-              onClick={() => setView('concierge')}
-              className={cn("rounded-full px-5 text-[11px] font-bold uppercase tracking-wider h-8", view === 'concierge' && "shadow-sm")}
-            >
-              AI Assist
-            </Button>
+          <div className="ml-auto flex items-center gap-4">
+            <div className="hidden md:flex items-center bg-muted/30 p-1 rounded-full">
+              <Button 
+                variant={view === 'warehouse' ? 'default' : 'ghost'} 
+                size="sm" 
+                onClick={() => setView('warehouse')}
+                className={cn("rounded-full px-5 text-[11px] font-bold uppercase tracking-wider h-8", view === 'warehouse' && "shadow-sm")}
+              >
+                Warehouse
+              </Button>
+              <Button 
+                variant={view === 'board' ? 'default' : 'ghost'} 
+                size="sm" 
+                onClick={() => setView('board')}
+                className={cn("rounded-full px-5 text-[11px] font-bold uppercase tracking-wider h-8", view === 'board' && "shadow-sm")}
+              >
+                Order List
+              </Button>
+              <Button 
+                variant={view === 'concierge' ? 'default' : 'ghost'} 
+                size="sm" 
+                onClick={() => setView('concierge')}
+                className={cn("rounded-full px-5 text-[11px] font-bold uppercase tracking-wider h-8", view === 'concierge' && "shadow-sm")}
+              >
+                AI Assist
+              </Button>
+            </div>
+            
+            <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" className="relative rounded-full border-muted-foreground/20">
+                  <ShoppingBag className="h-5 w-5" />
+                  {cart.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-black h-5 w-5 flex items-center justify-center rounded-full animate-in zoom-in">
+                      {cart.length}
+                    </span>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="w-full sm:max-w-md p-0 flex flex-col rounded-l-[3rem]">
+                <SheetHeader className="p-8 border-b">
+                  <SheetTitle className="text-2xl font-black">Smart Cart</SheetTitle>
+                  <SheetDescription className="font-medium text-muted-foreground">Submit for human verification</SheetDescription>
+                </SheetHeader>
+                <ScrollArea className="flex-1 p-8">
+                  <div className="space-y-6">
+                    {cart.map((item, idx) => (
+                      <div key={idx} className="flex gap-4 items-center animate-in fade-in slide-in-from-right-4">
+                        <div className="w-20 h-20 rounded-2xl overflow-hidden bg-muted flex-shrink-0">
+                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <h4 className="font-bold text-sm leading-tight">{item.name}</h4>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase">{item.supplier}</p>
+                          <p className="font-black text-sm">KSh {item.price.toLocaleString()}</p>
+                        </div>
+                        <div className="flex flex-col items-center bg-muted/30 rounded-xl p-1">
+                          <button onClick={() => updateQuantity(item.id, 1)} className="h-6 w-6 flex items-center justify-center hover:bg-white rounded-md"><Plus className="h-3 w-3"/></button>
+                          <span className="text-xs font-black h-6 flex items-center">{item.quantity}</span>
+                          <button onClick={() => updateQuantity(item.id, -1)} className="h-6 w-6 flex items-center justify-center hover:bg-white rounded-md"><Minus className="h-3 w-3"/></button>
+                        </div>
+                      </div>
+                    ))}
+                    {cart.length === 0 && (
+                      <div className="text-center py-20 space-y-4">
+                        <div className="text-4xl opacity-20">🛒</div>
+                        <p className="text-muted-foreground font-bold">Your cart is empty</p>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+                <SheetFooter className="p-8 border-t bg-muted/10 space-y-4 flex flex-col">
+                  <div className="flex justify-between items-end w-full">
+                    <p className="text-[10px] font-black uppercase text-muted-foreground">Estimated Total</p>
+                    <p className="text-2xl font-black">KSh {totalCost.toLocaleString()}</p>
+                  </div>
+                  <Button 
+                    className="w-full h-14 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs"
+                    disabled={cart.length === 0}
+                    onClick={() => {
+                      setIsCartOpen(false);
+                      setView('board');
+                    }}
+                  >
+                    View Full Order List
+                  </Button>
+                </SheetFooter>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
 
-      <main className="flex-1 flex overflow-hidden max-w-[1600px] mx-auto w-full">
+      <main className="flex-1 flex overflow-hidden max-w-[1600px] mx-auto w-full relative">
         {/* Main Interface */}
         <div className="flex-1 flex flex-col h-full bg-[#FDFDFD]">
           
@@ -316,37 +433,65 @@ export default function BuildingMaterialsShop() {
                 </div>
               </section>
 
-              {/* Category Rail */}
-              <section className="px-6 md:px-12 py-8 border-y bg-white/50">
-                <ScrollArea className="w-full whitespace-nowrap">
-                  <div className="flex gap-4 pb-4">
-                    {PRODUCT_CATEGORIES.map((cat) => (
-                      <button 
-                        key={cat.id}
-                        onClick={() => setSelectedCategory(cat.id)}
-                        className={cn(
-                          "flex flex-col gap-3 p-6 rounded-3xl border text-left min-w-[200px] transition-all hover:shadow-lg group",
-                          selectedCategory === cat.id ? "border-primary bg-primary/5 shadow-md" : "bg-white border-[#EEE]"
-                        )}
-                      >
-                        <span className="text-3xl">{cat.icon}</span>
-                        <div>
-                          <h3 className="font-black text-sm text-[#111]">{cat.name}</h3>
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase">{cat.time} Delivery</p>
-                        </div>
-                      </button>
-                    ))}
+              {/* Category Rail Carousel */}
+              <section className="px-6 md:px-12 py-8 border-y bg-white/50 relative group/carousel">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">Kenyan-First Categories</h3>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="icon" className="rounded-full h-8 w-8" onClick={() => scrollLeft(categoryScrollRef)}>
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="icon" className="rounded-full h-8 w-8" onClick={() => scrollRight(categoryScrollRef)}>
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <ScrollBar orientation="horizontal" className="hidden" />
-                </ScrollArea>
+                </div>
+                <div ref={categoryScrollRef} className="flex gap-4 overflow-x-auto hide-scrollbar pb-4 scroll-smooth">
+                  {PRODUCT_CATEGORIES.map((cat) => (
+                    <button 
+                      key={cat.id}
+                      onClick={() => setSelectedCategory(cat.id)}
+                      className={cn(
+                        "flex flex-col gap-3 p-6 rounded-[2.5rem] border text-left min-w-[220px] transition-all hover:shadow-xl group flex-shrink-0 animate-in fade-in zoom-in-95",
+                        selectedCategory === cat.id ? "border-primary bg-primary/5 shadow-md scale-105" : "bg-white border-[#EEE]"
+                      )}
+                    >
+                      <span className="text-4xl group-hover:scale-110 transition-transform duration-300">{cat.icon}</span>
+                      <div>
+                        <h3 className="font-black text-sm text-[#111]">{cat.name}</h3>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase">{cat.time} Delivery</p>
+                      </div>
+                    </button>
+                  ))}
+                  <button className="flex flex-col items-center justify-center gap-3 p-6 rounded-[2.5rem] border border-dashed border-primary/30 bg-primary/5 min-w-[220px] flex-shrink-0 hover:bg-primary/10 transition-all group">
+                    <div className="h-12 w-12 rounded-2xl bg-primary flex items-center justify-center">
+                      <PhoneCall className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="text-center">
+                      <h3 className="font-black text-sm text-primary">Talk to Rep</h3>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase">Instant Help</p>
+                    </div>
+                  </button>
+                </div>
               </section>
 
-              {/* Product Grid */}
-              <section className="p-6 md:p-12 max-w-7xl mx-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              {/* Product Grid Carousel */}
+              <section className="p-6 md:p-12 max-w-7xl mx-auto relative group/products">
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">Smart Warehouse Listings</h3>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="icon" className="rounded-full h-10 w-10 border-muted-foreground/20" onClick={() => scrollLeft(productScrollRef)}>
+                      <ChevronLeft className="h-5 w-5" />
+                    </Button>
+                    <Button variant="outline" size="icon" className="rounded-full h-10 w-10 border-muted-foreground/20" onClick={() => scrollRight(productScrollRef)}>
+                      <ChevronRight className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+                <div ref={productScrollRef} className="flex gap-8 overflow-x-auto hide-scrollbar pb-8 scroll-smooth">
                   {PRODUCTS.map((product) => (
-                    <div key={product.id} className="bg-white rounded-[2.5rem] border border-[#EEE] p-5 flex flex-col gap-4 shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
-                      <div className="aspect-square rounded-[2rem] overflow-hidden bg-muted relative">
+                    <div key={product.id} className="min-w-[320px] bg-white rounded-[3rem] border border-[#EEE] p-6 flex flex-col gap-4 shadow-sm hover:shadow-2xl transition-all group relative animate-in fade-in slide-in-from-right-8">
+                      <div className="aspect-[4/3] rounded-[2.5rem] overflow-hidden bg-muted relative">
                         <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                         <div className="absolute top-4 left-4 flex flex-col gap-2">
                           <Badge className="bg-green-500 text-white border-none text-[9px] font-black px-2">{product.stock}</Badge>
@@ -354,9 +499,9 @@ export default function BuildingMaterialsShop() {
                         </div>
                       </div>
 
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         <div>
-                          <h4 className="font-black text-base text-[#111] leading-tight">{product.name}</h4>
+                          <h4 className="font-black text-lg text-[#111] leading-tight">{product.name}</h4>
                           <p className="text-[10px] font-bold text-primary uppercase tracking-widest mt-1">TRUSTED SUPPLIER: {product.supplier}</p>
                         </div>
 
@@ -364,7 +509,7 @@ export default function BuildingMaterialsShop() {
                           <div className="grid grid-cols-2 gap-2">
                             {product.type === 'lorry' ? (
                               <Select defaultValue="10T">
-                                <SelectTrigger className="h-10 rounded-xl text-[11px] font-bold bg-muted/30 border-none">
+                                <SelectTrigger className="h-12 rounded-2xl text-[11px] font-bold bg-muted/30 border-none">
                                   <SelectValue placeholder="Size" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -373,7 +518,7 @@ export default function BuildingMaterialsShop() {
                               </Select>
                             ) : (
                               <Select defaultValue="Bamburi">
-                                <SelectTrigger className="h-10 rounded-xl text-[11px] font-bold bg-muted/30 border-none">
+                                <SelectTrigger className="h-12 rounded-2xl text-[11px] font-bold bg-muted/30 border-none">
                                   <SelectValue placeholder="Brand" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -381,31 +526,31 @@ export default function BuildingMaterialsShop() {
                                 </SelectContent>
                               </Select>
                             )}
-                            <div className="flex items-center bg-muted/30 rounded-xl h-10 px-1">
-                              <button className="flex-1 flex justify-center hover:bg-white rounded-lg h-8 items-center transition-all"><Minus className="h-3 w-3"/></button>
-                              <span className="w-8 text-center text-xs font-black">1</span>
-                              <button className="flex-1 flex justify-center hover:bg-white rounded-lg h-8 items-center transition-all"><Plus className="h-3 w-3"/></button>
+                            <div className="flex items-center bg-muted/30 rounded-2xl h-12 px-2">
+                              <button className="flex-1 flex justify-center hover:bg-white rounded-xl h-8 items-center transition-all"><Minus className="h-3 w-3"/></button>
+                              <span className="w-8 text-center text-sm font-black">1</span>
+                              <button className="flex-1 flex justify-center hover:bg-white rounded-xl h-8 items-center transition-all"><Plus className="h-3 w-3"/></button>
                             </div>
                           </div>
 
                           <div className="flex items-center justify-between">
                             <div className="space-y-0.5">
                               <p className="text-[10px] font-bold text-muted-foreground uppercase">From</p>
-                              <p className="font-black text-xl text-[#111]">KSh {product.price.toLocaleString()}</p>
+                              <p className="font-black text-2xl text-[#111]">KSh {product.price.toLocaleString()}</p>
                             </div>
                             <Button 
                               onClick={() => {
                                 setCart([...cart, { ...product, quantity: 1 }]);
                                 toast.success("Added to Order List");
                               }}
-                              className="rounded-2xl h-12 px-6 bg-[#111] hover:bg-primary transition-all text-xs font-black uppercase tracking-widest"
+                              className="rounded-2xl h-14 px-8 bg-[#111] hover:bg-primary transition-all text-xs font-black uppercase tracking-widest shadow-xl shadow-black/5"
                             >
                               Add to Cart
                             </Button>
                           </div>
                           
-                          <Button variant="ghost" className="w-full text-[10px] font-black uppercase text-muted-foreground hover:text-primary gap-2 h-8">
-                            <PhoneCall className="h-3 w-3" /> Talk to Rep
+                          <Button variant="ghost" className="w-full text-[10px] font-black uppercase text-muted-foreground hover:text-primary gap-2 h-10">
+                            <PhoneCall className="h-4 w-4" /> Talk to Rep
                           </Button>
                         </div>
                       </div>
@@ -416,26 +561,26 @@ export default function BuildingMaterialsShop() {
 
               {/* Contextual AI Genie Entry */}
               <section className="px-6 py-20 bg-muted/10">
-                <div className="max-w-4xl mx-auto bg-[#111] rounded-[3rem] p-12 text-white flex flex-col md:flex-row items-center gap-12 relative overflow-hidden group">
+                <div className="max-w-4xl mx-auto bg-[#111] rounded-[4rem] p-12 text-white flex flex-col md:flex-row items-center gap-12 relative overflow-hidden group">
                   <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 blur-[100px] rounded-full -mr-48 -mt-48" />
                   <div className="flex-1 space-y-6 relative z-10">
                     <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 bg-primary rounded-2xl flex items-center justify-center">
-                        <Sparkles className="h-6 w-6 text-white fill-white" />
+                      <div className="h-14 w-14 bg-primary rounded-[1.5rem] flex items-center justify-center">
+                        <Sparkles className="h-7 w-7 text-white fill-white" />
                       </div>
                       <h3 className="text-[11px] font-black tracking-[0.3em] uppercase opacity-60">AI GENIE INTELLIGENCE</h3>
                     </div>
-                    <h2 className="text-3xl font-black leading-tight">Not sure what you need? Let Genie handle the complexity.</h2>
-                    <p className="text-white/60 font-medium">Genie validates quantities, estimates project totals, and flags unrealistic orders automatically.</p>
+                    <h2 className="text-4xl font-black leading-tight">Not sure what you need? Let Genie handle the complexity.</h2>
+                    <p className="text-white/60 font-medium text-lg leading-relaxed">Genie validates quantities, estimates project totals, and flags unrealistic orders automatically.</p>
                     <Button 
                       onClick={() => setView('concierge')}
-                      className="rounded-2xl h-14 px-10 bg-primary hover:bg-primary/90 text-primary-foreground font-black text-xs uppercase tracking-[0.15em] transition-all"
+                      className="rounded-2xl h-16 px-12 bg-primary hover:bg-primary/90 text-primary-foreground font-black text-sm uppercase tracking-[0.15em] transition-all shadow-2xl shadow-primary/40"
                     >
                       Ask Genie to Estimate
                     </Button>
                   </div>
                   <div className="flex-shrink-0 relative z-10">
-                    <div className="w-48 h-48 bg-white/5 rounded-[2.5rem] border border-white/10 flex items-center justify-center text-6xl">🧠</div>
+                    <div className="w-64 h-64 bg-white/5 rounded-[3rem] border border-white/10 flex items-center justify-center text-7xl animate-pulse">🧠</div>
                   </div>
                 </div>
               </section>
@@ -443,16 +588,16 @@ export default function BuildingMaterialsShop() {
           )}
 
           {view === 'concierge' && (
-            <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full p-4 md:p-8">
+            <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full p-4 md:p-8">
               {/* Chat Window */}
-              <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-6 pb-32 scroll-smooth pr-4 custom-scrollbar-premium">
+              <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-8 pb-32 scroll-smooth pr-4 custom-scrollbar-premium">
                 {messages.map((m, i) => (
                   <div key={i} className={cn(
-                    "flex flex-col max-w-[80%] animate-in fade-in slide-in-from-bottom-3 duration-500 ease-out",
+                    "flex flex-col max-w-[85%] animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out",
                     m.role === 'user' ? "ml-auto items-end" : "mr-auto items-start"
                   )}>
                     <div className={cn(
-                      "p-5 rounded-2xl text-[15px] font-medium leading-relaxed shadow-sm",
+                      "p-7 rounded-[2.5rem] text-[16px] font-medium leading-relaxed shadow-lg",
                       m.role === 'user' 
                         ? "bg-[#111] text-white rounded-tr-none" 
                         : "bg-white border border-[#EEE] rounded-tl-none text-[#222]"
@@ -461,44 +606,50 @@ export default function BuildingMaterialsShop() {
                     </div>
                     
                     {m.type === 'carousel' && m.items && (
-                      <div className="w-full mt-4 relative group/carousel">
-                        <ScrollArea className="w-full whitespace-nowrap rounded-2xl border bg-white/50 backdrop-blur-sm">
-                          <div className="flex w-max p-4 gap-4">
+                      <div className="w-full mt-6 relative group/carousel">
+                        <div className="flex items-center justify-between mb-4">
+                          <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Recommended Materials</p>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-full border-muted-foreground/20">
+                              <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-full border-muted-foreground/20">
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <ScrollArea className="w-full whitespace-nowrap rounded-[3rem] border-2 border-primary/10 bg-white/50 backdrop-blur-sm">
+                          <div className="flex w-max p-6 gap-6">
                             {m.items.map((item, idx) => (
-                              <div key={idx} className="w-[280px] bg-white rounded-2xl border border-[#EEE] p-4 flex flex-col gap-3 shadow-sm hover:shadow-md transition-all">
-                                <div className="aspect-square rounded-xl overflow-hidden bg-muted">
+                              <div key={idx} className="w-[300px] bg-white rounded-[2.5rem] border border-[#EEE] p-5 flex flex-col gap-4 shadow-sm hover:shadow-xl transition-all">
+                                <div className="aspect-square rounded-2xl overflow-hidden bg-muted">
                                   <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                                 </div>
                                 <div className="space-y-1">
-                                  <h4 className="font-bold text-sm truncate">{item.name}</h4>
+                                  <h4 className="font-black text-base truncate">{item.name}</h4>
                                   <p className="text-[10px] font-bold text-primary uppercase">{item.supplier}</p>
-                                  <p className="font-black text-base">KSh {item.price.toLocaleString()}</p>
+                                  <p className="font-black text-lg">KSh {item.price.toLocaleString()}</p>
                                 </div>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="w-full rounded-xl text-[10px] font-black uppercase tracking-widest h-8"
-                                  onClick={() => handleOptionClick("✅ View Order List")}
-                                >
-                                  Add to Order
-                                </Button>
+                                <div className="p-4 bg-primary/5 rounded-2xl text-center">
+                                  <p className="text-[10px] font-black text-primary uppercase">Automated Sourcing Ready</p>
+                                </div>
                               </div>
                             ))}
                           </div>
-                          <ScrollBar orientation="horizontal" className="h-1.5 custom-scrollbar-premium" />
+                          <ScrollBar orientation="horizontal" className="h-2 custom-scrollbar-premium" />
                         </ScrollArea>
                       </div>
                     )}
 
                     {m.options && (
-                      <div className="flex flex-wrap gap-2 mt-4">
+                      <div className="flex flex-wrap gap-2 mt-6">
                         {m.options.map(opt => (
                           <Button 
                             key={opt} 
                             variant="outline" 
-                            size="sm"
+                            size="lg"
                             onClick={() => handleOptionClick(opt)}
-                            className="rounded-full text-[11px] font-bold border-[#DDD] hover:border-primary hover:bg-primary/5 hover:text-primary transition-all h-9 px-5"
+                            className="rounded-full text-[12px] font-black border-[#DDD] hover:border-primary hover:bg-primary/5 hover:text-primary transition-all h-11 px-8 shadow-sm hover:shadow-md uppercase tracking-wider"
                           >
                             {opt}
                           </Button>
@@ -510,26 +661,26 @@ export default function BuildingMaterialsShop() {
               </div>
 
               {/* Chat Controls */}
-              <div className="fixed bottom-0 left-0 right-0 p-4 md:p-10 bg-gradient-to-t from-[#FDFDFD] via-[#FDFDFD] to-transparent pointer-events-none">
-                <div className="max-w-3xl mx-auto space-y-4 pointer-events-auto">
+              <div className="fixed bottom-0 left-0 right-0 p-4 md:p-12 bg-gradient-to-t from-[#FDFDFD] via-[#FDFDFD] to-transparent pointer-events-none">
+                <div className="max-w-4xl mx-auto space-y-4 pointer-events-auto">
                   <div className="relative group">
                     <Input 
                       placeholder="Tell Genie about your project..." 
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                      className="h-16 pl-7 pr-16 bg-white border-[#E0E0E0] rounded-3xl shadow-2xl shadow-black/5 text-[15px] font-medium focus-visible:ring-primary focus-visible:ring-offset-0 focus:border-primary/50 transition-all"
+                      className="h-20 pl-8 pr-20 bg-white border-[#E0E0E0] rounded-[2.5rem] shadow-2xl shadow-black/5 text-[17px] font-medium focus-visible:ring-primary focus-visible:ring-offset-0 focus:border-primary/50 transition-all"
                     />
                     <Button 
                       onClick={() => handleSend()}
                       size="icon" 
-                      className="absolute right-2.5 top-2.5 h-11 w-11 rounded-2xl bg-[#111] hover:bg-primary transition-all shadow-lg active:scale-95"
+                      className="absolute right-3 top-3 h-14 w-14 rounded-2xl bg-[#111] hover:bg-primary transition-all shadow-xl active:scale-95"
                     >
-                      <Send className="h-5 w-5" />
+                      <Send className="h-6 w-6" />
                     </Button>
                   </div>
-                  <p className="text-[10px] text-center text-muted-foreground font-bold tracking-widest opacity-60 uppercase">
-                    Powered by PropertyHub AI Genie™
+                  <p className="text-[10px] text-center text-muted-foreground font-black tracking-[0.3em] opacity-60 uppercase">
+                    POWERED BY PROPERTYHUB AI GENIE™
                   </p>
                 </div>
               </div>
@@ -570,7 +721,7 @@ export default function BuildingMaterialsShop() {
                 <div className="space-y-4">
                   {cart.length > 0 ? (
                     cart.map((item, idx) => (
-                      <div key={idx} className="bg-white p-6 rounded-[2.5rem] border border-[#F0F0F0] shadow-sm hover:shadow-xl hover:border-primary/20 transition-all group relative overflow-hidden">
+                      <div key={idx} className="bg-white p-6 rounded-[3rem] border border-[#F0F0F0] shadow-sm hover:shadow-xl hover:border-primary/20 transition-all group relative overflow-hidden">
                         <div className="flex gap-6 items-center">
                           <div className="w-24 h-24 rounded-3xl overflow-hidden bg-[#F8F8F8] flex-shrink-0">
                             <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
@@ -730,7 +881,7 @@ export default function BuildingMaterialsShop() {
                 </div>
                 <p className="text-[13px] font-medium leading-relaxed opacity-80 relative z-10">
                   {projectModel.type.includes("Bungalow") 
-                    ? "Based on your bungalow choice, I've prioritized local stone suppliers in Nakuru to minimize structural transport costs by 15%."
+                    ? "Based on your bungalow choice, I've prioritized local stone suppliers to minimize structural transport costs by 15%."
                     : "I'm currently mapping regional material cost modifiers to your location profile to ensure quote accuracy."}
                 </p>
                 <div className="pt-2 relative z-10">
