@@ -1,0 +1,294 @@
+current AI Concierge for materials is overkill for day-1 users.
+
+Kenyan users want:
+
+“Nahitaji lorry ya mchanga”
+
+“Nipe simiti ya Bamburi 50 bags”
+
+“Nijenge 3-bedroom, nipee estimate”
+
+👉 They want speed + clarity, not therapy sessions with AI.
+
+✅ The correct model (THIS is the move)
+
+ONE AI GENIE
+
+Background brain
+
+Not always a chat UI
+
+TWO ENTRY MODES
+
+Smart Warehouse (Primary)
+
+AI Assist (Contextual, optional)
+
+AI should assist, not block buying.
+
+3️⃣ NEW BUILDING MATERIALS EXPERIENCE (FULL REVAMP)
+Rename it (important)
+
+❌ “Build Concierge”
+❌ “Powered by Chuma Mart”
+
+✅ PropertyHub Smart Warehouse
+Subtitle: Materials. Logistics. Done right.
+
+4️⃣ Page Structure (Top → Bottom)
+A. Hero Section (Trust + Speed)
+
+Headline
+
+Order building materials the smart way.
+
+Sub
+
+Cement, sand, ballast, steel, roofing & finishes — delivered across Kenya.
+
+Trust pills
+
+✔ Verified suppliers
+
+🚚 County-based delivery
+
+💰 Pay after confirmation
+
+🤝 Human-assisted fulfillment
+
+Primary CTA
+🟢 Browse Materials
+Secondary: Get Assisted Quote
+
+B. Category Rail (Kenyan-first)
+
+Cards, not tabs.
+
+Cement & Aggregates
+
+Sand & Ballast (by lorry)
+
+Steel & Reinforcement
+
+Roofing
+
+Plumbing
+
+Electrical
+
+Finishes
+
+Blocks & Bricks
+
+Ready-mix & Prefab (later)
+
+Each card shows:
+
+Avg delivery time
+
+Counties served
+
+Price range
+
+5️⃣ Product Cards (THIS is where you win)
+🔥 Smart Product Card (Example: Sand)
+
+Image
+Lorry / material photo (realistic)
+
+Title
+
+River Sand (Lorry Load)
+
+Badges
+
+🟢 In Stock
+
+🚚 Same-County Delivery
+
+⭐ Trusted Supplier
+
+Selectors (CRITICAL for Kenya)
+
+Quantity type:
+
+ Lorry
+
+ Tonne
+
+Size dropdown:
+
+7T | 10T | 14T | 20T
+
+Number stepper: – 1 +
+
+Price
+
+From KSh 18,000 / lorry
+
+CTA
+🟢 Add to Cart
+
+Secondary:
+🔹 Talk to Rep (WhatsApp / call-back)
+
+Cement / Steel cards
+
+Bag count stepper (– 50 +)
+
+Strength / size selector
+
+Brand selector (Bamburi / Simba / Devki)
+
+6️⃣ Cart (NOT checkout yet)
+
+This is Order Curation, not instant payment.
+
+Cart shows:
+
+Items
+
+Quantities
+
+Estimated subtotal
+
+Delivery county
+
+Fulfillment status: Pending confirmation
+
+CTA (Big decision)
+
+🟢 Submit Order for Fulfillment
+
+Not “Pay Now”.
+
+This protects:
+
+Pricing fluctuations
+
+Stock issues
+
+Fraud
+
+Supplier manipulation
+
+7️⃣ Pop-Up Fulfillment Form (Your guardrail)
+
+When user clicks Submit Order → modal pops.
+
+Fields (short, Kenyan-friendly)
+
+Full name
+
+Phone number
+
+County
+
+Specific location (optional)
+
+Preferred delivery date
+
+Notes (optional)
+
+Copy (IMPORTANT)
+
+Your order has been received and is being curated.
+A PropertyHub representative will contact you shortly to confirm pricing, delivery, and payment.
+
+CTA:
+🟢 Confirm Order
+
+🎯 This keeps YOU in control before money moves.
+
+8️⃣ Where AI Fits (Smart, not annoying)
+AI Genie runs in the background to:
+
+Validate quantities
+
+Flag unrealistic orders
+
+Suggest add-ons:
+
+“You may need cement with this sand”
+
+Estimate project totals
+
+Route to verified suppliers
+
+Alert reps with context
+
+Optional AI entry:
+
+🧠 Not sure what you need? Ask Genie
+
+This opens chat without hijacking the flow.
+
+9️⃣ ONE AI GENIE (Answering your big question)
+
+Yes — ONE AI handles:
+
+Property search
+
+Rentals
+
+Land
+
+Build estimation
+
+Materials
+
+Professional matching
+
+How?
+
+By intent routing, not multiple bots.
+
+Example:
+
+“I want to build a 3-bedroom bungalow in Nakuru”
+
+Genie does:
+
+Recognizes BUILD_INTENT
+
+Asks 2–3 clarifying questions
+
+Generates:
+
+Rough cost
+
+Materials list
+
+Pushes list → Smart Warehouse cart
+
+Offers:
+
+Professionals
+
+Financing
+
+Trips
+
+One brain. Many outputs.
+
+🔟 Why this beats competitors (real talk)
+Platform	What they do
+Chuma Mart	Simple e-commerce
+Jiji / FB	Chaos
+Contractors	Manual, opaque
+PropertyHub	Decision + logistics + trust
+
+You’re not selling cement.
+You’re selling certainty.
+
+Final Take (No sugarcoating)
+
+Kill “Powered by Chuma Mart”
+
+Kill chat-first buying
+
+Lead with Smart Warehouse
+
+Keep AI as an invisible advantage
+
+Always insert a human checkpoint before payment

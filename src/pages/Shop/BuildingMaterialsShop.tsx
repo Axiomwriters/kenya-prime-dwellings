@@ -76,66 +76,73 @@ interface Message {
 }
 
 // --- Mock Data ---
-const QUICK_START_CHIPS = [
-  { id: "bungalow", name: "3-Bedroom Bungalow", icon: "🏠" },
-  { id: "apartments", name: "Apartments", icon: "🏢" },
-  { id: "rental", name: "Rental Units", icon: "🏗" },
-  { id: "estimating", name: "Just estimating costs", icon: "💰" },
-  { id: "drawings", name: "I already have drawings", icon: "📐" },
+const PRODUCT_CATEGORIES = [
+  { id: "cement", name: "Cement & Aggregates", icon: "🧱", time: "24-48h", counties: "47", price: "From KSh 900" },
+  { id: "sand", name: "Sand & Ballast", icon: "🚚", time: "Same Day", counties: "Regional", price: "From KSh 18,000" },
+  { id: "steel", name: "Steel & Reinforcement", icon: "🏗", time: "24h", counties: "47", price: "From KSh 1,200" },
+  { id: "roofing", name: "Roofing", icon: "🏠", time: "3-5 Days", counties: "47", price: "Varies" },
+  { id: "plumbing", name: "Plumbing", icon: "🚰", time: "24h", counties: "47", price: "From KSh 500" },
+  { id: "electrical", name: "Electrical", icon: "⚡", time: "24h", counties: "47", price: "From KSh 300" },
+  { id: "finishes", name: "Finishes", icon: "🎨", time: "2-4 Days", counties: "47", price: "Varies" },
+  { id: "blocks", name: "Blocks & Bricks", icon: "🧱", time: "2-3 Days", counties: "Regional", price: "From KSh 45" },
 ];
 
-const KENYA_COUNTIES = [
-  "Nairobi", "Mombasa", "Kwale", "Kilifi", "Tana River", "Lamu", "Taita-Taveta", "Garissa", "Wajir", "Mandera",
-  "Marsabit", "Isiolo", "Meru", "Tharaka-Nithi", "Embu", "Kitui", "Machakos", "Makueni", "Nyandarua", "Nyeri",
-  "Kirinyaga", "Murang'a", "Kiambu", "Turkana", "West Pokot", "Samburu", "Trans Nzoia", "Uasin Gishu", "Elgeyo-Marakwet", "Nandi",
-  "Baringo", "Laikipia", "Nakuru", "Narok", "Kajiado", "Kericho", "Bomet", "Kakamega", "Vihiga", "Bungoma",
-  "Busia", "Siaya", "Kisumu", "Homa Bay", "Migori", "Kisii", "Nyamira"
+const PRODUCTS = [
+  {
+    id: "sand-lorry",
+    name: "River Sand (Lorry Load)",
+    spec: "Clean, fine river sand",
+    price: 18000,
+    unit: "lorry",
+    supplier: "Regional Quarries",
+    category: "Sand & Ballast",
+    image: "https://images.unsplash.com/photo-1533038590840-1cde6e668a91?q=80&w=400&auto=format&fit=crop",
+    type: "lorry",
+    sizes: ["7T", "10T", "14T", "20T"],
+    stock: "In Stock",
+    delivery: "Same-County"
+  },
+  {
+    id: "c1",
+    name: "Bamburi Tembo Cement",
+    spec: "Type 32.5N",
+    price: 950,
+    unit: "bag",
+    supplier: "Bamburi Cement Ltd",
+    category: "Cement & Aggregates",
+    image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=400&auto=format&fit=crop",
+    type: "bag",
+    brands: ["Bamburi", "Simba", "Devki", "Savannah"],
+    stock: "In Stock",
+    delivery: "Country-wide"
+  }
 ];
 
 const BUDGET_RANGES = ["KSh 1M–2M", "KSh 2M–4M", "KSh 4M+", "Not sure yet"];
 
-const PRODUCTS = [
-  {
-    id: "c1",
-    name: "Bamburi Tembo Cement",
-    spec: "50kg Bag, Type 32.5N",
-    price: 950,
-    rating: 4.8,
-    supplier: "Bamburi Cement Ltd",
-    verified: true,
-    coverage: ["Nairobi", "Kiambu", "Nakuru"],
-    stock: "Available near site",
-    category: "Cement & Aggregates",
-    image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=400&auto=format&fit=crop",
-    estimateNeeded: 220,
-    phase: "Foundation"
-  },
-  {
-    id: "s1",
-    name: "TMT Steel Bars",
-    spec: "12mm High-Strength, 12m",
-    price: 1450,
-    rating: 4.9,
-    supplier: "Devki Steel Mills",
-    verified: true,
-    coverage: ["All Counties"],
-    stock: "Limited near site",
-    category: "Steel & Metal",
-    image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=400&auto=format&fit=crop",
-    estimateNeeded: 45,
-    phase: "Structural"
-  }
-];
-
 export default function BuildingMaterialsShop() {
   const navigate = useNavigate();
-  const [view, setView] = useState<'concierge' | 'board' | 'shop'>('concierge');
+  const [view, setView] = useState<'warehouse' | 'board' | 'concierge'>('warehouse');
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: "Habari! I'm your Build Concierge. Tell me what you're building and I'll handle estimates, materials, and sourcing.", step: 'type' }
+    { role: 'assistant', content: "Habari! I'm your AI Genie. Not sure what you need? Tell me about your project and I'll generate a smart estimate.", step: 'type' }
   ]);
   const [inputText, setInputText] = useState("");
   const [cart, setCart] = useState<any[]>([]);
   const [currentStep, setCurrentStep] = useState('type');
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const [fulfillmentForm, setFulfillmentForm] = useState({
+    name: "",
+    phone: "",
+    county: "Nairobi",
+    location: "",
+    date: ""
+  });
+
   const [projectModel, setProjectModel] = useState({
     type: "",
     location: "Nairobi",
@@ -147,10 +154,6 @@ export default function BuildingMaterialsShop() {
     totalEst: 0
   });
   
-  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -205,11 +208,11 @@ export default function BuildingMaterialsShop() {
           setProjectModel(p => ({ ...p, floors: text, progress: 90 }));
           nextMsg = { 
             role: 'assistant', 
-            content: "Excellent. I've prepared a recommended materials list for your project. You can swipe through them here or head to the Project Board for the full breakdown.", 
+            content: "Excellent. I've prepared a recommended materials list for your project. You can swipe through them here or head to the Order List for the full breakdown.", 
             step: 'final',
             type: 'carousel',
             items: PRODUCTS,
-            options: ["✅ View Project Board", "🔧 Customize", "🤖 Optimize"] 
+            options: ["✅ View Order List", "🔧 Customize", "🤖 Optimize"] 
           };
           setCurrentStep('final');
           break;
@@ -222,11 +225,11 @@ export default function BuildingMaterialsShop() {
   };
 
   const handleOptionClick = (option: string) => {
-    if (option.includes("View Project Board")) {
-      const initialMaterials = PRODUCTS.map(m => ({ ...m, quantity: m.estimateNeeded }));
+    if (option.includes("View Order List")) {
+      const initialMaterials = PRODUCTS.map(m => ({ ...m, quantity: 1 }));
       setCart(initialMaterials);
       setView('board');
-      toast.success("Project Board initialized with smart estimates.");
+      toast.success("Order List initialized with smart estimates.");
     } else if (currentStep !== 'final') {
       handleSend(option);
     }
@@ -257,17 +260,17 @@ export default function BuildingMaterialsShop() {
             <ArrowLeft className="h-5 w-5 text-[#1A1A1A]" />
           </Button>
           <div className="flex flex-col">
-            <h1 className="text-lg font-extrabold tracking-tight text-[#1A1A1A]">Build Concierge</h1>
-            <p className="text-[10px] font-bold text-primary uppercase tracking-[0.15em]">PropertyHub Intelligence™</p>
+            <h1 className="text-lg font-extrabold tracking-tight text-[#1A1A1A]">Smart Warehouse</h1>
+            <p className="text-[10px] font-bold text-primary uppercase tracking-[0.15em]">Materials. Logistics. Done Right.</p>
           </div>
           <div className="ml-auto flex items-center bg-muted/30 p-1 rounded-full">
             <Button 
-              variant={view === 'concierge' ? 'default' : 'ghost'} 
+              variant={view === 'warehouse' ? 'default' : 'ghost'} 
               size="sm" 
-              onClick={() => setView('concierge')}
-              className={cn("rounded-full px-5 text-[11px] font-bold uppercase tracking-wider h-8", view === 'concierge' && "shadow-sm")}
+              onClick={() => setView('warehouse')}
+              className={cn("rounded-full px-5 text-[11px] font-bold uppercase tracking-wider h-8", view === 'warehouse' && "shadow-sm")}
             >
-              Concierge
+              Warehouse
             </Button>
             <Button 
               variant={view === 'board' ? 'default' : 'ghost'} 
@@ -275,15 +278,15 @@ export default function BuildingMaterialsShop() {
               onClick={() => setView('board')}
               className={cn("rounded-full px-5 text-[11px] font-bold uppercase tracking-wider h-8", view === 'board' && "shadow-sm")}
             >
-              Board
+              Order List
             </Button>
             <Button 
-              variant={view === 'shop' ? 'default' : 'ghost'} 
+              variant={view === 'concierge' ? 'default' : 'ghost'} 
               size="sm" 
-              onClick={() => setView('shop')}
-              className={cn("rounded-full px-5 text-[11px] font-bold uppercase tracking-wider h-8", view === 'shop' && "shadow-sm")}
+              onClick={() => setView('concierge')}
+              className={cn("rounded-full px-5 text-[11px] font-bold uppercase tracking-wider h-8", view === 'concierge' && "shadow-sm")}
             >
-              Manual
+              AI Assist
             </Button>
           </div>
         </div>
@@ -293,6 +296,152 @@ export default function BuildingMaterialsShop() {
         {/* Main Interface */}
         <div className="flex-1 flex flex-col h-full bg-[#FDFDFD]">
           
+          {view === 'warehouse' && (
+            <div className="flex-1 overflow-y-auto custom-scrollbar-premium">
+              {/* Hero Section */}
+              <section className="px-6 py-12 md:py-20 text-center space-y-6 max-w-4xl mx-auto">
+                <Badge className="bg-primary/10 text-primary border-none text-[10px] font-black tracking-widest px-4 py-1 uppercase">PropertyHub Smart Warehouse</Badge>
+                <h2 className="text-4xl md:text-6xl font-black tracking-tight text-[#111]">Order building materials the smart way.</h2>
+                <p className="text-lg text-muted-foreground font-medium">Cement, sand, ballast, steel, roofing & finishes — delivered across Kenya.</p>
+                <div className="flex flex-wrap justify-center gap-6 pt-4">
+                  <div className="flex items-center gap-2 text-[11px] font-bold text-muted-foreground">
+                    <ShieldCheck className="h-4 w-4 text-primary" /> Verified Suppliers
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px] font-bold text-muted-foreground">
+                    <Truck className="h-4 w-4 text-primary" /> County-based delivery
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px] font-bold text-muted-foreground">
+                    <Wallet className="h-4 w-4 text-primary" /> Pay after confirmation
+                  </div>
+                </div>
+              </section>
+
+              {/* Category Rail */}
+              <section className="px-6 md:px-12 py-8 border-y bg-white/50">
+                <ScrollArea className="w-full whitespace-nowrap">
+                  <div className="flex gap-4 pb-4">
+                    {PRODUCT_CATEGORIES.map((cat) => (
+                      <button 
+                        key={cat.id}
+                        onClick={() => setSelectedCategory(cat.id)}
+                        className={cn(
+                          "flex flex-col gap-3 p-6 rounded-3xl border text-left min-w-[200px] transition-all hover:shadow-lg group",
+                          selectedCategory === cat.id ? "border-primary bg-primary/5 shadow-md" : "bg-white border-[#EEE]"
+                        )}
+                      >
+                        <span className="text-3xl">{cat.icon}</span>
+                        <div>
+                          <h3 className="font-black text-sm text-[#111]">{cat.name}</h3>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase">{cat.time} Delivery</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <ScrollBar orientation="horizontal" className="hidden" />
+                </ScrollArea>
+              </section>
+
+              {/* Product Grid */}
+              <section className="p-6 md:p-12 max-w-7xl mx-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                  {PRODUCTS.map((product) => (
+                    <div key={product.id} className="bg-white rounded-[2.5rem] border border-[#EEE] p-5 flex flex-col gap-4 shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
+                      <div className="aspect-square rounded-[2rem] overflow-hidden bg-muted relative">
+                        <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                        <div className="absolute top-4 left-4 flex flex-col gap-2">
+                          <Badge className="bg-green-500 text-white border-none text-[9px] font-black px-2">{product.stock}</Badge>
+                          <Badge variant="outline" className="bg-white/80 backdrop-blur text-[9px] font-black border-none px-2 text-[#111]">{product.delivery} DELIVERY</Badge>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="font-black text-base text-[#111] leading-tight">{product.name}</h4>
+                          <p className="text-[10px] font-bold text-primary uppercase tracking-widest mt-1">TRUSTED SUPPLIER: {product.supplier}</p>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 gap-2">
+                            {product.type === 'lorry' ? (
+                              <Select defaultValue="10T">
+                                <SelectTrigger className="h-10 rounded-xl text-[11px] font-bold bg-muted/30 border-none">
+                                  <SelectValue placeholder="Size" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {product.sizes?.map(s => <SelectItem key={s} value={s}>{s} Lorry</SelectItem>)}
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <Select defaultValue="Bamburi">
+                                <SelectTrigger className="h-10 rounded-xl text-[11px] font-bold bg-muted/30 border-none">
+                                  <SelectValue placeholder="Brand" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {product.brands?.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                                </SelectContent>
+                              </Select>
+                            )}
+                            <div className="flex items-center bg-muted/30 rounded-xl h-10 px-1">
+                              <button className="flex-1 flex justify-center hover:bg-white rounded-lg h-8 items-center transition-all"><Minus className="h-3 w-3"/></button>
+                              <span className="w-8 text-center text-xs font-black">1</span>
+                              <button className="flex-1 flex justify-center hover:bg-white rounded-lg h-8 items-center transition-all"><Plus className="h-3 w-3"/></button>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                              <p className="text-[10px] font-bold text-muted-foreground uppercase">From</p>
+                              <p className="font-black text-xl text-[#111]">KSh {product.price.toLocaleString()}</p>
+                            </div>
+                            <Button 
+                              onClick={() => {
+                                setCart([...cart, { ...product, quantity: 1 }]);
+                                toast.success("Added to Order List");
+                              }}
+                              className="rounded-2xl h-12 px-6 bg-[#111] hover:bg-primary transition-all text-xs font-black uppercase tracking-widest"
+                            >
+                              Add to Cart
+                            </Button>
+                          </div>
+                          
+                          <Button variant="ghost" className="w-full text-[10px] font-black uppercase text-muted-foreground hover:text-primary gap-2 h-8">
+                            <PhoneCall className="h-3 w-3" /> Talk to Rep
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* Contextual AI Genie Entry */}
+              <section className="px-6 py-20 bg-muted/10">
+                <div className="max-w-4xl mx-auto bg-[#111] rounded-[3rem] p-12 text-white flex flex-col md:flex-row items-center gap-12 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 blur-[100px] rounded-full -mr-48 -mt-48" />
+                  <div className="flex-1 space-y-6 relative z-10">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 bg-primary rounded-2xl flex items-center justify-center">
+                        <Sparkles className="h-6 w-6 text-white fill-white" />
+                      </div>
+                      <h3 className="text-[11px] font-black tracking-[0.3em] uppercase opacity-60">AI GENIE INTELLIGENCE</h3>
+                    </div>
+                    <h2 className="text-3xl font-black leading-tight">Not sure what you need? Let Genie handle the complexity.</h2>
+                    <p className="text-white/60 font-medium">Genie validates quantities, estimates project totals, and flags unrealistic orders automatically.</p>
+                    <Button 
+                      onClick={() => setView('concierge')}
+                      className="rounded-2xl h-14 px-10 bg-primary hover:bg-primary/90 text-primary-foreground font-black text-xs uppercase tracking-[0.15em] transition-all"
+                    >
+                      Ask Genie to Estimate
+                    </Button>
+                  </div>
+                  <div className="flex-shrink-0 relative z-10">
+                    <div className="w-48 h-48 bg-white/5 rounded-[2.5rem] border border-white/10 flex items-center justify-center text-6xl">🧠</div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          )}
+
           {view === 'concierge' && (
             <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full p-4 md:p-8">
               {/* Chat Window */}
@@ -329,9 +478,9 @@ export default function BuildingMaterialsShop() {
                                   variant="outline" 
                                   size="sm" 
                                   className="w-full rounded-xl text-[10px] font-black uppercase tracking-widest h-8"
-                                  onClick={() => handleOptionClick("✅ View Project Board")}
+                                  onClick={() => handleOptionClick("✅ View Order List")}
                                 >
-                                  Add to Project
+                                  Add to Order
                                 </Button>
                               </div>
                             ))}
@@ -363,25 +512,9 @@ export default function BuildingMaterialsShop() {
               {/* Chat Controls */}
               <div className="fixed bottom-0 left-0 right-0 p-4 md:p-10 bg-gradient-to-t from-[#FDFDFD] via-[#FDFDFD] to-transparent pointer-events-none">
                 <div className="max-w-3xl mx-auto space-y-4 pointer-events-auto">
-                  {messages.length === 1 && (
-                    <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200 justify-center">
-                      {QUICK_START_CHIPS.map(chip => (
-                        <Button
-                          key={chip.id}
-                          variant="outline"
-                          onClick={() => handleSend(chip.name)}
-                          className="rounded-full h-11 px-5 gap-2 border-muted-foreground/20 hover:border-primary/50 text-xs font-bold bg-white/50 backdrop-blur shadow-sm hover:shadow-md transition-all"
-                        >
-                          <span className="text-lg">{chip.icon}</span>
-                          {chip.name}
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-                  
                   <div className="relative group">
                     <Input 
-                      placeholder="Tell me what you're building..." 
+                      placeholder="Tell Genie about your project..." 
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSend()}
@@ -395,8 +528,8 @@ export default function BuildingMaterialsShop() {
                       <Send className="h-5 w-5" />
                     </Button>
                   </div>
-                  <p className="text-[10px] text-center text-muted-foreground font-bold tracking-widest opacity-60">
-                    POWERED BY PROPERTYHUB BUILD CONCIERGE
+                  <p className="text-[10px] text-center text-muted-foreground font-bold tracking-widest opacity-60 uppercase">
+                    Powered by PropertyHub AI Genie™
                   </p>
                 </div>
               </div>
@@ -404,189 +537,144 @@ export default function BuildingMaterialsShop() {
           )}
 
           {view === 'board' && (
-            <div className="flex-1 overflow-y-auto p-4 md:p-12 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-4 md:p-12 custom-scrollbar-premium">
               <div className="max-w-5xl mx-auto space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 {/* Board Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="bg-primary/10 text-primary border-none text-[10px] font-black tracking-widest px-3">ACTIVE PROJECT</Badge>
-                      <span className="text-xs text-muted-foreground font-bold">• Draft Created Today</span>
+                      <Badge variant="secondary" className="bg-primary/10 text-primary border-none text-[10px] font-black tracking-widest px-3 uppercase">Order Curation</Badge>
+                      <span className="text-xs text-muted-foreground font-bold">• Fulfillment Pending</span>
                     </div>
                     <h2 className="text-4xl font-black tracking-tighter text-[#111] leading-none">
-                      {projectModel.type || "New Build Project"}
+                      Your Project Order List
                     </h2>
                     <p className="text-sm font-bold text-muted-foreground flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-primary" /> {projectModel.location}, Kenya
+                      <MapPin className="h-4 w-4 text-primary" /> Fulfillment via verified regional suppliers
                     </p>
                   </div>
                   <div className="flex gap-4">
                     <Button variant="outline" className="rounded-2xl h-14 px-8 border-[#EEE] font-black text-xs uppercase tracking-[0.15em] gap-3 hover:bg-muted/50 transition-all shadow-sm">
-                      <ArrowUpRight className="h-4 w-4" /> Optimize Cost
+                      <ClipboardList className="h-4 w-4" /> Save Draft
                     </Button>
                     <Button 
                       onClick={handlePlaceOrder}
                       disabled={isSubmitting}
                       className="rounded-2xl h-14 px-10 bg-primary hover:bg-primary/90 text-primary-foreground font-black text-xs uppercase tracking-[0.15em] shadow-xl shadow-primary/20 active:scale-95 transition-all"
                     >
-                      {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Secure Materials"}
+                      {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Submit for Fulfillment"}
                     </Button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
-                  <div className="md:col-span-8 space-y-16">
-                    {/* Materials Section */}
-                    <section className="space-y-8">
-                      <div className="flex items-center justify-between border-b border-[#EEE] pb-4">
-                        <h3 className="text-[11px] font-black uppercase tracking-[0.25em] text-[#111] flex items-center gap-3">
-                          <Package className="h-5 w-5 text-primary" /> Materials by Phase
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-bold text-muted-foreground">FILTER BY:</span>
-                          <Badge variant="outline" className="text-[10px] font-black border-primary/30 text-primary">ALL PHASES</Badge>
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        {cart.length > 0 ? (
-                          cart.map(item => (
-                            <div key={item.id} className="bg-white p-6 rounded-[2.5rem] border border-[#F0F0F0] shadow-sm hover:shadow-xl hover:border-primary/20 transition-all group relative overflow-hidden">
-                              <div className="flex gap-6 items-center">
-                                <div className="w-24 h-24 rounded-3xl overflow-hidden bg-[#F8F8F8] flex-shrink-0">
-                                  <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                </div>
-                                <div className="flex-1 min-w-0 space-y-1">
-                                  <div className="flex items-center gap-2">
-                                    <Badge variant="secondary" className="text-[9px] font-black bg-muted/50 text-muted-foreground border-none px-2">{item.phase.toUpperCase()}</Badge>
-                                    <span className="text-[10px] text-primary font-black tracking-widest">VERIFIED</span>
-                                  </div>
-                                  <h4 className="font-extrabold text-lg text-[#111] truncate">{item.name}</h4>
-                                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{item.supplier} • {item.spec}</p>
-                                  <div className="flex items-center gap-4 mt-2">
-                                    <p className="font-black text-xl text-[#111]">KSh {item.price.toLocaleString()}</p>
-                                    <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">Lowest Price</span>
-                                  </div>
-                                </div>
-                                <div className="flex flex-col items-end gap-3 pr-2">
-                                  <div className="flex items-center bg-[#F8F8F8] p-1 rounded-2xl border">
-                                    <button onClick={() => updateQuantity(item.id, -1)} className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white transition-all text-[#111]"><Minus className="h-4 w-4"/></button>
-                                    <span className="w-12 text-center text-sm font-black text-[#111]">{item.quantity}</span>
-                                    <button onClick={() => updateQuantity(item.id, 1)} className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white transition-all text-[#111]"><Plus className="h-4 w-4"/></button>
-                                  </div>
-                                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-                                    <Truck className="h-3 w-3 text-primary" /> Est. 48h Delivery
-                                  </p>
-                                </div>
-                              </div>
+                <div className="space-y-4">
+                  {cart.length > 0 ? (
+                    cart.map((item, idx) => (
+                      <div key={idx} className="bg-white p-6 rounded-[2.5rem] border border-[#F0F0F0] shadow-sm hover:shadow-xl hover:border-primary/20 transition-all group relative overflow-hidden">
+                        <div className="flex gap-6 items-center">
+                          <div className="w-24 h-24 rounded-3xl overflow-hidden bg-[#F8F8F8] flex-shrink-0">
+                            <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                          </div>
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary" className="text-[9px] font-black bg-muted/50 text-muted-foreground border-none px-2 uppercase">{item.category || "Material"}</Badge>
+                              <span className="text-[10px] text-primary font-black tracking-widest uppercase">Ready for Quote</span>
                             </div>
-                          ))
-                        ) : (
-                          <div className="p-12 text-center border-2 border-dashed rounded-[3rem] space-y-4 bg-muted/5">
-                             <div className="w-16 h-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto text-3xl">🏗</div>
-                             <p className="font-bold text-muted-foreground">Your project board is empty.</p>
-                             <Button variant="link" onClick={() => setView('concierge')} className="font-black text-primary uppercase text-xs tracking-widest">Return to Concierge</Button>
-                          </div>
-                        )}
-                      </div>
-                    </section>
-
-                    {/* Services Section */}
-                    <section className="space-y-8">
-                       <h3 className="text-[11px] font-black uppercase tracking-[0.25em] text-[#111] flex items-center gap-3 border-b border-[#EEE] pb-4">
-                        <Zap className="h-5 w-5 text-primary" /> Verified Professionals
-                      </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        {[
-                          { emoji: "📐", role: "Site Surveyor", desc: `${projectModel.location} County Specialist`, price: "Est. KSh 35k - 60k" },
-                          { emoji: "⚖️", role: "Quantity Surveyor", desc: "NEMA & NCA Certified", price: "Est. KSh 45k+" }
-                        ].map((pro, i) => (
-                          <div key={i} className="bg-primary/[0.03] p-8 rounded-[2.5rem] border border-primary/10 flex items-center justify-between group cursor-pointer hover:bg-primary/[0.06] hover:border-primary/30 transition-all shadow-sm">
-                            <div className="flex items-center gap-5">
-                              <div className="w-16 h-16 bg-white rounded-[1.5rem] flex items-center justify-center text-2xl shadow-sm group-hover:scale-105 transition-transform">{pro.emoji}</div>
-                              <div className="space-y-1">
-                                <h4 className="font-black text-sm text-[#111] uppercase tracking-wide">{pro.role}</h4>
-                                <p className="text-[11px] font-bold text-muted-foreground">{pro.desc}</p>
-                                <p className="text-[10px] font-black text-primary tracking-widest mt-1">{pro.price}</p>
-                              </div>
+                            <h4 className="font-extrabold text-lg text-[#111] truncate">{item.name}</h4>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{item.supplier} • {item.spec}</p>
+                            <div className="flex items-center gap-4 mt-2">
+                              <p className="font-black text-xl text-[#111]">Est. KSh {item.price.toLocaleString()}</p>
                             </div>
-                            <Button size="icon" variant="ghost" className="rounded-full hover:bg-white shadow-sm">
-                              <ChevronRight className="h-5 w-5 text-primary group-hover:translate-x-1 transition-transform" />
-                            </Button>
                           </div>
-                        ))}
-                      </div>
-                    </section>
-                  </div>
-
-                  {/* Summary Sidebar */}
-                  <div className="md:col-span-4">
-                    <div className="bg-[#111] p-10 rounded-[3rem] text-white space-y-10 sticky top-24 shadow-2xl shadow-black/20 overflow-hidden group">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-[80px] rounded-full group-hover:bg-primary/30 transition-colors" />
-                      
-                      <div className="space-y-2 relative">
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Estimated Materials Value</p>
-                        <h4 className="text-5xl font-black tracking-tighter">
-                          KSh <span className="text-primary">{(totalCost / 1000).toFixed(0)}</span>k
-                        </h4>
-                      </div>
-                      
-                      <div className="space-y-5 relative">
-                        <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-widest">
-                          <span className="opacity-40">Ready to Source</span>
-                          <span className="text-primary">{projectModel.progress}%</span>
-                        </div>
-                        <Progress value={projectModel.progress} className="h-2 bg-white/5" />
-                        <p className="text-[10px] text-white/30 font-bold leading-relaxed">
-                          This estimate includes transport to {projectModel.location} and current regional market premiums.
-                        </p>
-                      </div>
-
-                      <div className="space-y-8 pt-8 border-t border-white/10 relative">
-                        <div className="flex items-center gap-4">
-                          <div className="h-14 w-14 bg-white/5 rounded-2xl flex items-center justify-center text-2xl">🏦</div>
-                          <div className="space-y-1">
-                            <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Escrow Enabled</p>
-                            <p className="text-xs font-bold text-primary">Funds Protected by PropertyHub</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="h-14 w-14 bg-white/5 rounded-2xl flex items-center justify-center text-2xl">🚛</div>
-                          <div className="space-y-1">
-                            <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Managed Logistics</p>
-                            <p className="text-xs font-bold">Active Route: {projectModel.location}</p>
+                          <div className="flex flex-col items-end gap-3 pr-2">
+                            <div className="flex items-center bg-[#F8F8F8] p-1 rounded-2xl border">
+                              <button onClick={() => updateQuantity(item.id, -1)} className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white transition-all text-[#111]"><Minus className="h-4 w-4"/></button>
+                              <span className="w-12 text-center text-sm font-black text-[#111]">{item.quantity}</span>
+                              <button onClick={() => updateQuantity(item.id, 1)} className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white transition-all text-[#111]"><Plus className="h-4 w-4"/></button>
+                            </div>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                              <Package className="h-3 w-3 text-primary" /> Verification Required
+                            </p>
                           </div>
                         </div>
                       </div>
-
-                      <Button className="w-full h-16 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-primary/20 active:scale-[0.98] relative z-10">
-                        Proceed to Checkout
-                      </Button>
+                    ))
+                  ) : (
+                    <div className="p-12 text-center border-2 border-dashed rounded-[3rem] space-y-4 bg-muted/5">
+                       <div className="w-16 h-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto text-3xl">🛒</div>
+                       <p className="font-bold text-muted-foreground">Your order list is empty.</p>
+                       <Button variant="link" onClick={() => setView('warehouse')} className="font-black text-primary uppercase text-xs tracking-widest">Browse Materials</Button>
+                    </div>
+                  )}
+                </div>
+                
+                {cart.length > 0 && (
+                  <div className="bg-muted/10 p-10 rounded-[3rem] space-y-6">
+                    <div className="flex justify-between items-center border-b border-[#DDD] pb-6">
+                      <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Estimated Subtotal</p>
+                      <p className="text-3xl font-black text-[#111]">KSh {totalCost.toLocaleString()}</p>
+                    </div>
+                    <div className="flex items-start gap-4 text-muted-foreground">
+                      <Info className="h-5 w-5 text-primary mt-0.5" />
+                      <p className="text-xs font-medium leading-relaxed">This is an estimated subtotal for order curation. A PropertyHub representative will verify stock and current market prices with regional suppliers before finalizing your order.</p>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           )}
 
-          {view === 'shop' && (
-            <div className="flex-1 overflow-y-auto p-4 md:p-12 animate-in fade-in duration-700 custom-scrollbar">
-               <div className="max-w-6xl mx-auto space-y-12">
-                 <div className="text-center py-24 bg-[#F8F8F8] rounded-[4rem] border border-dashed border-[#DDD] space-y-8">
-                   <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto text-4xl shadow-sm">🛒</div>
-                   <div className="space-y-3">
-                    <h3 className="text-3xl font-black text-[#111]">Manual Shop Mode</h3>
-                    <p className="text-muted-foreground font-medium max-w-md mx-auto">Browse 1,500+ items directly. Best for contractors with existing material lists.</p>
-                   </div>
-                   <div className="flex flex-col items-center gap-4 pt-4">
-                    <Button variant="default" className="rounded-full px-10 h-12 font-black uppercase tracking-widest text-xs">Unlock All Categories</Button>
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">COMING SOON IN VERSION 2.0</p>
-                   </div>
-                 </div>
-               </div>
-            </div>
-          )}
+          {/* Fulfillment Dialog */}
+          <Dialog open={isOrderModalOpen} onOpenChange={setIsOrderModalOpen}>
+            <DialogContent className="sm:max-w-[500px] rounded-[3rem] p-8">
+              <DialogHeader className="space-y-4">
+                <div className="h-16 w-16 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto">
+                  <Package className="h-8 w-8 text-primary" />
+                </div>
+                <DialogTitle className="text-2xl font-black text-center tracking-tight">Order Fulfillment</DialogTitle>
+                <DialogDescription className="text-center font-medium leading-relaxed">
+                  Your order has been received and is being curated. Please provide your contact details for verification.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4 py-4">
+                <Input placeholder="Full Name" className="h-14 rounded-2xl bg-muted/30 border-none font-medium" />
+                <Input placeholder="Phone Number" className="h-14 rounded-2xl bg-muted/30 border-none font-medium" />
+                <Select defaultValue="Nairobi">
+                  <SelectTrigger className="h-14 rounded-2xl bg-muted/30 border-none font-medium">
+                    <SelectValue placeholder="Select County" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Nairobi">Nairobi</SelectItem>
+                    <SelectItem value="Mombasa">Mombasa</SelectItem>
+                    <SelectItem value="Nakuru">Nakuru</SelectItem>
+                    <SelectItem value="Kiambu">Kiambu</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input placeholder="Preferred Delivery Date" type="date" className="h-14 rounded-2xl bg-muted/30 border-none font-medium" />
+              </div>
 
+              <div className="bg-[#111] p-6 rounded-2xl text-white space-y-3">
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-40 text-center">HOW IT WORKS</p>
+                <p className="text-[13px] font-medium text-center opacity-80 leading-relaxed">
+                  A PropertyHub representative will contact you shortly to confirm pricing, delivery logistics, and secure payment.
+                </p>
+              </div>
+
+              <DialogFooter className="mt-6">
+                <Button 
+                  onClick={() => {
+                    setIsOrderModalOpen(false);
+                    toast.success("Order submitted for curation!");
+                    setView('warehouse');
+                  }}
+                  className="w-full h-14 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20"
+                >
+                  Confirm Order
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Live Project Model (Desktop Context Panel) - Only show in board view */}
@@ -611,7 +699,7 @@ export default function BuildingMaterialsShop() {
               </div>
             </div>
             
-            <div className="flex-1 p-10 space-y-12 overflow-y-auto custom-scrollbar">
+            <div className="flex-1 p-10 space-y-12 overflow-y-auto custom-scrollbar-premium">
               <div className="space-y-6">
                 <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground">ACTIVE SPECIFICATIONS</h4>
                 <div className="space-y-4">
@@ -653,45 +741,6 @@ export default function BuildingMaterialsShop() {
           </aside>
         )}
       </main>
-
-      {/* Order Verification Dialog */}
-      <Dialog open={isOrderModalOpen} onOpenChange={setIsOrderModalOpen}>
-        <DialogContent className="sm:max-w-md rounded-[2.5rem] p-8">
-          <DialogHeader className="space-y-4">
-            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2 text-primary">
-              <CheckCircle2 className="h-10 w-10" />
-            </div>
-            <DialogTitle className="text-3xl font-black text-center tracking-tight">Order Received</DialogTitle>
-            <DialogDescription className="text-center text-sm font-medium leading-relaxed">
-              Your project order has been submitted for verification. We verify availability and current pricing with suppliers before fulfillment.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="bg-muted/30 p-6 rounded-3xl space-y-4 my-4">
-            <div className="flex items-center gap-4">
-              <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center text-xl shadow-sm">📞</div>
-              <div className="space-y-0.5">
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Next Step</p>
-                <p className="text-xs font-bold text-[#111]">A representative will call you shortly.</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center text-xl shadow-sm">⏱️</div>
-              <div className="space-y-0.5">
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Response Time</p>
-                <p className="text-xs font-bold text-[#111]">Typically within 30 minutes</p>
-              </div>
-            </div>
-          </div>
-          <DialogFooter className="flex-col sm:flex-col gap-3">
-            <Button className="w-full h-14 rounded-2xl bg-[#111] hover:bg-primary font-black uppercase text-xs tracking-widest shadow-lg" onClick={() => setIsOrderModalOpen(false)}>
-              Got it, thanks
-            </Button>
-            <Button variant="outline" className="w-full h-14 rounded-2xl border-[#EEE] font-black uppercase text-xs tracking-widest gap-2">
-              <PhoneCall className="h-4 w-4" /> Request Call Now
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
