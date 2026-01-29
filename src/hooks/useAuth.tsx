@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setSession(mockSession);
     setUser(mockUser);
-    setUserRole(role === 'professional' ? 'agent' : role as any); // Mapping professional to agent role for dashboard access
+    setUserRole(role as any); // Use the provided role directly
     setLoading(false);
     
     return { error: null };
