@@ -297,11 +297,17 @@ export default function BuildingMaterialsShop() {
   const productScrollRef = useRef<HTMLDivElement>(null);
 
   const scrollLeft = (ref: React.RefObject<HTMLDivElement>) => {
-    if (ref.current) ref.current.scrollBy({ left: -300, behavior: 'smooth' });
+    if (ref.current) {
+      const scrollAmount = ref.current.clientWidth * 0.8;
+      ref.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    }
   };
 
   const scrollRight = (ref: React.RefObject<HTMLDivElement>) => {
-    if (ref.current) ref.current.scrollBy({ left: 300, behavior: 'smooth' });
+    if (ref.current) {
+      const scrollAmount = ref.current.clientWidth * 0.8;
+      ref.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
   };
 
   return (
@@ -409,12 +415,12 @@ export default function BuildingMaterialsShop() {
         </div>
       </header>
 
-      <main className="flex-1 flex overflow-hidden max-w-[1600px] mx-auto w-full relative">
+      <main className="flex-1 flex flex-col overflow-hidden w-full relative">
         {/* Main Interface */}
-        <div className="flex-1 flex flex-col h-full bg-[#FDFDFD]">
+        <div className="flex-1 flex flex-col h-full bg-[#FDFDFD] overflow-y-auto custom-scrollbar-premium">
           
           {view === 'warehouse' && (
-            <div className="flex-1 overflow-y-auto custom-scrollbar-premium">
+            <div className="w-full">
               {/* Hero Section */}
               <section className="px-6 py-12 md:py-20 text-center space-y-6 max-w-4xl mx-auto">
                 <Badge className="bg-primary/10 text-primary border-none text-[10px] font-black tracking-widest px-4 py-1 uppercase">PropertyHub Smart Warehouse</Badge>
@@ -435,43 +441,45 @@ export default function BuildingMaterialsShop() {
 
               {/* Category Rail Carousel */}
               <section className="px-6 md:px-12 py-8 border-y bg-white/50 relative group/carousel">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">Kenyan-First Categories</h3>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="icon" className="rounded-full h-8 w-8" onClick={() => scrollLeft(categoryScrollRef)}>
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="icon" className="rounded-full h-8 w-8" onClick={() => scrollRight(categoryScrollRef)}>
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
+                <div className="max-w-7xl mx-auto">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">Kenyan-First Categories</h3>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="icon" className="rounded-full h-8 w-8" onClick={() => scrollLeft(categoryScrollRef)}>
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="icon" className="rounded-full h-8 w-8" onClick={() => scrollRight(categoryScrollRef)}>
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <div ref={categoryScrollRef} className="flex gap-4 overflow-x-auto hide-scrollbar pb-4 scroll-smooth">
-                  {PRODUCT_CATEGORIES.map((cat) => (
-                    <button 
-                      key={cat.id}
-                      onClick={() => setSelectedCategory(cat.id)}
-                      className={cn(
-                        "flex flex-col gap-3 p-6 rounded-[2.5rem] border text-left min-w-[220px] transition-all hover:shadow-xl group flex-shrink-0 animate-in fade-in zoom-in-95",
-                        selectedCategory === cat.id ? "border-primary bg-primary/5 shadow-md scale-105" : "bg-white border-[#EEE]"
-                      )}
-                    >
-                      <span className="text-4xl group-hover:scale-110 transition-transform duration-300">{cat.icon}</span>
-                      <div>
-                        <h3 className="font-black text-sm text-[#111]">{cat.name}</h3>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase">{cat.time} Delivery</p>
+                  <div ref={categoryScrollRef} className="flex gap-4 overflow-x-auto hide-scrollbar pb-4 scroll-smooth">
+                    {PRODUCT_CATEGORIES.map((cat) => (
+                      <button 
+                        key={cat.id}
+                        onClick={() => setSelectedCategory(cat.id)}
+                        className={cn(
+                          "flex flex-col gap-3 p-6 rounded-[2.5rem] border text-left min-w-[220px] transition-all hover:shadow-xl group flex-shrink-0 animate-in fade-in zoom-in-95",
+                          selectedCategory === cat.id ? "border-primary bg-primary/5 shadow-md scale-105" : "bg-white border-[#EEE]"
+                        )}
+                      >
+                        <span className="text-4xl group-hover:scale-110 transition-transform duration-300">{cat.icon}</span>
+                        <div>
+                          <h3 className="font-black text-sm text-[#111]">{cat.name}</h3>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase">{cat.time} Delivery</p>
+                        </div>
+                      </button>
+                    ))}
+                    <button className="flex flex-col items-center justify-center gap-3 p-6 rounded-[2.5rem] border border-dashed border-primary/30 bg-primary/5 min-w-[220px] flex-shrink-0 hover:bg-primary/10 transition-all group">
+                      <div className="h-12 w-12 rounded-2xl bg-primary flex items-center justify-center">
+                        <PhoneCall className="h-6 w-6 text-white" />
+                      </div>
+                      <div className="text-center">
+                        <h3 className="font-black text-sm text-primary">Talk to Rep</h3>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Instant Help</p>
                       </div>
                     </button>
-                  ))}
-                  <button className="flex flex-col items-center justify-center gap-3 p-6 rounded-[2.5rem] border border-dashed border-primary/30 bg-primary/5 min-w-[220px] flex-shrink-0 hover:bg-primary/10 transition-all group">
-                    <div className="h-12 w-12 rounded-2xl bg-primary flex items-center justify-center">
-                      <PhoneCall className="h-6 w-6 text-white" />
-                    </div>
-                    <div className="text-center">
-                      <h3 className="font-black text-sm text-primary">Talk to Rep</h3>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase">Instant Help</p>
-                    </div>
-                  </button>
+                  </div>
                 </div>
               </section>
 
@@ -517,7 +525,7 @@ export default function BuildingMaterialsShop() {
                                 </SelectContent>
                               </Select>
                             ) : (
-                              <Select defaultValue="Bamburi">
+                              <Select defaultValue={product.brands?.[0] || ""}>
                                 <SelectTrigger className="h-12 rounded-2xl text-[11px] font-bold bg-muted/30 border-none">
                                   <SelectValue placeholder="Brand" />
                                 </SelectTrigger>
@@ -526,31 +534,31 @@ export default function BuildingMaterialsShop() {
                                 </SelectContent>
                               </Select>
                             )}
-                            <div className="flex items-center bg-muted/30 rounded-2xl h-12 px-2">
-                              <button className="flex-1 flex justify-center hover:bg-white rounded-xl h-8 items-center transition-all"><Minus className="h-3 w-3"/></button>
-                              <span className="w-8 text-center text-sm font-black">1</span>
-                              <button className="flex-1 flex justify-center hover:bg-white rounded-xl h-8 items-center transition-all"><Plus className="h-3 w-3"/></button>
+                            <div className="flex items-center justify-between bg-muted/30 rounded-2xl px-4 h-12">
+                              <button onClick={() => {}} className="text-primary"><Minus className="h-3 w-3"/></button>
+                              <span className="text-xs font-black">1</span>
+                              <button onClick={() => {}} className="text-primary"><Plus className="h-3 w-3"/></button>
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between">
-                            <div className="space-y-0.5">
-                              <p className="text-[10px] font-bold text-muted-foreground uppercase">From</p>
-                              <p className="font-black text-2xl text-[#111]">KSh {product.price.toLocaleString()}</p>
+                          <div className="flex items-center justify-between pt-2">
+                            <div>
+                              <p className="text-[10px] font-black uppercase text-muted-foreground">From</p>
+                              <p className="text-xl font-black text-[#111]">KSh {product.price.toLocaleString()}</p>
                             </div>
                             <Button 
                               onClick={() => {
-                                setCart([...cart, { ...product, quantity: 1 }]);
-                                toast.success("Added to Order List");
+                                setCart(prev => [...prev, { ...product, quantity: 1 }]);
+                                toast.success(`${product.name} added to cart`);
                               }}
-                              className="rounded-2xl h-14 px-8 bg-[#111] hover:bg-primary transition-all text-xs font-black uppercase tracking-widest shadow-xl shadow-black/5"
+                              className="bg-[#111] text-white rounded-2xl px-6 h-12 text-[11px] font-black uppercase tracking-wider hover:bg-primary transition-colors"
                             >
                               Add to Cart
                             </Button>
                           </div>
                           
-                          <Button variant="ghost" className="w-full text-[10px] font-black uppercase text-muted-foreground hover:text-primary gap-2 h-10">
-                            <PhoneCall className="h-4 w-4" /> Talk to Rep
+                          <Button variant="ghost" className="w-full flex items-center justify-center gap-2 text-[10px] font-black uppercase text-muted-foreground hover:text-primary transition-colors">
+                            <PhoneCall className="h-3 w-3" /> Talk to Rep
                           </Button>
                         </div>
                       </div>
@@ -559,339 +567,255 @@ export default function BuildingMaterialsShop() {
                 </div>
               </section>
 
-              {/* Contextual AI Genie Entry */}
-              <section className="px-6 py-20 bg-muted/10">
-                <div className="max-w-4xl mx-auto bg-[#111] rounded-[4rem] p-12 text-white flex flex-col md:flex-row items-center gap-12 relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 blur-[100px] rounded-full -mr-48 -mt-48" />
-                  <div className="flex-1 space-y-6 relative z-10">
-                    <div className="flex items-center gap-3">
-                      <div className="h-14 w-14 bg-primary rounded-[1.5rem] flex items-center justify-center">
-                        <Sparkles className="h-7 w-7 text-white fill-white" />
+              {/* AI Genie Banner */}
+              <section className="px-6 md:px-12 py-12 max-w-7xl mx-auto w-full">
+                <div className="bg-[#111] rounded-[4rem] p-12 md:p-20 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary/20 to-transparent opacity-50 group-hover:opacity-70 transition-opacity" />
+                  <div className="relative z-10 max-w-2xl space-y-8">
+                    <div className="flex items-center gap-4">
+                      <div className="h-16 w-16 rounded-[2rem] bg-primary flex items-center justify-center shadow-xl shadow-primary/20">
+                        <Sparkles className="h-8 w-8 text-white animate-pulse" />
                       </div>
-                      <h3 className="text-[11px] font-black tracking-[0.3em] uppercase opacity-60">AI GENIE INTELLIGENCE</h3>
+                      <h3 className="text-[11px] font-black tracking-[0.3em] uppercase opacity-60 text-white">AI GENIE INTELLIGENCE</h3>
                     </div>
-                    <h2 className="text-4xl font-black leading-tight">Not sure what you need? Let Genie handle the complexity.</h2>
-                    <p className="text-white/60 font-medium text-lg leading-relaxed">Genie validates quantities, estimates project totals, and flags unrealistic orders automatically.</p>
+                    <h2 className="text-4xl md:text-6xl font-black text-white leading-[1.1]">Not sure what you need? Let Genie handle the complexity.</h2>
+                    <p className="text-lg text-white/60 font-medium">Genie validates quantities, estimates project totals, and flags unrealistic orders automatically.</p>
                     <Button 
                       onClick={() => setView('concierge')}
-                      className="rounded-2xl h-16 px-12 bg-primary hover:bg-primary/90 text-primary-foreground font-black text-sm uppercase tracking-[0.15em] transition-all shadow-2xl shadow-primary/40"
+                      className="h-16 px-10 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs hover:scale-105 transition-all shadow-xl shadow-primary/20"
                     >
                       Ask Genie to Estimate
                     </Button>
                   </div>
-                  <div className="flex-shrink-0 relative z-10">
-                    <div className="w-64 h-64 bg-white/5 rounded-[3rem] border border-white/10 flex items-center justify-center text-7xl animate-pulse">🧠</div>
-                  </div>
+                  
+                  {/* Decorative Floating Element */}
+                  <div className="absolute bottom-10 right-10 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
+                  <div className="absolute top-10 right-20 w-32 h-32 bg-primary/10 rounded-full blur-2xl animate-bounce duration-[5s]" />
                 </div>
               </section>
             </div>
           )}
 
-          {view === 'concierge' && (
-            <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full p-4 md:p-8">
-              {/* Chat Window */}
-              <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-8 pb-32 scroll-smooth pr-4 custom-scrollbar-premium">
-                {messages.map((m, i) => (
-                  <div key={i} className={cn(
-                    "flex flex-col max-w-[85%] animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out",
-                    m.role === 'user' ? "ml-auto items-end" : "mr-auto items-start"
-                  )}>
-                    <div className={cn(
-                      "p-7 rounded-[2.5rem] text-[16px] font-medium leading-relaxed shadow-lg",
-                      m.role === 'user' 
-                        ? "bg-[#111] text-white rounded-tr-none" 
-                        : "bg-white border border-[#EEE] rounded-tl-none text-[#222]"
-                    )}>
-                      {m.content}
-                    </div>
-                    
-                    {m.type === 'carousel' && m.items && (
-                      <div className="w-full mt-6 relative group/carousel">
-                        <div className="flex items-center justify-between mb-4">
-                          <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Recommended Materials</p>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-full border-muted-foreground/20">
-                              <ChevronLeft className="h-4 w-4" />
-                            </Button>
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-full border-muted-foreground/20">
-                              <ChevronRight className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        <ScrollArea className="w-full whitespace-nowrap rounded-[3rem] border-2 border-primary/10 bg-white/50 backdrop-blur-sm">
-                          <div className="flex w-max p-6 gap-6">
-                            {m.items.map((item, idx) => (
-                              <div key={idx} className="w-[300px] bg-white rounded-[2.5rem] border border-[#EEE] p-5 flex flex-col gap-4 shadow-sm hover:shadow-xl transition-all">
-                                <div className="aspect-square rounded-2xl overflow-hidden bg-muted">
-                                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                                </div>
-                                <div className="space-y-1">
-                                  <h4 className="font-black text-base truncate">{item.name}</h4>
-                                  <p className="text-[10px] font-bold text-primary uppercase">{item.supplier}</p>
-                                  <p className="font-black text-lg">KSh {item.price.toLocaleString()}</p>
-                                </div>
-                                <div className="p-4 bg-primary/5 rounded-2xl text-center">
-                                  <p className="text-[10px] font-black text-primary uppercase">Automated Sourcing Ready</p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          <ScrollBar orientation="horizontal" className="h-2 custom-scrollbar-premium" />
-                        </ScrollArea>
-                      </div>
-                    )}
-
-                    {m.options && (
-                      <div className="flex flex-wrap gap-2 mt-6">
-                        {m.options.map(opt => (
-                          <Button 
-                            key={opt} 
-                            variant="outline" 
-                            size="lg"
-                            onClick={() => handleOptionClick(opt)}
-                            className="rounded-full text-[12px] font-black border-[#DDD] hover:border-primary hover:bg-primary/5 hover:text-primary transition-all h-11 px-8 shadow-sm hover:shadow-md uppercase tracking-wider"
-                          >
-                            {opt}
-                          </Button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Chat Controls */}
-              <div className="fixed bottom-0 left-0 right-0 p-4 md:p-12 bg-gradient-to-t from-[#FDFDFD] via-[#FDFDFD] to-transparent pointer-events-none">
-                <div className="max-w-4xl mx-auto space-y-4 pointer-events-auto">
-                  <div className="relative group">
-                    <Input 
-                      placeholder="Tell Genie about your project..." 
-                      value={inputText}
-                      onChange={(e) => setInputText(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                      className="h-20 pl-8 pr-20 bg-white border-[#E0E0E0] rounded-[2.5rem] shadow-2xl shadow-black/5 text-[17px] font-medium focus-visible:ring-primary focus-visible:ring-offset-0 focus:border-primary/50 transition-all"
-                    />
-                    <Button 
-                      onClick={() => handleSend()}
-                      size="icon" 
-                      className="absolute right-3 top-3 h-14 w-14 rounded-2xl bg-[#111] hover:bg-primary transition-all shadow-xl active:scale-95"
-                    >
-                      <Send className="h-6 w-6" />
-                    </Button>
-                  </div>
-                  <p className="text-[10px] text-center text-muted-foreground font-black tracking-[0.3em] opacity-60 uppercase">
-                    POWERED BY PROPERTYHUB AI GENIE™
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
           {view === 'board' && (
-            <div className="flex-1 overflow-y-auto p-4 md:p-12 custom-scrollbar-premium">
-              <div className="max-w-5xl mx-auto space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                {/* Board Header */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="bg-primary/10 text-primary border-none text-[10px] font-black tracking-widest px-3 uppercase">Order Curation</Badge>
-                      <span className="text-xs text-muted-foreground font-bold">• Fulfillment Pending</span>
-                    </div>
-                    <h2 className="text-4xl font-black tracking-tighter text-[#111] leading-none">
-                      Your Project Order List
-                    </h2>
-                    <p className="text-sm font-bold text-muted-foreground flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-primary" /> Fulfillment via verified regional suppliers
-                    </p>
+            <div className="flex-1 flex flex-col p-6 md:p-12 overflow-y-auto custom-scrollbar-premium">
+              <div className="max-w-4xl mx-auto w-full space-y-8">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <h2 className="text-3xl font-black">Your Order List</h2>
+                    <p className="text-sm font-medium text-muted-foreground">Project: {projectModel.type || "Custom Order"} in {projectModel.location}</p>
                   </div>
-                  <div className="flex gap-4">
-                    <Button variant="outline" className="rounded-2xl h-14 px-8 border-[#EEE] font-black text-xs uppercase tracking-[0.15em] gap-3 hover:bg-muted/50 transition-all shadow-sm">
-                      <ClipboardList className="h-4 w-4" /> Save Draft
-                    </Button>
-                    <Button 
-                      onClick={handlePlaceOrder}
-                      disabled={isSubmitting}
-                      className="rounded-2xl h-14 px-10 bg-primary hover:bg-primary/90 text-primary-foreground font-black text-xs uppercase tracking-[0.15em] shadow-xl shadow-primary/20 active:scale-95 transition-all"
-                    >
-                      {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Submit for Fulfillment"}
-                    </Button>
-                  </div>
+                  <Badge variant="outline" className="h-8 rounded-full px-4 border-primary/20 bg-primary/5 text-primary text-[10px] font-black uppercase">Drafting Order</Badge>
                 </div>
 
-                <div className="space-y-4">
-                  {cart.length > 0 ? (
-                    cart.map((item, idx) => (
-                      <div key={idx} className="bg-white p-6 rounded-[3rem] border border-[#F0F0F0] shadow-sm hover:shadow-xl hover:border-primary/20 transition-all group relative overflow-hidden">
-                        <div className="flex gap-6 items-center">
-                          <div className="w-24 h-24 rounded-3xl overflow-hidden bg-[#F8F8F8] flex-shrink-0">
-                            <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                          </div>
-                          <div className="flex-1 min-w-0 space-y-1">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="secondary" className="text-[9px] font-black bg-muted/50 text-muted-foreground border-none px-2 uppercase">{item.category || "Material"}</Badge>
-                              <span className="text-[10px] text-primary font-black tracking-widest uppercase">Ready for Quote</span>
-                            </div>
-                            <h4 className="font-extrabold text-lg text-[#111] truncate">{item.name}</h4>
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{item.supplier} • {item.spec}</p>
-                            <div className="flex items-center gap-4 mt-2">
-                              <p className="font-black text-xl text-[#111]">Est. KSh {item.price.toLocaleString()}</p>
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-end gap-3 pr-2">
-                            <div className="flex items-center bg-[#F8F8F8] p-1 rounded-2xl border">
-                              <button onClick={() => updateQuantity(item.id, -1)} className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white transition-all text-[#111]"><Minus className="h-4 w-4"/></button>
-                              <span className="w-12 text-center text-sm font-black text-[#111]">{item.quantity}</span>
-                              <button onClick={() => updateQuantity(item.id, 1)} className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white transition-all text-[#111]"><Plus className="h-4 w-4"/></button>
-                            </div>
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-                              <Package className="h-3 w-3 text-primary" /> Verification Required
-                            </p>
-                          </div>
+                <div className="grid gap-4">
+                  {cart.map((item, idx) => (
+                    <div key={idx} className="flex gap-6 items-center bg-white p-6 rounded-[2rem] border border-[#EEE] shadow-sm animate-in fade-in slide-in-from-bottom-4">
+                      <div className="w-24 h-24 rounded-2xl overflow-hidden bg-muted flex-shrink-0">
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-lg">{item.name}</h4>
+                        <p className="text-[10px] font-black text-primary uppercase tracking-widest">{item.supplier}</p>
+                        <div className="flex items-center gap-4 mt-2">
+                          <p className="font-black text-lg">KSh {item.price.toLocaleString()}</p>
+                          <span className="text-muted-foreground font-medium">/ {item.unit}</span>
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="p-12 text-center border-2 border-dashed rounded-[3rem] space-y-4 bg-muted/5">
-                       <div className="w-16 h-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto text-3xl">🛒</div>
-                       <p className="font-bold text-muted-foreground">Your order list is empty.</p>
-                       <Button variant="link" onClick={() => setView('warehouse')} className="font-black text-primary uppercase text-xs tracking-widest">Browse Materials</Button>
+                      <div className="flex items-center gap-4 bg-muted/30 rounded-2xl p-2">
+                        <button onClick={() => updateQuantity(item.id, -1)} className="h-8 w-8 flex items-center justify-center hover:bg-white rounded-xl shadow-sm transition-all"><Minus className="h-4 w-4 text-primary"/></button>
+                        <span className="text-sm font-black w-8 text-center">{item.quantity}</span>
+                        <button onClick={() => updateQuantity(item.id, 1)} className="h-8 w-8 flex items-center justify-center hover:bg-white rounded-xl shadow-sm transition-all"><Plus className="h-4 w-4 text-primary"/></button>
+                      </div>
+                    </div>
+                  ))}
+                  {cart.length === 0 && (
+                    <div className="text-center py-20 bg-white rounded-[3rem] border border-[#EEE] border-dashed">
+                      <p className="text-muted-foreground font-bold">No items in your order list yet.</p>
+                      <Button variant="ghost" onClick={() => setView('warehouse')} className="mt-4 text-primary font-black uppercase text-xs">Browse Warehouse</Button>
                     </div>
                   )}
                 </div>
-                
+
                 {cart.length > 0 && (
-                  <div className="bg-muted/10 p-10 rounded-[3rem] space-y-6">
-                    <div className="flex justify-between items-center border-b border-[#DDD] pb-6">
-                      <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Estimated Subtotal</p>
-                      <p className="text-3xl font-black text-[#111]">KSh {totalCost.toLocaleString()}</p>
+                  <div className="bg-[#111] rounded-[3rem] p-10 text-white space-y-6">
+                    <div className="flex justify-between items-center border-b border-white/10 pb-6">
+                      <p className="text-[10px] font-black uppercase text-white/60">Estimated Total</p>
+                      <h3 className="text-3xl font-black">KSh {totalCost.toLocaleString()}</h3>
                     </div>
-                    <div className="flex items-start gap-4 text-muted-foreground">
-                      <Info className="h-5 w-5 text-primary mt-0.5" />
-                      <p className="text-xs font-medium leading-relaxed">This is an estimated subtotal for order curation. A PropertyHub representative will verify stock and current market prices with regional suppliers before finalizing your order.</p>
+                    <div className="grid md:grid-cols-2 gap-6 pt-4">
+                      <div className="space-y-4">
+                        <h4 className="text-[10px] font-black uppercase tracking-widest text-primary">Delivery details</h4>
+                        <div className="space-y-3">
+                          <Select defaultValue="Nairobi" onValueChange={(v) => setFulfillmentForm(f => ({ ...f, county: v }))}>
+                            <SelectTrigger className="bg-white/5 border-white/10 h-14 rounded-2xl text-white font-bold">
+                              <SelectValue placeholder="Select County" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {KENYA_COUNTIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                          <Input 
+                            placeholder="Exact Location / Site Address" 
+                            className="bg-white/5 border-white/10 h-14 rounded-2xl text-white placeholder:text-white/30 font-bold"
+                            onChange={(e) => setFulfillmentForm(f => ({ ...f, location: e.target.value }))}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <h4 className="text-[10px] font-black uppercase tracking-widest text-primary">Contact info</h4>
+                        <div className="space-y-3">
+                          <Input 
+                            placeholder="Full Name" 
+                            className="bg-white/5 border-white/10 h-14 rounded-2xl text-white placeholder:text-white/30 font-bold"
+                            onChange={(e) => setFulfillmentForm(f => ({ ...f, name: e.target.value }))}
+                          />
+                          <Input 
+                            placeholder="Phone Number (WhatsApp preferred)" 
+                            className="bg-white/5 border-white/10 h-14 rounded-2xl text-white placeholder:text-white/30 font-bold"
+                            onChange={(e) => setFulfillmentForm(f => ({ ...f, phone: e.target.value }))}
+                          />
+                        </div>
+                      </div>
                     </div>
+                    <Button 
+                      className="w-full h-16 rounded-[1.5rem] bg-primary text-white font-black uppercase tracking-[0.2em] text-xs hover:scale-[1.02] transition-transform shadow-2xl shadow-primary/20"
+                      onClick={handlePlaceOrder}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Submit for Human Verification"}
+                    </Button>
+                    <p className="text-center text-[10px] font-bold text-white/40 uppercase">You will not be charged yet. A rep will call to verify site access.</p>
                   </div>
                 )}
               </div>
             </div>
           )}
 
-          {/* Fulfillment Dialog */}
-          <Dialog open={isOrderModalOpen} onOpenChange={setIsOrderModalOpen}>
-            <DialogContent className="sm:max-w-[500px] rounded-[3rem] p-8">
-              <DialogHeader className="space-y-4">
-                <div className="h-16 w-16 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto">
-                  <Package className="h-8 w-8 text-primary" />
-                </div>
-                <DialogTitle className="text-2xl font-black text-center tracking-tight">Order Fulfillment</DialogTitle>
-                <DialogDescription className="text-center font-medium leading-relaxed">
-                  Your order has been received and is being curated. Please provide your contact details for verification.
-                </DialogDescription>
-              </DialogHeader>
+          {view === 'concierge' && (
+            <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
+              {/* Genie Background Decor */}
+              <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
               
-              <div className="space-y-4 py-4">
-                <Input placeholder="Full Name" className="h-14 rounded-2xl bg-muted/30 border-none font-medium" />
-                <Input placeholder="Phone Number" className="h-14 rounded-2xl bg-muted/30 border-none font-medium" />
-                <Select defaultValue="Nairobi">
-                  <SelectTrigger className="h-14 rounded-2xl bg-muted/30 border-none font-medium">
-                    <SelectValue placeholder="Select County" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Nairobi">Nairobi</SelectItem>
-                    <SelectItem value="Mombasa">Mombasa</SelectItem>
-                    <SelectItem value="Nakuru">Nakuru</SelectItem>
-                    <SelectItem value="Kiambu">Kiambu</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Input placeholder="Preferred Delivery Date" type="date" className="h-14 rounded-2xl bg-muted/30 border-none font-medium" />
-              </div>
-
-              <div className="bg-[#111] p-6 rounded-2xl text-white space-y-3">
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-40 text-center">HOW IT WORKS</p>
-                <p className="text-[13px] font-medium text-center opacity-80 leading-relaxed">
-                  A PropertyHub representative will contact you shortly to confirm pricing, delivery logistics, and secure payment.
-                </p>
-              </div>
-
-              <DialogFooter className="mt-6">
-                <Button 
-                  onClick={() => {
-                    setIsOrderModalOpen(false);
-                    toast.success("Order submitted for curation!");
-                    setView('warehouse');
-                  }}
-                  className="w-full h-14 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20"
-                >
-                  Confirm Order
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* Live Project Model (Desktop Context Panel) - Only show in board view */}
-        {view === 'board' && (
-          <aside className="hidden xl:flex w-[420px] border-l bg-white flex-col animate-in slide-in-from-right-12 duration-1000">
-            <div className="p-10 pb-8 border-b">
-              <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-8">Live Project Intelligence</h3>
-              <div className="space-y-8">
-                <div className="space-y-2">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">IDENTIFIED PROJECT</p>
-                  <p className="text-2xl font-black text-[#111] leading-tight">
-                    {projectModel.type || "Undefined Build"}
-                  </p>
-                </div>
-                <div className="space-y-5">
-                  <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-widest">
-                    <span className="text-muted-foreground">Intelligence Confidence</span>
-                    <span className="text-primary">{projectModel.progress}%</span>
-                  </div>
-                  <Progress value={projectModel.progress} className="h-2 bg-muted/50" />
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex-1 p-10 space-y-12 overflow-y-auto custom-scrollbar-premium">
-              <div className="space-y-6">
-                <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground">ACTIVE SPECIFICATIONS</h4>
-                <div className="space-y-4">
-                  {[
-                    { icon: MapPin, label: "Location", value: projectModel.location },
-                    { icon: Wallet, label: "Budget Range", value: projectModel.budget || "Pending..." },
-                    { icon: Calendar, label: "Build Timeline", value: projectModel.timeline },
-                    { icon: Building2, label: "Scale", value: projectModel.floors ? projectModel.floors : "1 Floor" },
-                  ].map((spec, i) => (
-                    <div key={i} className="flex items-center gap-5 p-5 rounded-3xl bg-muted/20 border border-transparent hover:border-muted/50 hover:bg-muted/30 transition-all group">
-                      <div className="h-12 w-12 bg-white rounded-2xl shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <spec.icon className="h-5 w-5 text-primary" />
+              <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar-premium" ref={scrollRef}>
+                <div className="max-w-3xl mx-auto space-y-10">
+                  {messages.map((m, i) => (
+                    <div key={i} className={cn(
+                      "flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4",
+                      m.role === 'user' ? "items-end" : "items-start"
+                    )}>
+                      {m.role === 'assistant' && (
+                        <div className="h-10 w-10 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                          <Sparkles className="h-5 w-5 text-white" />
+                        </div>
+                      )}
+                      <div className={cn(
+                        "p-8 rounded-[2.5rem] max-w-[90%] font-medium leading-relaxed shadow-sm",
+                        m.role === 'user' ? "bg-primary text-white rounded-tr-none" : "bg-muted/30 text-[#111] rounded-tl-none border border-[#EEE]"
+                      )}>
+                        {m.content}
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{spec.label}</p>
-                        <p className="text-[13px] font-extrabold text-[#111]">{spec.value}</p>
-                      </div>
+                      
+                      {m.type === 'options' && m.options && (
+                        <div className="flex flex-wrap gap-3 pt-2">
+                          {m.options.map((opt, oi) => (
+                            <Button 
+                              key={oi} 
+                              variant="outline" 
+                              onClick={() => handleOptionClick(opt)}
+                              className="rounded-2xl border-primary/20 bg-white hover:bg-primary/5 hover:border-primary text-[11px] font-bold h-12 px-6"
+                            >
+                              {opt}
+                            </Button>
+                          ))}
+                        </div>
+                      )}
+
+                      {m.type === 'carousel' && m.items && (
+                        <div className="w-full overflow-x-auto hide-scrollbar pb-4 pt-2">
+                          <div className="flex gap-4">
+                            {m.items.map((item, ii) => (
+                              <div key={ii} className="min-w-[280px] bg-white rounded-[2rem] border border-[#EEE] p-5 shadow-sm">
+                                <img src={item.image} className="w-full aspect-video object-cover rounded-2xl mb-4" />
+                                <h4 className="font-bold text-sm">{item.name}</h4>
+                                <p className="text-[10px] font-black text-primary uppercase mt-1">{item.supplier}</p>
+                                <div className="flex justify-between items-center mt-4">
+                                  <p className="font-black">KSh {item.price.toLocaleString()}</p>
+                                  <Badge className="bg-muted text-[#111] hover:bg-muted border-none font-bold">Recommended</Badge>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="bg-[#111] rounded-[2.5rem] p-8 text-white space-y-6 relative overflow-hidden group">
-                <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-primary/10 blur-3xl rounded-full" />
-                <div className="flex items-center gap-3 relative z-10">
-                  <Sparkles className="h-5 w-5 text-primary fill-primary" />
-                  <h5 className="text-[11px] font-black uppercase tracking-[0.3em] text-white/40">ADVISOR NOTES</h5>
-                </div>
-                <p className="text-[13px] font-medium leading-relaxed opacity-80 relative z-10">
-                  {projectModel.type.includes("Bungalow") 
-                    ? "Based on your bungalow choice, I've prioritized local stone suppliers to minimize structural transport costs by 15%."
-                    : "I'm currently mapping regional material cost modifiers to your location profile to ensure quote accuracy."}
-                </p>
-                <div className="pt-2 relative z-10">
-                   <Badge variant="outline" className="text-[9px] font-black border-white/20 text-white/60">V1.2 ENGINE</Badge>
+              {/* Input Area */}
+              <div className="p-6 md:p-12 border-t bg-white/80 backdrop-blur-xl relative z-20">
+                <div className="max-w-3xl mx-auto flex gap-4">
+                  <div className="flex-1 relative group">
+                    <Input 
+                      placeholder="Type your message or project details..." 
+                      className="h-16 rounded-[2rem] px-8 bg-muted/50 border-none shadow-inner text-lg font-medium group-focus-within:bg-white group-focus-within:shadow-2xl transition-all"
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-2">
+                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:bg-primary/10 hover:text-primary"><ClipboardList className="h-5 w-5" /></Button>
+                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:bg-primary/10 hover:text-primary"><MapPin className="h-5 w-5" /></Button>
+                    </div>
+                  </div>
+                  <Button 
+                    className="h-16 w-16 rounded-[2rem] bg-primary text-white shadow-xl shadow-primary/20 hover:scale-105 transition-transform"
+                    onClick={() => handleSend()}
+                  >
+                    <Send className="h-6 w-6" />
+                  </Button>
                 </div>
               </div>
             </div>
-          </aside>
-        )}
+          )}
+        </div>
       </main>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={isOrderModalOpen} onOpenChange={setIsOrderModalOpen}>
+        <DialogContent className="sm:max-w-md rounded-[3rem] p-10 border-none">
+          <div className="flex flex-col items-center text-center space-y-6">
+            <div className="h-24 w-24 rounded-[3rem] bg-green-500 flex items-center justify-center shadow-2xl shadow-green-500/20">
+              <CheckCircle2 className="h-12 w-12 text-white" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-3xl font-black">Order Submitted!</h2>
+              <p className="font-medium text-muted-foreground">Verification ID: PH-{Math.random().toString(36).substr(2, 9).toUpperCase()}</p>
+            </div>
+            <div className="bg-muted/30 p-8 rounded-[2rem] w-full text-left space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center"><PhoneCall className="h-4 w-4 text-primary"/></div>
+                <p className="text-xs font-bold uppercase">Rep Callback: Within 30 mins</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center"><Truck className="h-4 w-4 text-primary"/></div>
+                <p className="text-xs font-bold uppercase">Est. Delivery: {fulfillmentForm.county} (24-48h)</p>
+              </div>
+            </div>
+            <Button 
+              className="w-full h-16 rounded-2xl bg-[#111] text-white font-black uppercase tracking-widest text-xs"
+              onClick={() => {
+                setIsOrderModalOpen(false);
+                setCart([]);
+                setView('warehouse');
+                navigate('/');
+              }}
+            >
+              Return to Dashboard
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
