@@ -17,7 +17,7 @@ type GenieMode = 'DISCOVERY' | 'TRIP' | 'ANALYTICAL' | 'PROJECT';
 
 interface Message {
   role: MessageRole;
-  content: string | React.ReactNode;
+  content?: string | React.ReactNode;
   mode?: GenieMode;
   explanation?: string;
   type?: 'text' | 'property' | 'material' | 'service';
