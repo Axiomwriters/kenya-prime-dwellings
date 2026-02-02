@@ -59,7 +59,7 @@ export function HeroAI() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'ai', 
-      content: "I am the PataHome Genie. Tell me what you're looking for — a home in Milimani, land in Njoro, or perhaps planning a new build?",
+      content: "I am the PataHome Genie. Tell me what you're looking for, a home in Milimani/Kiamunyi, land in Njoro, or perhaps planning a new build?",
       mode: 'DISCOVERY'
     }
   ]);
@@ -67,16 +67,20 @@ export function HeroAI() {
   const [tripList, setTripList] = useState<string[]>([]);
   const [projectList, setProjectList] = useState<string[]>([]);
 
+  // Ref to store the ID of the last refinement question to prevent loops
+  const lastRefinementId = useRef<string | null>(null);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, isTyping]);
 
-  const handleSearch = async () => {
-    if (!inputValue.trim()) return;
+  const handleSearch = async (forcedValue?: string) => {
+    const query = forcedValue || inputValue;
+    if (!query.trim()) return;
 
-    const userMsg = inputValue;
+    const userMsg = query;
     const lowerInput = userMsg.toLowerCase();
     setInputValue("");
     setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
@@ -85,14 +89,22 @@ export function HeroAI() {
     setTimeout(() => {
       setIsTyping(false);
 
+      // Handle Salutations
+      if (lowerInput === "hi" || lowerInput === "hello" || lowerInput === "hey") {
+        setMessages(prev => [...prev, {
+          role: 'ai',
+          content: "Hello! I'm here to help you navigate the property market in Nakuru County. What can I help you find today?",
+          mode: 'DISCOVERY'
+        }]);
+        return;
+      }
+
       // 1. GLOBAL RULE: Ambiguous Affirmation Fallback ("yes" handler)
       const isAffirmation = ["yes", "yes please", "okay", "sure", "go ahead", "that works"].includes(lowerInput.trim());
       
       if (isAffirmation) {
-        // If we just asked a question, we must clarify what "yes" means
         const lastMsg = messages[messages.length - 1];
         if (lastMsg && lastMsg.role === 'ai') {
-          // If the last message was a refinement question or a choice
           if (lastMsg.content?.toString().includes("?") || lastMsg.type === 'options') {
             setMessages(prev => [...prev, {
               role: 'ai',
@@ -112,96 +124,88 @@ export function HeroAI() {
       // 2. Entity Extraction & Mode Logic
       let newMode: GenieMode = mode;
       
-      // Mode Switching Logic (Only if not already in a specific flow or if explicitly requested)
+      // Explicit mode switching
       if (lowerInput.includes("roi") || lowerInput.includes("yield") || lowerInput.includes("portfolio") || lowerInput.includes("invest")) {
         newMode = 'ANALYTICAL';
-      } else if (lowerInput.includes("build") || lowerInput.includes("construction") || lowerInput.includes("mall") || lowerInput.includes("bungalow")) {
+      } else if (lowerInput.includes("build") || lowerInput.includes("construction") || lowerInput.includes("mall") || lowerInput.includes("bungalow") || lowerInput.includes("cost to")) {
         newMode = 'PROJECT';
+      } else if (lowerInput.includes("search") || lowerInput.includes("find") || lowerInput.includes("buy") || lowerInput.includes("rent")) {
+        newMode = 'DISCOVERY';
       }
 
       const detectedLoc = detectLocationFromText(userMsg);
       
-      // Update State with Entity Lock
+      // Update State with Entity Lock (Nakuru focus)
       setConvoState(prev => {
         const next = { ...prev };
-        if (detectedLoc && !prev.location) next.location = detectedLoc.name;
-        if ((lowerInput.includes("buy") || lowerInput.includes("sale")) && !prev.intent) next.intent = 'buy';
-        if ((lowerInput.includes("rent") || lowerInput.includes("lease")) && !prev.intent) next.intent = 'rent';
+        if (detectedLoc) next.location = detectedLoc.name;
+        // Default to Nakuru if not specified and not already set
+        if (!next.location) next.location = "Nakuru";
+
+        if ((lowerInput.includes("buy") || lowerInput.includes("sale"))) next.intent = 'buy';
+        if ((lowerInput.includes("rent") || lowerInput.includes("lease"))) next.intent = 'rent';
         
         if (lowerInput.includes("land") || lowerInput.includes("plot")) next.property_type = 'land';
         else if (lowerInput.includes("house") || lowerInput.includes("apartment") || lowerInput.includes("mall") || lowerInput.includes("bungalow")) next.property_type = 'home';
         
         const budgetMatch = userMsg.match(/(\d+(\.\d+)?)\s*(m|million|k|thousand)/i);
-        if (budgetMatch && !prev.budget) next.budget = budgetMatch[0];
+        if (budgetMatch) next.budget = budgetMatch[0];
         
         return next;
       });
 
-      // Use a local copy of state for immediate logic
+      // Local snapshot for logic
       const currentState = {
         ...convoState,
-        location: detectedLoc?.name || convoState.location,
+        location: detectedLoc?.name || convoState.location || "Nakuru",
         intent: (lowerInput.includes("buy") || lowerInput.includes("sale")) ? 'buy' : (lowerInput.includes("rent") || lowerInput.includes("lease")) ? 'rent' : convoState.intent,
         property_type: (lowerInput.includes("land") || lowerInput.includes("plot")) ? 'land' : (lowerInput.includes("house") || lowerInput.includes("apartment") || lowerInput.includes("mall") || lowerInput.includes("bungalow")) ? 'home' : convoState.property_type
       };
 
       // 3. MODE DISCIPLINE
-      
-      // BUILD MODE: Frame-First
+      setMode(newMode);
+
       if (newMode === 'PROJECT') {
-        if (!currentState.property_type || !lowerInput.includes("sqm")) {
+        if (!currentState.property_type || (!lowerInput.includes("sqm") && !lowerInput.includes("standard") && !lowerInput.includes("commercial"))) {
           setMessages(prev => [...prev, {
             role: 'ai',
-            content: `Got it — a project in ${currentState.location || 'Njoro'}. Before I estimate costs or suggest materials, let's frame the project:`,
+            content: `Got it — a project in ${currentState.location}. Before I estimate costs or suggest materials, let's frame the project:`,
             type: 'options',
             options: ["Standard Size (approx 150sqm)", "Large Scale / Commercial", "I have my own dimensions"],
             mode: 'PROJECT'
           }]);
-          setMode('PROJECT');
           return;
         }
       }
 
-      // INVESTOR MODE: Objective-First
       if (newMode === 'ANALYTICAL') {
-        if (!currentState.intent) {
+        if (!lowerInput.includes("yield") && !lowerInput.includes("appreciation") && !lowerInput.includes("cash flow")) {
           setMessages(prev => [...prev, {
             role: 'ai',
-            content: `I've switched to Investor Mode for ${currentState.location || 'Nakuru'}. To provide accurate insights, what is your primary objective?`,
+            content: `I've switched to Investor Mode for ${currentState.location}. To provide accurate insights, what is your primary objective?`,
             type: 'options',
             options: ["Maximize Rental Yield (%)", "Long-term Capital Appreciation", "Mixed-use Cash Flow"],
             mode: 'ANALYTICAL'
           }]);
-          setMode('ANALYTICAL');
           return;
         }
       }
 
-      // DISCOVERY MODE: Completion Gate
-      if (newMode === 'DISCOVERY') {
-        if (!currentState.intent) {
-          setMessages(prev => [...prev, { 
-            role: 'ai', 
-            content: `I've noted you're interested in ${currentState.location || 'Nakuru'}. Are you looking to buy or rent?`,
-            type: 'options',
-            options: ["I want to Buy", "I want to Rent"],
-            mode: 'DISCOVERY' 
-          }]);
-          return;
-        }
-        if (!currentState.location) {
-          setMessages(prev => [...prev, { 
-            role: 'ai', 
-            content: "Which area in Kenya should we focus on? (e.g., Nakuru CBD, Milimani, or Lanet)",
-            mode: 'DISCOVERY' 
-          }]);
-          return;
-        }
+      if (newMode === 'DISCOVERY' && !currentState.intent) {
+        setMessages(prev => [...prev, { 
+          role: 'ai', 
+          content: `I've noted you're interested in ${currentState.location}. Are you looking to buy or rent?`,
+          type: 'options',
+          options: ["I want to Buy", "I want to Rent"],
+          mode: 'DISCOVERY' 
+        }]);
+        return;
       }
 
-      setMode(newMode);
+      // 4. Results Flow
+      // Prevent refinement loop: if user just answered a refinement, don't ask the exact same one immediately
+      const isRefinementAnswer = ["closer to schools", "newer builds", "larger plots"].includes(lowerInput.trim());
 
-      // 4. Results Flow (only if state is satisfied)
       const filteredMocks = MOCK_GENIE_PROPERTIES.filter(p => {
         if (currentState.location && !p.location.toLowerCase().includes(currentState.location.toLowerCase())) return false;
         if (currentState.property_type === 'land') return p.type === 'land';
@@ -211,7 +215,7 @@ export function HeroAI() {
       if (filteredMocks.length === 0 && newMode === 'DISCOVERY') {
         setMessages(prev => [...prev, { 
           role: 'ai', 
-          content: "I couldn't find an exact match. Should we adjust the scope?",
+          content: "I couldn't find an exact match for that specific criteria right now. Should we adjust the scope?",
           type: 'options',
           options: ["Expand search area", "Adjust budget", "Try different property type"],
           mode: 'DISCOVERY'
@@ -219,21 +223,33 @@ export function HeroAI() {
         return;
       }
 
-      // Final Response
       setMessages(prev => [...prev, { role: 'ai', content: `Based on your request, here are the best matches in ${currentState.location}.`, mode: newMode }]);
       filteredMocks.forEach((prop, i) => {
         setTimeout(() => {
           setMessages(prev => [...prev, { role: 'ai', type: 'property', data: prop, mode: newMode }]);
           if (i === filteredMocks.length - 1) {
-            setTimeout(() => {
-              setMessages(prev => [...prev, { 
-                role: 'ai', 
-                content: "Would you like to refine this search further?", 
-                type: 'options',
-                options: ["Closer to schools", "Newer builds", "Larger plots"],
-                mode: newMode 
-              }]);
-            }, 500);
+            // Only show refinement if we haven't just processed one, or change the refinement options
+            if (!isRefinementAnswer) {
+              setTimeout(() => {
+                setMessages(prev => [...prev, { 
+                  role: 'ai', 
+                  content: "Would you like to refine this search further?", 
+                  type: 'options',
+                  options: ["Closer to schools", "Newer builds", "Larger plots"],
+                  mode: newMode 
+                }]);
+              }, 500);
+            } else {
+              setTimeout(() => {
+                setMessages(prev => [...prev, { 
+                  role: 'ai', 
+                  content: "These matches incorporate your preference. Would you like to view more details for any of these, or should we look at a different area?", 
+                  type: 'options',
+                  options: ["View more details", "Change area", "Change budget"],
+                  mode: newMode 
+                }]);
+              }, 500);
+            }
           }
         }, (i + 1) * 400);
       });
@@ -341,8 +357,7 @@ export function HeroAI() {
                                   size="sm" 
                                   className="justify-start text-left h-auto py-2 text-[11px] font-bold border-primary/20 hover:bg-primary/5 hover:text-primary transition-all rounded-xl"
                                   onClick={() => {
-                                    setInputValue(opt);
-                                    handleSearch();
+                                    handleSearch(opt);
                                   }}
                                 >
                                   {opt}
