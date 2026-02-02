@@ -411,7 +411,7 @@ export function HeroAI() {
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 />
-                <Button size="icon" className="absolute right-2.5 top-2.5 h-10 w-10 rounded-2xl shadow-xl hover:scale-105 transition-transform" onClick={handleSearch} disabled={!inputValue.trim()}>
+                <Button size="icon" className="absolute right-2.5 top-2.5 h-10 w-10 rounded-2xl shadow-xl hover:scale-105 transition-transform" onClick={() => handleSearch()} disabled={!inputValue.trim()}>
                   <Send className="w-5 h-5" />
                 </Button>
               </div>
