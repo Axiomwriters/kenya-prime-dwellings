@@ -1,0 +1,302 @@
+WHY THIS FEELS BAD TO USERS (REAL TALK)
+
+Your Genie is doing three toxic things right now:
+
+Treating “yes” as an instruction
+
+Repeating questions it already has answers to
+
+Jumping into the wrong mode too fast (especially investor + build)
+
+Result?
+Users feel like:
+
+They’re talking to a confused intern
+
+Or worse — a chatbot pretending to be smart
+
+That’s why it feels not conversational.
+
+🧠 CORE PRINCIPLE (THIS FIXES 80%)
+
+“Yes / okay / sure” is NEVER an action.
+It’s a signal that the user is waiting for YOU to guide.
+
+Right now, Genie panics and replays listings. That’s the bug.
+
+1️⃣ DEFINE HARD FALLBACK RESPONSES (NON-NEGOTIABLE)
+
+These are global rules, across ALL modes.
+
+🔁 FALLBACK RULE
+
+If the last Genie message:
+
+Asked a choice
+
+Asked a refinement
+
+Asked a clarifying question
+
+And the user replies with:
+
+yes / yes please / okay / sure / go ahead
+
+👉 DO NOT fetch results
+
+👉 DO THIS INSTEAD
+
+✅ CANONICAL FALLBACK RESPONSE TEMPLATE
+
+“Quick check — when you say yes, which of these do you want me to do?”
+
+Then restate options in bullets.
+Always. No exceptions.
+
+🧩 EXAMPLE: YOUR EXACT SCENARIO (FIXED)
+❌ Current (broken)
+
+G: Closer to schools or newer build?
+U: yes
+G: repeats same listing
+
+✅ Fixed
+
+G:
+
+“Just to be clear — should I:
+• Look for land closer to schools
+• Prioritize newer developments
+• Or explore both?”
+
+Now the user can’t get stuck.
+
+2️⃣ STOP REPEATING QUESTIONS (STATE MEMORY BUG)
+
+This part is critical.
+
+❌ Broken behavior
+
+User says:
+
+“land in nakuru for sale”
+
+Genie still asks:
+
+“Which area in Kenya?”
+
+That’s illegal 😭
+
+✅ FIX: ENTITY EXTRACTION LOCK
+
+Once Genie captures:
+
+Location = Nakuru
+
+👉 That question is LOCKED
+
+It cannot be asked again unless the user explicitly changes it.
+
+🔐 Example Logic
+if (state.locationConfirmed === true) {
+  DO NOT ask location again
+}
+
+
+If unsure, Genie should reflect, not re-ask:
+
+“Just confirming — you’re looking in Nakuru County, right?”
+
+Reflection ≠ repetition.
+
+3️⃣ DISCOVERY MODE ≠ RESULTS MODE
+
+Right now you’re mixing them. That’s why things feel robotic.
+
+✅ PROPER FLOW (FOR LAND / HOMES)
+Phase 1: Intent Lock
+
+Buy / Rent / Invest / Build
+
+Phase 2: Scope Lock
+
+Location
+
+Property type
+
+Phase 3: Constraints
+
+Budget (or unknown)
+
+Preferences
+
+Phase 4: Results
+
+If ANY phase is incomplete → no listings
+
+🧠 Rewrite Your Land Flow (CLEAN)
+
+User:
+
+land in njoro
+
+Genie:
+
+“Got it — land in Njoro. Are you buying or investing?”
+
+User:
+
+buy
+
+Genie:
+
+“Nice. Any budget range, or should I start with current market averages?”
+
+ONLY THEN → listings.
+
+4️⃣ INVESTOR MODE IS CONFUSING (HERE’S WHY)
+
+This part is important.
+
+User says:
+
+“Yield in Nakuru CBD”
+
+They are NOT asking for:
+
+Options
+
+Strategies
+
+Philosophy
+
+They want numbers or direction.
+
+❌ Current (confusing)
+
+“1. Residential rentals
+2. Land banking
+3. Mixed-use”
+
+This feels like a blog post, not a portfolio tool.
+
+✅ FIX: INVESTOR MODE MUST ASK FIRST
+Correct response:
+
+“Got it — are you looking for:
+• Rental yield (% per year)
+• Capital appreciation
+• Or mixed-use cash flow?”
+
+Then:
+
+“And what’s your rough budget range?”
+
+Only after that → insights.
+
+🧠 Investor Mode Rule
+
+No strategies before objective is known
+
+Otherwise it feels like noise.
+
+5️⃣ BUILD MODE IS WAY TOO EAGER
+
+This is a big one.
+
+User:
+
+“How much to build a 2bd bungalow in Nakuru”
+
+Genie:
+
+dumps cement prices
+
+That’s wild 😭
+
+✅ BUILD MODE MUST START WITH FRAME, NOT MATERIALS
+Correct conversational response:
+
+“Got it — a 2-bedroom bungalow in Nakuru.
+Before I estimate cost, a few quick things:
+• Approx size (sqm), or standard?
+• Basic, mid-range, or premium finish?
+• Do you already own land?”
+
+Only after that → cost range.
+
+🧱 Materials should come LAST
+
+Materials are:
+
+Optional
+
+Advanced
+
+For execution mode
+
+Not discovery.
+
+6️⃣ DEFINE MODE-SPECIFIC BEHAVIOR (THIS IS THE SECRET SAUCE)
+🏡 Buy / Rent Mode
+
+Conversational
+
+Narrow → show → refine
+
+📈 Investor Mode
+
+Objective-first
+
+Numbers > listings
+
+Insights before options
+
+🏗️ Build Mode
+
+Frame → estimate → breakdown
+
+Materials only after intent is clear
+
+Right now Genie treats all three the same. That’s why it feels off.
+
+7️⃣ FINAL: GOLD STANDARD “YES / OK / SURE” HANDLER
+
+Save this. Print it. Enforce it.
+
+🔒 GLOBAL RULE
+
+If the user responds with affirmation words
+AND multiple next actions exist
+THEN Genie must clarify, not act.
+
+🗣️ Universal Fallback Response
+
+“Just to make sure I move in the right direction — what would you like me to do next?”
+
+Then give 2–3 options max.
+
+Never more. Never zero.
+
+🧠 THE TRUTH (BIG PICTURE)
+
+You are not building:
+
+❌ Chat flows
+
+❌ Prompt tricks
+
+You are building:
+
+A stateful real-estate decision engine
+
+Once you enforce:
+
+State locks
+
+Mode discipline
+
+Affirmation fallbacks
+
+This stops feeling like a chatbot and starts feeling like:
+a calm, competent property advisor

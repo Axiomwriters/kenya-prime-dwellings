@@ -85,116 +85,154 @@ export function HeroAI() {
     setTimeout(() => {
       setIsTyping(false);
 
-      // 1. Handling Ambiguous Confirmation Memory
-      if (convoState.pending_choice) {
-        if (lowerInput === "yes" || lowerInput === "okay" || lowerInput === "sure" || lowerInput === "go ahead") {
-          setMessages(prev => [...prev, {
-            role: 'ai',
-            content: `Just to be precise — should I:`,
-            type: 'options',
-            options: convoState.pending_choice === 'scope_adjustment' 
-              ? ["Expand to nearby areas", "Adjust the budget", "Do both"]
-              : ["Older homes with larger plots", "Newer builds with compact plots"]
-          }]);
-          return;
+      // 1. GLOBAL RULE: Ambiguous Affirmation Fallback ("yes" handler)
+      const isAffirmation = ["yes", "yes please", "okay", "sure", "go ahead", "that works"].includes(lowerInput.trim());
+      
+      if (isAffirmation) {
+        // If we just asked a question, we must clarify what "yes" means
+        const lastMsg = messages[messages.length - 1];
+        if (lastMsg && lastMsg.role === 'ai') {
+          // If the last message was a refinement question or a choice
+          if (lastMsg.content?.toString().includes("?") || lastMsg.type === 'options') {
+            setMessages(prev => [...prev, {
+              role: 'ai',
+              content: `Just to make sure I move in the right direction — what would you like me to do next?`,
+              type: 'options',
+              options: mode === 'DISCOVERY' 
+                ? ["Search closer to schools", "Prioritize newer builds", "Adjust the budget"]
+                : mode === 'ANALYTICAL'
+                ? ["See rental yield (%)", "Check capital appreciation", "Calculate cash flow"]
+                : ["Estimate project size", "Select finish quality", "Browse materials"]
+            }]);
+            return;
+          }
         }
-        
-        // Resolve choice
-        setConvoState(prev => ({ ...prev, pending_choice: null }));
       }
 
-      // 2. Intent Detection & Mode Logic
+      // 2. Entity Extraction & Mode Logic
       let newMode: GenieMode = mode;
-      if (lowerInput.includes("roi") || lowerInput.includes("yield") || lowerInput.includes("portfolio") || lowerInput.includes("invest") || lowerInput.includes("compare")) {
+      
+      // Mode Switching Logic (Only if not already in a specific flow or if explicitly requested)
+      if (lowerInput.includes("roi") || lowerInput.includes("yield") || lowerInput.includes("portfolio") || lowerInput.includes("invest")) {
         newMode = 'ANALYTICAL';
-      } else if (lowerInput.includes("build") || lowerInput.includes("construction") || lowerInput.includes("material") || lowerInput.includes("cost to build")) {
+      } else if (lowerInput.includes("build") || lowerInput.includes("construction") || lowerInput.includes("mall") || lowerInput.includes("bungalow")) {
         newMode = 'PROJECT';
-      } else if (lowerInput.includes("trip") || lowerInput.includes("viewing") || lowerInput.includes("visit")) {
-        newMode = 'TRIP';
       }
-      setMode(newMode);
 
       const detectedLoc = detectLocationFromText(userMsg);
       
-      // Update State
-      const updatedState = { ...convoState };
-      if (detectedLoc) updatedState.location = detectedLoc.name;
-      if (lowerInput.includes("buy") || lowerInput.includes("sale")) updatedState.intent = 'buy';
-      if (lowerInput.includes("rent") || lowerInput.includes("lease")) updatedState.intent = 'rent';
-      if (lowerInput.includes("land") || lowerInput.includes("plot")) updatedState.property_type = 'land';
-      if (lowerInput.includes("house") || lowerInput.includes("apartment")) updatedState.property_type = 'home';
+      // Update State with Entity Lock
+      setConvoState(prev => {
+        const next = { ...prev };
+        if (detectedLoc && !prev.location) next.location = detectedLoc.name;
+        if ((lowerInput.includes("buy") || lowerInput.includes("sale")) && !prev.intent) next.intent = 'buy';
+        if ((lowerInput.includes("rent") || lowerInput.includes("lease")) && !prev.intent) next.intent = 'rent';
+        
+        if (lowerInput.includes("land") || lowerInput.includes("plot")) next.property_type = 'land';
+        else if (lowerInput.includes("house") || lowerInput.includes("apartment") || lowerInput.includes("mall") || lowerInput.includes("bungalow")) next.property_type = 'home';
+        
+        const budgetMatch = userMsg.match(/(\d+(\.\d+)?)\s*(m|million|k|thousand)/i);
+        if (budgetMatch && !prev.budget) next.budget = budgetMatch[0];
+        
+        return next;
+      });
+
+      // Use a local copy of state for immediate logic
+      const currentState = {
+        ...convoState,
+        location: detectedLoc?.name || convoState.location,
+        intent: (lowerInput.includes("buy") || lowerInput.includes("sale")) ? 'buy' : (lowerInput.includes("rent") || lowerInput.includes("lease")) ? 'rent' : convoState.intent,
+        property_type: (lowerInput.includes("land") || lowerInput.includes("plot")) ? 'land' : (lowerInput.includes("house") || lowerInput.includes("apartment") || lowerInput.includes("mall") || lowerInput.includes("bungalow")) ? 'home' : convoState.property_type
+      };
+
+      // 3. MODE DISCIPLINE
       
-      // Budget extraction (simple)
-      const budgetMatch = userMsg.match(/(\d+(\.\d+)?)\s*(m|million|k|thousand)/i);
-      if (budgetMatch) updatedState.budget = budgetMatch[0];
-
-      setConvoState(updatedState);
-
-      // 3. Discovery Flow Completion Guarantee
-      if (newMode === 'DISCOVERY' && (!updatedState.location || !updatedState.intent || !updatedState.property_type)) {
-        let question = "Got it. To help me find the best matches, could you clarify ";
-        if (!updatedState.intent) question += "if you're looking to buy or rent? ";
-        else if (!updatedState.location) question += "which area in Kenya you're interested in? ";
-        else if (!updatedState.property_type) question += "if you're looking for land or a finished home?";
-        
-        setMessages(prev => [...prev, { role: 'ai', content: question, mode: 'DISCOVERY' }]);
-        return;
-      }
-
-      // 4. Case-Specific Elite Flows
-      if (newMode === 'ANALYTICAL') {
-        setMessages(prev => [...prev, {
-          role: 'ai',
-          content: `With ${updatedState.budget || 'your budget'} in ${updatedState.location || 'Nakuru'}, you have three viable strategies:`,
-          explanation: "This insight is based on recent demand patterns and infrastructure signals — not a price guarantee.",
-          type: 'text',
-          mode: 'ANALYTICAL'
-        }]);
-        
-        setTimeout(() => {
+      // BUILD MODE: Frame-First
+      if (newMode === 'PROJECT') {
+        if (!currentState.property_type || !lowerInput.includes("sqm")) {
           setMessages(prev => [...prev, {
             role: 'ai',
-            content: "1. Residential rentals in high-demand zones\n2. Land banking near infrastructure growth\n3. Mixed-use properties near the CBD fringe",
+            content: `Got it — a project in ${currentState.location || 'Njoro'}. Before I estimate costs or suggest materials, let's frame the project:`,
+            type: 'options',
+            options: ["Standard Size (approx 150sqm)", "Large Scale / Commercial", "I have my own dimensions"],
+            mode: 'PROJECT'
+          }]);
+          setMode('PROJECT');
+          return;
+        }
+      }
+
+      // INVESTOR MODE: Objective-First
+      if (newMode === 'ANALYTICAL') {
+        if (!currentState.intent) {
+          setMessages(prev => [...prev, {
+            role: 'ai',
+            content: `I've switched to Investor Mode for ${currentState.location || 'Nakuru'}. To provide accurate insights, what is your primary objective?`,
+            type: 'options',
+            options: ["Maximize Rental Yield (%)", "Long-term Capital Appreciation", "Mixed-use Cash Flow"],
             mode: 'ANALYTICAL'
           }]);
-        }, 500);
-        return;
+          setMode('ANALYTICAL');
+          return;
+        }
       }
 
-      if (newMode === 'PROJECT') {
-        setMessages(prev => [...prev, { role: 'ai', content: "I've updated your project workspace. Quality materials are the foundation of any build. Here are current estimates:", mode: 'PROJECT' }]);
-        MOCK_MATERIALS.forEach((mat, i) => {
-          setTimeout(() => setMessages(prev => [...prev, { role: 'ai', type: 'material', data: mat, mode: 'PROJECT' }]), (i + 1) * 300);
-        });
-        return;
+      // DISCOVERY MODE: Completion Gate
+      if (newMode === 'DISCOVERY') {
+        if (!currentState.intent) {
+          setMessages(prev => [...prev, { 
+            role: 'ai', 
+            content: `I've noted you're interested in ${currentState.location || 'Nakuru'}. Are you looking to buy or rent?`,
+            type: 'options',
+            options: ["I want to Buy", "I want to Rent"],
+            mode: 'DISCOVERY' 
+          }]);
+          return;
+        }
+        if (!currentState.location) {
+          setMessages(prev => [...prev, { 
+            role: 'ai', 
+            content: "Which area in Kenya should we focus on? (e.g., Nakuru CBD, Milimani, or Lanet)",
+            mode: 'DISCOVERY' 
+          }]);
+          return;
+        }
       }
 
-      // 5. Normal Search Flow with Clarification Gate
+      setMode(newMode);
+
+      // 4. Results Flow (only if state is satisfied)
       const filteredMocks = MOCK_GENIE_PROPERTIES.filter(p => {
-        if (updatedState.location && !p.location.toLowerCase().includes(updatedState.location.toLowerCase())) return false;
-        if (updatedState.property_type === 'land') return p.type === 'land';
+        if (currentState.location && !p.location.toLowerCase().includes(currentState.location.toLowerCase())) return false;
+        if (currentState.property_type === 'land') return p.type === 'land';
         return p.type === 'home';
       }).slice(0, 3);
 
-      if (filteredMocks.length === 0) {
-        setConvoState(prev => ({ ...prev, pending_choice: 'scope_adjustment' }));
+      if (filteredMocks.length === 0 && newMode === 'DISCOVERY') {
         setMessages(prev => [...prev, { 
           role: 'ai', 
-          content: "I couldn't find an exact match right now. Should we look at adjacent areas or perhaps adjust the budget?",
+          content: "I couldn't find an exact match. Should we adjust the scope?",
+          type: 'options',
+          options: ["Expand search area", "Adjust budget", "Try different property type"],
           mode: 'DISCOVERY'
         }]);
         return;
       }
 
-      // Show Results
-      setMessages(prev => [...prev, { role: 'ai', content: `Based on your request, these options in ${updatedState.location} match best. Prices vary by specific plot positioning.`, mode: newMode }]);
+      // Final Response
+      setMessages(prev => [...prev, { role: 'ai', content: `Based on your request, here are the best matches in ${currentState.location}.`, mode: newMode }]);
       filteredMocks.forEach((prop, i) => {
         setTimeout(() => {
-          setMessages(prev => [...prev, { role: 'ai', type: 'property', data: prop, explanation: "Matches your location and type preference.", mode: newMode }]);
+          setMessages(prev => [...prev, { role: 'ai', type: 'property', data: prop, mode: newMode }]);
           if (i === filteredMocks.length - 1) {
-            // Refinement Follow-up
             setTimeout(() => {
-              setMessages(prev => [...prev, { role: 'ai', content: "Would you like something closer to schools, or perhaps a newer build?", mode: newMode }]);
+              setMessages(prev => [...prev, { 
+                role: 'ai', 
+                content: "Would you like to refine this search further?", 
+                type: 'options',
+                options: ["Closer to schools", "Newer builds", "Larger plots"],
+                mode: newMode 
+              }]);
             }, 500);
           }
         }, (i + 1) * 400);
