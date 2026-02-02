@@ -15,13 +15,23 @@ import { toast } from "sonner";
 type MessageRole = 'ai' | 'user';
 type GenieMode = 'DISCOVERY' | 'TRIP' | 'ANALYTICAL' | 'PROJECT';
 
+interface ConversationState {
+  pending_choice: string | null;
+  intent_resolved: boolean;
+  intent: string | null;
+  location: string | null;
+  budget: string | null;
+  property_type: string | null;
+}
+
 interface Message {
   role: MessageRole;
   content?: string | React.ReactNode;
   mode?: GenieMode;
   explanation?: string;
-  type?: 'text' | 'property' | 'material' | 'service';
+  type?: 'text' | 'property' | 'material' | 'service' | 'options';
   data?: any;
+  options?: string[];
 }
 
 const MOCK_MATERIALS = [
@@ -34,6 +44,14 @@ export function HeroAI() {
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [mode, setMode] = useState<GenieMode>('DISCOVERY');
+  const [convoState, setConvoState] = useState<ConversationState>({
+    pending_choice: null,
+    intent_resolved: false,
+    intent: null,
+    location: null,
+    budget: null,
+    property_type: null
+  });
   const { detectLocationFromText } = useLocationAgent();
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -45,6 +63,7 @@ export function HeroAI() {
       mode: 'DISCOVERY'
     }
   ]);
+
   const [tripList, setTripList] = useState<string[]>([]);
   const [projectList, setProjectList] = useState<string[]>([]);
 
@@ -58,95 +77,130 @@ export function HeroAI() {
     if (!inputValue.trim()) return;
 
     const userMsg = inputValue;
+    const lowerInput = userMsg.toLowerCase();
     setInputValue("");
     setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
     setIsTyping(true);
 
-    const lowerInput = userMsg.toLowerCase();
-    let newMode: GenieMode = mode;
+    setTimeout(() => {
+      setIsTyping(false);
 
-    // Intelligent Mode & Intent Detection
-    if (lowerInput.includes("roi") || lowerInput.includes("yield") || lowerInput.includes("portfolio") || lowerInput.includes("invest") || lowerInput.includes("compare")) {
-      newMode = 'ANALYTICAL';
-    } else if (lowerInput.includes("build") || lowerInput.includes("construction") || lowerInput.includes("material") || lowerInput.includes("cost to build")) {
-      newMode = 'PROJECT';
-    } else if (lowerInput.includes("trip") || lowerInput.includes("viewing") || lowerInput.includes("visit")) {
-      newMode = 'TRIP';
-    } else {
-      newMode = 'DISCOVERY';
-    }
-    
-    setMode(newMode);
-
-    try {
-      const detected = detectLocationFromText(userMsg);
-      
-      setTimeout(() => {
-        setIsTyping(false);
-        
-        if (newMode === 'PROJECT') {
-          setMessages(prev => [...prev, { 
-            role: 'ai', 
-            content: "I've updated your project workspace. When planning a build in Kenya, starting with quality materials and a clear budget is key. Here are some current material estimates:",
-            mode: 'PROJECT'
-          }]);
-          
-          MOCK_MATERIALS.forEach((mat, i) => {
-            setTimeout(() => {
-              setMessages(prev => [...prev, {
-                role: 'ai',
-                type: 'material',
-                data: mat,
-                mode: 'PROJECT'
-              }]);
-            }, (i + 1) * 400);
-          });
-          return;
-        }
-
-        if (newMode === 'ANALYTICAL') {
+      // 1. Handling Ambiguous Confirmation Memory
+      if (convoState.pending_choice) {
+        if (lowerInput === "yes" || lowerInput === "okay" || lowerInput === "sure" || lowerInput === "go ahead") {
           setMessages(prev => [...prev, {
             role: 'ai',
-            content: `Switching to analytical mode for ${detected?.name || 'this area'}. While I don't provide financial guarantees, the current market signals suggest a growing demand for residential units here.`,
-            explanation: "I'm comparing this to 5-year yield trends in similar zones.",
+            content: `Just to be precise — should I:`,
+            type: 'options',
+            options: convoState.pending_choice === 'scope_adjustment' 
+              ? ["Expand to nearby areas", "Adjust the budget", "Do both"]
+              : ["Older homes with larger plots", "Newer builds with compact plots"]
+          }]);
+          return;
+        }
+        
+        // Resolve choice
+        setConvoState(prev => ({ ...prev, pending_choice: null }));
+      }
+
+      // 2. Intent Detection & Mode Logic
+      let newMode: GenieMode = mode;
+      if (lowerInput.includes("roi") || lowerInput.includes("yield") || lowerInput.includes("portfolio") || lowerInput.includes("invest") || lowerInput.includes("compare")) {
+        newMode = 'ANALYTICAL';
+      } else if (lowerInput.includes("build") || lowerInput.includes("construction") || lowerInput.includes("material") || lowerInput.includes("cost to build")) {
+        newMode = 'PROJECT';
+      } else if (lowerInput.includes("trip") || lowerInput.includes("viewing") || lowerInput.includes("visit")) {
+        newMode = 'TRIP';
+      }
+      setMode(newMode);
+
+      const detectedLoc = detectLocationFromText(userMsg);
+      
+      // Update State
+      const updatedState = { ...convoState };
+      if (detectedLoc) updatedState.location = detectedLoc.name;
+      if (lowerInput.includes("buy") || lowerInput.includes("sale")) updatedState.intent = 'buy';
+      if (lowerInput.includes("rent") || lowerInput.includes("lease")) updatedState.intent = 'rent';
+      if (lowerInput.includes("land") || lowerInput.includes("plot")) updatedState.property_type = 'land';
+      if (lowerInput.includes("house") || lowerInput.includes("apartment")) updatedState.property_type = 'home';
+      
+      // Budget extraction (simple)
+      const budgetMatch = userMsg.match(/(\d+(\.\d+)?)\s*(m|million|k|thousand)/i);
+      if (budgetMatch) updatedState.budget = budgetMatch[0];
+
+      setConvoState(updatedState);
+
+      // 3. Discovery Flow Completion Guarantee
+      if (newMode === 'DISCOVERY' && (!updatedState.location || !updatedState.intent || !updatedState.property_type)) {
+        let question = "Got it. To help me find the best matches, could you clarify ";
+        if (!updatedState.intent) question += "if you're looking to buy or rent? ";
+        else if (!updatedState.location) question += "which area in Kenya you're interested in? ";
+        else if (!updatedState.property_type) question += "if you're looking for land or a finished home?";
+        
+        setMessages(prev => [...prev, { role: 'ai', content: question, mode: 'DISCOVERY' }]);
+        return;
+      }
+
+      // 4. Case-Specific Elite Flows
+      if (newMode === 'ANALYTICAL') {
+        setMessages(prev => [...prev, {
+          role: 'ai',
+          content: `With ${updatedState.budget || 'your budget'} in ${updatedState.location || 'Nakuru'}, you have three viable strategies:`,
+          explanation: "This insight is based on recent demand patterns and infrastructure signals — not a price guarantee.",
+          type: 'text',
+          mode: 'ANALYTICAL'
+        }]);
+        
+        setTimeout(() => {
+          setMessages(prev => [...prev, {
+            role: 'ai',
+            content: "1. Residential rentals in high-demand zones\n2. Land banking near infrastructure growth\n3. Mixed-use properties near the CBD fringe",
             mode: 'ANALYTICAL'
           }]);
-        }
+        }, 500);
+        return;
+      }
 
-        const filteredMocks = MOCK_GENIE_PROPERTIES.filter(p => {
-          if (detected && !p.location.toLowerCase().includes(detected.name.toLowerCase())) return false;
-          if (lowerInput.includes("land") || lowerInput.includes("plot")) return p.type === 'land';
-          return p.type === 'home';
-        }).slice(0, 3);
+      if (newMode === 'PROJECT') {
+        setMessages(prev => [...prev, { role: 'ai', content: "I've updated your project workspace. Quality materials are the foundation of any build. Here are current estimates:", mode: 'PROJECT' }]);
+        MOCK_MATERIALS.forEach((mat, i) => {
+          setTimeout(() => setMessages(prev => [...prev, { role: 'ai', type: 'material', data: mat, mode: 'PROJECT' }]), (i + 1) * 300);
+        });
+        return;
+      }
 
-        const responseText = filteredMocks.length > 0 
-          ? `Based on ${detected?.name || 'your request'} and current availability, these options match your requirements. Prices vary by specific plot positioning and finishes.`
-          : "I couldn't find an exact match for that specific criteria right now. Should we look at adjacent areas or perhaps adjust the budget slightly?";
+      // 5. Normal Search Flow with Clarification Gate
+      const filteredMocks = MOCK_GENIE_PROPERTIES.filter(p => {
+        if (updatedState.location && !p.location.toLowerCase().includes(updatedState.location.toLowerCase())) return false;
+        if (updatedState.property_type === 'land') return p.type === 'land';
+        return p.type === 'home';
+      }).slice(0, 3);
 
+      if (filteredMocks.length === 0) {
+        setConvoState(prev => ({ ...prev, pending_choice: 'scope_adjustment' }));
         setMessages(prev => [...prev, { 
           role: 'ai', 
-          content: responseText,
-          mode: newMode 
+          content: "I couldn't find an exact match right now. Should we look at adjacent areas or perhaps adjust the budget?",
+          mode: 'DISCOVERY'
         }]);
+        return;
+      }
 
-        filteredMocks.forEach((prop, i) => {
-          setTimeout(() => {
-            setMessages(prev => [...prev, {
-              role: 'ai',
-              type: 'property',
-              data: prop,
-              explanation: "Matches your location and type preference.",
-              mode: newMode
-            }]);
-          }, (i + 1) * 500);
-        });
+      // Show Results
+      setMessages(prev => [...prev, { role: 'ai', content: `Based on your request, these options in ${updatedState.location} match best. Prices vary by specific plot positioning.`, mode: newMode }]);
+      filteredMocks.forEach((prop, i) => {
+        setTimeout(() => {
+          setMessages(prev => [...prev, { role: 'ai', type: 'property', data: prop, explanation: "Matches your location and type preference.", mode: newMode }]);
+          if (i === filteredMocks.length - 1) {
+            // Refinement Follow-up
+            setTimeout(() => {
+              setMessages(prev => [...prev, { role: 'ai', content: "Would you like something closer to schools, or perhaps a newer build?", mode: newMode }]);
+            }, 500);
+          }
+        }, (i + 1) * 400);
+      });
 
-      }, 1200);
-
-    } catch (e) {
-      console.error("Genie search failed", e);
-      setIsTyping(false);
-    }
+    }, 1200);
   };
 
   const addToTrip = (id: string) => {
@@ -238,6 +292,27 @@ export function HeroAI() {
                         {msg.role === 'ai' ? "G" : "U"}
                       </div>
                       <div className={cn("rounded-2xl p-4 text-sm shadow-sm max-w-[85%] leading-relaxed font-medium", msg.role === 'ai' ? "bg-muted/90 rounded-tl-none border border-border/50" : "bg-primary text-primary-foreground rounded-tr-none")}>
+                        {msg.type === 'options' && msg.options && (
+                          <div className="space-y-3">
+                            <p className="font-bold border-b border-border/50 pb-2 mb-2">{msg.content}</p>
+                            <div className="flex flex-col gap-2">
+                              {msg.options.map((opt, i) => (
+                                <Button 
+                                  key={i} 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="justify-start text-left h-auto py-2 text-[11px] font-bold border-primary/20 hover:bg-primary/5 hover:text-primary transition-all rounded-xl"
+                                  onClick={() => {
+                                    setInputValue(opt);
+                                    handleSearch();
+                                  }}
+                                >
+                                  {opt}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                         {msg.type === 'property' && msg.data && (
                           <div className="space-y-3">
                             <img src={msg.data.image} className="rounded-xl aspect-video object-cover" />
