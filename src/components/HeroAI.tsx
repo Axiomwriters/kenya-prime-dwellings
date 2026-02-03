@@ -280,7 +280,7 @@ export function HeroAI() {
   };
 
   return (
-    <section className="relative min-h-[90vh] flex items-center pt-8 pb-16 overflow-hidden bg-slate-950 dark:bg-slate-950">
+    <section className="relative min-h-[90vh] flex items-center pt-8 pb-16 overflow-hidden bg-white dark:bg-slate-950 transition-colors duration-300">
       {/* Background Effects */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none opacity-40 dark:opacity-100">
         <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px]" />
@@ -288,7 +288,7 @@ export function HeroAI() {
       </div>
 
       <div className="container relative z-10 mx-auto px-4 lg:px-8 mt-[-20px] md:mt-0">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-12 items-start lg:items-center">
           <div className="space-y-8 animate-in fade-in slide-in-from-left duration-700">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold tracking-tight uppercase">
               <Sparkles className="w-3.5 h-3.5" />
@@ -305,6 +305,11 @@ export function HeroAI() {
               <p className="text-lg text-slate-600 dark:text-slate-400 max-w-xl leading-relaxed font-medium">
                 Our AI understands location, budget, bedrooms, and lifestyle — and matches you with real properties instantly.
               </p>
+            </div>
+
+            {/* Mobile Genie Placement: Show here on mobile, hide on desktop */}
+            <div className="lg:hidden w-full max-w-[500px] animate-in fade-in slide-in-from-bottom duration-700">
+              <GenieCard />
             </div>
 
             <div className="flex flex-wrap items-center gap-8 pt-4">
@@ -354,49 +359,198 @@ export function HeroAI() {
             </div>
           </div>
 
-          <div className="lg:ml-auto w-full max-w-[500px] animate-in fade-in slide-in-from-right duration-700">
-            <Card className="p-0 border-none bg-white dark:bg-slate-900/40 backdrop-blur-xl shadow-2xl rounded-[32px] overflow-hidden border border-slate-200 dark:border-white/5">
-              {/* Genie Header */}
-              <div className="px-6 py-4 bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-white/5 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                      <Sparkles className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900 flex items-center justify-center animate-pulse" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight uppercase">PataHome Genie</h3>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                      <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">Online & Nationwide</span>
-                    </div>
-                  </div>
+          {/* Desktop Genie Placement: Hide on mobile, show on desktop */}
+          <div className="hidden lg:block lg:ml-auto w-full max-w-[500px] animate-in fade-in slide-in-from-right duration-700">
+            <GenieCard />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+
+  function GenieCard() {
+    return (
+      <Card className="p-0 border-none bg-white/80 dark:bg-slate-900/40 backdrop-blur-xl shadow-2xl rounded-[32px] overflow-hidden border border-slate-200 dark:border-white/5">
+        {/* Genie Header */}
+        <div className="px-6 py-4 bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-white/5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900 flex items-center justify-center animate-pulse" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight uppercase">PataHome Genie</h3>
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">Online & Nationwide</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex gap-1 items-center">
+            <div className="relative group">
+              <button className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase transition-all hover:bg-primary/20">
+                {mode} MODE
+                <ArrowRight className="w-3 h-3 rotate-90" />
+              </button>
+              <div className="absolute top-full right-0 mt-2 w-40 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl py-2 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                {(['DISCOVERY', 'TRIP', 'ANALYTICAL', 'PROJECT'] as GenieMode[]).map((m) => (
+                  <button
+                    key={m}
+                    className={cn(
+                      "w-full text-left px-4 py-2 text-[10px] font-bold uppercase hover:bg-primary/5 hover:text-primary transition-colors",
+                      mode === m ? "text-primary bg-primary/5" : "text-slate-600 dark:text-slate-400"
+                    )}
+                    onClick={() => setMode(m)}
+                  >
+                    {m} MODE
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Chat Area - REDUCED HEIGHT */}
+        <div ref={scrollRef} className="h-[380px] overflow-y-auto p-6 space-y-6 scroll-smooth scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+          {messages.map((msg, idx) => (
+            <div key={idx} className={cn("flex flex-col gap-2 animate-fade-in", msg.role === 'user' ? "items-end" : "items-start")}>
+              <div className={cn("flex gap-3", msg.role === 'user' ? "flex-row-reverse" : "")}>
+                <div className={cn("w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center shadow-sm font-bold text-[10px]", msg.role === 'ai' ? "bg-primary text-primary-foreground" : "bg-slate-100 dark:bg-secondary text-slate-900 dark:text-secondary-foreground")}>
+                  {msg.role === 'ai' ? "G" : "U"}
                 </div>
-                
-                <div className="flex gap-1 items-center">
-                  <div className="relative group">
-                    <button className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase transition-all hover:bg-primary/20">
-                      {mode} MODE
-                      <ArrowRight className="w-3 h-3 rotate-90" />
-                    </button>
-                    <div className="absolute top-full right-0 mt-2 w-40 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl py-2 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                      {(['DISCOVERY', 'TRIP', 'ANALYTICAL', 'PROJECT'] as GenieMode[]).map((m) => (
-                        <button
-                          key={m}
-                          className={cn(
-                            "w-full text-left px-4 py-2 text-[10px] font-bold uppercase hover:bg-primary/5 hover:text-primary transition-colors",
-                            mode === m ? "text-primary bg-primary/5" : "text-slate-600 dark:text-slate-400"
-                          )}
-                          onClick={() => setMode(m)}
-                        >
-                          {m} MODE
-                        </button>
-                      ))}
+                <div className={cn("rounded-2xl p-4 text-sm shadow-sm max-w-[85%] leading-relaxed font-medium", msg.role === 'ai' ? "bg-slate-50 dark:bg-muted/90 rounded-tl-none border border-slate-200 dark:border-border/50 text-slate-900 dark:text-slate-100" : "bg-primary text-primary-foreground rounded-tr-none")}>
+                  {msg.type === 'options' && msg.options && (
+                    <div className="space-y-3">
+                      <p className="font-bold border-b border-slate-200 dark:border-border/50 pb-2 mb-2">{msg.content}</p>
+                      <div className="flex flex-col gap-2">
+                        {msg.options.map((opt, i) => (
+                          <Button 
+                            key={i} 
+                            variant="outline" 
+                            size="sm" 
+                            className="justify-start text-left h-auto py-2 text-[11px] font-bold border-primary/20 hover:bg-primary/5 hover:text-primary transition-all rounded-xl dark:border-primary/20 dark:hover:bg-primary/5 dark:hover:text-primary"
+                            onClick={() => {
+                              handleSearch(opt);
+                            }}
+                          >
+                            {opt}
+                          </Button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
+                  {msg.type === 'property' && msg.data && (
+                    <div className="space-y-3">
+                      <img src={msg.data.image} className="rounded-xl aspect-video object-cover" />
+                      <div className="flex justify-between items-start">
+                        <h4 className="font-bold text-sm">{msg.data.title}</h4>
+                        <span className="text-primary font-bold">{msg.data.price}</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" /> {msg.data.location}</p>
+                      <div className="flex gap-2 pt-2">
+                        <Button size="sm" variant="outline" className="h-8 text-[10px] flex-1 font-bold rounded-lg" onClick={() => navigate(`/properties/${msg.data.id}`)}>Details</Button>
+                        <Button size="sm" className="h-8 text-[10px] flex-1 font-bold rounded-lg" onClick={() => addToTrip(msg.data.id)}>Add to Trip</Button>
+                      </div>
+                    </div>
+                  )}
+                  {msg.type === 'material' && msg.data && (
+                    <div className="space-y-3 p-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Construction className="w-4 h-4 text-primary" />
+                        <h4 className="font-bold text-[12px] uppercase tracking-wider">Material Estimate</h4>
+                      </div>
+                      <div className="bg-white dark:bg-background/50 rounded-xl p-3 border border-slate-200 dark:border-border/50">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-black text-sm">{msg.data.name}</span>
+                          <span className="text-primary font-black">{msg.data.price}</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-muted-foreground mb-3">{msg.data.unit}</p>
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="font-bold">Supplier: {msg.data.supplier}</span>
+                          <Badge variant="outline" className="text-[8px] h-4 bg-emerald-100 dark:bg-success/10 text-emerald-700 dark:text-success border-emerald-200 dark:border-success/20">{msg.data.availability}</Badge>
+                        </div>
+                      </div>
+                      <Button size="sm" className="w-full h-8 text-[10px] font-bold rounded-lg" onClick={() => addToProject(msg.data.id)}>Add to Project</Button>
+                    </div>
+                  )}
+                  {msg.type !== 'options' && msg.type !== 'property' && msg.type !== 'material' && (
+                    <div className="space-y-2">
+                      {typeof msg.content === 'string' ? msg.content.split('\n').map((line, i) => <p key={i}>{line}</p>) : msg.content}
+                      {msg.explanation && (
+                        <div className="mt-2 pt-2 border-t border-slate-200 dark:border-border/50 flex items-start gap-2 italic text-[10px] text-slate-500 dark:text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Info className="w-3 h-3 flex-shrink-0" />
+                            <span>{msg.explanation}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
+            </div>
+          ))}
+          {isTyping && (
+            <div className="flex items-center gap-3 animate-pulse">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center font-bold text-[10px] text-primary-foreground">
+                G
+              </div>
+              <div className="bg-slate-50 dark:bg-muted/90 rounded-2xl rounded-tl-none p-4 border border-slate-200 dark:border-border/50">
+                <div className="flex gap-1">
+                  <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" />
+                  <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:0.2s]" />
+                  <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:0.4s]" />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Input Area */}
+        <div className="p-6 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-200 dark:border-white/5">
+          <div className="relative group">
+            <Input
+              placeholder="e.g. Find me a 3 bedroom home in Milimani under 10M"
+              className="bg-white dark:bg-slate-950/50 border-slate-200 dark:border-white/10 h-14 pl-5 pr-14 rounded-2xl focus:ring-2 focus:ring-primary/20 transition-all text-sm font-medium"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => e.key === 'ENTER' && handleSearch()}
+            />
+            <Button 
+              size="icon" 
+              className="absolute right-2 top-2 h-10 w-10 rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
+              onClick={() => handleSearch()}
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </div>
+          <div className="flex gap-2 mt-4 overflow-x-auto pb-2 scrollbar-none">
+            {mode === 'DISCOVERY' ? (
+              <>
+                <Button variant="outline" size="sm" className="h-7 text-[10px] font-bold whitespace-nowrap rounded-lg border-slate-200 dark:border-white/10 hover:bg-primary/5 hover:text-primary transition-all" onClick={() => setInputValue("3 bedroom in Milimani")}>3BR Milimani</Button>
+                <Button variant="outline" size="sm" className="h-7 text-[10px] font-bold whitespace-nowrap rounded-lg border-slate-200 dark:border-white/10 hover:bg-primary/5 hover:text-primary transition-all" onClick={() => setInputValue("Plots in Njoro under 2M")}>Plots in Njoro</Button>
+                <Button variant="outline" size="sm" className="h-7 text-[10px] font-bold whitespace-nowrap rounded-lg border-slate-200 dark:border-white/10 hover:bg-primary/5 hover:text-primary transition-all" onClick={() => setInputValue("Rental in Kiamunyi")}>Kiamunyi Rentals</Button>
+              </>
+            ) : mode === 'ANALYTICAL' ? (
+              <>
+                <Button variant="outline" size="sm" className="h-7 text-[10px] font-bold whitespace-nowrap rounded-lg border-slate-200 dark:border-white/10" onClick={() => setInputValue("Highest rental yield area")}>Best Yields</Button>
+                <Button variant="outline" size="sm" className="h-7 text-[10px] font-bold whitespace-nowrap rounded-lg border-slate-200 dark:border-white/10" onClick={() => setInputValue("Price trends in Nakuru CBD")}>CBD Trends</Button>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" size="sm" className="h-7 text-[10px] font-bold whitespace-nowrap rounded-lg border-slate-200 dark:border-white/10" onClick={() => setInputValue("Cost to build 3BR bungalow")}>Bungalow Cost</Button>
+                <Button variant="outline" size="sm" className="h-7 text-[10px] font-bold whitespace-nowrap rounded-lg border-slate-200 dark:border-white/10" onClick={() => setInputValue("Local material prices")}>Material Prices</Button>
+              </>
+            )}
+          </div>
+        </div>
+      </Card>
+    );
+  }
+}
 
               {/* Chat Area - REDUCED HEIGHT */}
               <div ref={scrollRef} className="h-[380px] overflow-y-auto p-6 space-y-6 scroll-smooth scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
