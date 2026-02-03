@@ -280,65 +280,107 @@ export function HeroAI() {
   };
 
   return (
-    <section className="relative pt-8 pb-12 md:pt-12 md:pb-24 overflow-hidden min-h-[auto] md:min-h-[90vh] flex items-center bg-background">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5 z-0"></div>
-      
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          <div className="space-y-8 text-left animate-fade-in order-2 lg:order-1">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20 backdrop-blur-sm">
-              <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-semibold tracking-wide uppercase italic">PataHome Genie</span>
-            </div>
+    <section className="relative min-h-[90vh] flex items-center pt-24 pb-16 overflow-hidden bg-[#020817]">
+      {/* Background Effects */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+        <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px]" />
+      </div>
 
+      <div className="container relative z-10 mx-auto px-4 lg:px-8">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="space-y-8 animate-in fade-in slide-in-from-left duration-700">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold tracking-tight uppercase">
+              <Sparkles className="w-3.5 h-3.5" />
+              AI-Powered Property Concierge
+            </div>
+            
             <div className="space-y-4">
-              <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground leading-[1.1]">
+              <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.1]">
                 Find Homes & Land by <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary/80 to-accent">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-400">
                   Just Asking.
                 </span>
               </h1>
-              <p className="text-lg md:text-xl text-muted-foreground max-w-xl leading-relaxed">
-                A decision-support concierge that reduces friction and builds trust. Not just a chatbot — your Kenyan real estate partner.
+              <p className="text-lg text-slate-400 max-w-xl leading-relaxed font-medium">
+                Our AI understands location, budget, bedrooms, and lifestyle — and matches you with real properties instantly.
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-8 pt-8 border-t border-border/50">
+            <div className="flex flex-wrap items-center gap-8 pt-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm"><Home className="w-6 h-6" /></div>
-                <div><p className="text-xl font-bold text-foreground">1,204+</p><p className="text-xs text-muted-foreground">Listings</p></div>
+                <div className="p-2 rounded-xl bg-white/5 border border-white/10 shadow-sm">
+                  <Home className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <div className="text-xl font-bold text-white">1,215+</div>
+                  <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Listings</div>
+                </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-success/10 flex items-center justify-center text-success shadow-sm"><Users className="w-6 h-6" /></div>
-                <div><p className="text-xl font-bold text-foreground">202+</p><p className="text-xs text-muted-foreground">Agents</p></div>
+                <div className="p-2 rounded-xl bg-white/5 border border-white/10 shadow-sm">
+                  <Users className="w-5 h-5 text-emerald-500" />
+                </div>
+                <div>
+                  <div className="text-xl font-bold text-white">218+</div>
+                  <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Agents</div>
+                </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent shadow-sm"><TrendingUp className="w-6 h-6" /></div>
-                <div><p className="text-xl font-bold text-foreground">98%</p><p className="text-xs text-muted-foreground">Match Rate</p></div>
+                <div className="p-2 rounded-xl bg-white/5 border border-white/10 shadow-sm">
+                  <TrendingUp className="w-5 h-5 text-amber-500" />
+                </div>
+                <div>
+                  <div className="text-xl font-bold text-white">98%</div>
+                  <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Match Rate</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step-by-step markers */}
+            <div className="flex items-center gap-12 pt-12 border-t border-white/5">
+              <div className="flex flex-col items-center gap-2 group cursor-default">
+                <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-xs font-bold text-slate-500 group-hover:bg-primary/20 group-hover:text-primary group-hover:border-primary/30 transition-all">1</div>
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Describe your dream</span>
+              </div>
+              <div className="flex flex-col items-center gap-2 group cursor-default">
+                <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-xs font-bold text-slate-500 group-hover:bg-primary/20 group-hover:text-primary group-hover:border-primary/30 transition-all">2</div>
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">AI filters listings</span>
+              </div>
+              <div className="flex flex-col items-center gap-2 group cursor-default">
+                <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-xs font-bold text-slate-500 group-hover:bg-primary/20 group-hover:text-primary group-hover:border-primary/30 transition-all">3</div>
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">See only matches</span>
               </div>
             </div>
           </div>
 
-          <div className="relative w-full max-w-lg mx-auto animate-slide-up order-1 lg:order-2">
-            <Card className="relative overflow-hidden border-border/50 bg-card/70 backdrop-blur-3xl shadow-[0_32px_80px_-16px_rgba(0,0,0,0.12)] rounded-[2.5rem] p-6 md:p-8 border-2">
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/50">
+          <div className="lg:ml-auto w-full max-w-[500px] animate-in fade-in slide-in-from-right duration-700">
+            <Card className="p-0 border-none bg-slate-900/40 backdrop-blur-xl shadow-2xl rounded-[32px] overflow-hidden border border-white/5">
+              {/* Genie Header */}
+              <div className="px-6 py-4 bg-slate-900/60 border-b border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground shadow-xl shadow-primary/20 animate-pulse">
-                    <Sparkles className="w-6 h-6" />
+                  <div className="relative">
+                    <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                      <Sparkles className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-slate-900 flex items-center justify-center animate-pulse" />
                   </div>
                   <div>
-                    <h2 className="text-base font-black text-foreground tracking-tight">PataHome Genie</h2>
-                    <p className="text-[10px] text-muted-foreground font-bold flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-success"></span> ONLINE & NATIONWIDE
-                    </p>
+                    <h3 className="text-sm font-bold text-white tracking-tight uppercase">PataHome Genie</h3>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">Online & Nationwide</span>
+                    </div>
                   </div>
                 </div>
-                <Badge variant="secondary" className="text-[10px] uppercase font-black px-3 py-1 rounded-full bg-primary/10 text-primary border-none">
+                
+                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px] font-bold px-2 py-0.5 animate-pulse uppercase">
                   {mode} MODE
                 </Badge>
               </div>
 
-              <div ref={scrollRef} className="space-y-6 mb-6 h-[400px] overflow-y-auto pr-3 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+              {/* Chat Area - REDUCED HEIGHT */}
+              <div ref={scrollRef} className="h-[380px] overflow-y-auto p-6 space-y-6 scroll-smooth scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
                 {messages.map((msg, idx) => (
                   <div key={idx} className={cn("flex flex-col gap-2 animate-fade-in", msg.role === 'user' ? "items-end" : "items-start")}>
                     <div className={cn("flex gap-3", msg.role === 'user' ? "flex-row-reverse" : "")}>
@@ -381,48 +423,77 @@ export function HeroAI() {
                           </div>
                         )}
                         {msg.type === 'material' && msg.data && (
-                          <div className="space-y-2 border-l-4 border-accent pl-3 py-1">
-                            <div className="flex items-center gap-2 text-accent"><Hammer className="w-4 h-4" /><span className="font-bold text-xs uppercase tracking-wider">Material Card</span></div>
-                            <h4 className="font-black text-sm">{msg.data.name}</h4>
-                            <div className="flex justify-between items-center"><span className="text-base font-bold">{msg.data.price}</span><span className="text-[10px] text-muted-foreground">{msg.data.unit}</span></div>
-                            <p className="text-[10px] italic">Supplier: {msg.data.supplier}</p>
-                            <Button size="sm" variant="outline" className="w-full mt-2 h-8 text-[10px] font-bold border-accent/20 text-accent hover:bg-accent/5 rounded-lg" onClick={() => addToProject(msg.data.id)}>Add to Project</Button>
+                          <div className="space-y-3 p-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Construction className="w-4 h-4 text-primary" />
+                              <h4 className="font-bold text-[12px] uppercase tracking-wider">Material Estimate</h4>
+                            </div>
+                            <div className="bg-background/50 rounded-xl p-3 border border-border/50">
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="font-black text-sm">{msg.data.name}</span>
+                                <span className="text-primary font-black">{msg.data.price}</span>
+                              </div>
+                              <p className="text-[10px] text-muted-foreground mb-3">{msg.data.unit}</p>
+                              <div className="flex items-center justify-between text-[10px]">
+                                <span className="font-bold">Supplier: {msg.data.supplier}</span>
+                                <Badge variant="outline" className="text-[8px] h-4 bg-success/10 text-success border-success/20">{msg.data.availability}</Badge>
+                              </div>
+                            </div>
+                            <Button size="sm" className="w-full h-8 text-[10px] font-bold rounded-lg" onClick={() => addToProject(msg.data.id)}>Add to Project</Button>
                           </div>
                         )}
-                        {!msg.type && typeof msg.content === 'string' && <p>{msg.content}</p>}
-                        {msg.explanation && <div className="mt-3 pt-3 border-t border-border/50 text-[10px] text-muted-foreground flex items-start gap-2 italic"><Info className="w-3 h-3 flex-shrink-0 mt-0.5" /> {msg.explanation}</div>}
+                        {msg.type !== 'options' && msg.type !== 'property' && msg.type !== 'material' && (
+                          <div className="space-y-2">
+                            {typeof msg.content === 'string' ? msg.content.split('\n').map((line, i) => <p key={i}>{line}</p>) : msg.content}
+                            {msg.explanation && (
+                              <div className="mt-2 pt-2 border-t border-border/50 flex items-start gap-2 italic text-[10px] text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                  <Info className="w-3 h-3 flex-shrink-0" />
+                                  <span>{msg.explanation}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
                 ))}
                 {isTyping && (
-                  <div className="flex gap-3 items-center opacity-70">
+                  <div className="flex items-center gap-3 animate-pulse">
                     <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-[10px] font-bold">G</div>
                     <div className="flex gap-1.5"><div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce"></div><div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.2s]"></div><div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.4s]"></div></div>
                   </div>
                 )}
               </div>
 
-              <div className="relative">
-                <Input
-                  placeholder="Ask the Genie anything..."
-                  className="pr-12 py-7 bg-background/80 border-2 border-border shadow-inner rounded-3xl focus:ring-4 focus:ring-primary/10 transition-all text-sm font-bold placeholder:text-muted-foreground/50"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                />
-                <Button size="icon" className="absolute right-2.5 top-2.5 h-10 w-10 rounded-2xl shadow-xl hover:scale-105 transition-transform" onClick={() => handleSearch()} disabled={!inputValue.trim()}>
-                  <Send className="w-5 h-5" />
-                </Button>
-              </div>
-
-              {!messages.some(m => m.role === 'user') && (
-                <div className="flex flex-wrap gap-2 mt-5">
-                  <button onClick={() => setInputValue("3 bedroom house in Milimani")} className="text-[10px] font-bold px-3 py-1.5 rounded-xl bg-muted/80 hover:bg-primary/10 hover:text-primary transition-all border border-border/50">Milimani Houses</button>
-                  <button onClick={() => setInputValue("How much to build a 2bd bungalow?")} className="text-[10px] font-bold px-3 py-1.5 rounded-xl bg-muted/80 hover:bg-accent/10 hover:text-accent transition-all border border-border/50">Build Costs</button>
-                  <button onClick={() => setInputValue("Yield in Nakuru CBD")} className="text-[10px] font-bold px-3 py-1.5 rounded-xl bg-muted/80 hover:bg-success/10 hover:text-success transition-all border border-border/50">Invest ROI</button>
+              <div className="px-6 pb-6">
+                <div className="relative">
+                  <Input
+                    placeholder="Ask the Genie anything..."
+                    className="pr-12 py-7 bg-background/80 border-2 border-border shadow-inner rounded-3xl focus:ring-4 focus:ring-primary/10 transition-all text-sm font-bold placeholder:text-muted-foreground/50"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  />
+                  <Button 
+                    size="icon" 
+                    className="absolute right-2.5 top-2.5 h-10 w-10 rounded-2xl shadow-xl hover:scale-105 transition-transform" 
+                    onClick={() => handleSearch()} 
+                    disabled={!inputValue.trim()}
+                  >
+                    <Send className="w-5 h-5" />
+                  </Button>
                 </div>
-              )}
+
+                {!messages.some(m => m.role === 'user') && (
+                  <div className="flex flex-wrap gap-2 mt-5">
+                    <button onClick={() => handleSearch("3 bedroom house in Milimani")} className="text-[10px] font-bold px-3 py-1.5 rounded-xl bg-muted/80 hover:bg-primary/10 hover:text-primary transition-all border border-border/50">Milimani Houses</button>
+                    <button onClick={() => handleSearch("How much to build a 2bd bungalow?")} className="text-[10px] font-bold px-3 py-1.5 rounded-xl bg-muted/80 hover:bg-accent/10 hover:text-accent transition-all border border-border/50">Build Costs</button>
+                    <button onClick={() => handleSearch("Yield in Nakuru CBD")} className="text-[10px] font-bold px-3 py-1.5 rounded-xl bg-muted/80 hover:bg-success/10 hover:text-success transition-all border border-border/50">Invest ROI</button>
+                  </div>
+                )}
+              </div>
             </Card>
           </div>
         </div>

@@ -33,6 +33,13 @@ export function LocationAgentProvider({ children }: { children: ReactNode }) {
     const detectLocationFromText = (text: string): NakuruZone | null => {
         if (!text) return null;
         const lowerText = text.toLowerCase();
+        
+        // Custom mapping for common variations
+        if (lowerText.includes("nakuru")) {
+          const matched = NAKURU_LOCATIONS.find(z => z.name === "Nakuru");
+          if (matched) return matched;
+        }
+
         // Sort by name length descending to match longest specific names first (e.g. "Nakuru CBD" before "Nakuru")
         const sortedZones = [...NAKURU_LOCATIONS].sort((a, b) => b.name.length - a.name.length);
 
