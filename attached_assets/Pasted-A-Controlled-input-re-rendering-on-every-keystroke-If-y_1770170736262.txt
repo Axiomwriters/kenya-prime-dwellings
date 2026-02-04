@@ -1,0 +1,276 @@
+A. Controlled input re-rendering on every keystroke
+
+If your input value is tied to:
+
+Genie state
+
+Mode state
+
+Conversation array
+
+Typing indicator
+
+Streaming token handler
+
+👉 React is re-rendering the entire chat tree per character.
+
+Fix (mandatory):
+
+Decouple the input state from the chat state.
+
+Pattern to use
+
+useRef or isolated useState for the input
+
+Only commit text to global/chat state on submit, not on change
+
+const inputRef = useRef("");
+
+onChange={(e) => {
+  inputRef.current = e.target.value;
+}}
+
+
+Then on send:
+
+sendMessage(inputRef.current);
+
+B. Streaming responses blocking the main thread
+
+If you’re:
+
+Streaming tokens
+
+Updating the message array on each token
+
+👉 The browser is choking while you type.
+
+Fix
+
+Batch token updates (e.g. every 50–100ms)
+
+Or buffer tokens → flush them together
+
+Rule
+
+Typing must NEVER share a render path with streaming output.
+
+C. Over-eager animations / auto-scroll
+
+Auto-scroll on every character = death by a thousand renders.
+
+Fix
+
+Only auto-scroll when:
+
+A message completes
+
+A card is rendered
+
+Not while user is typing
+
+✅ Result after fixes
+
+Typing feels instant
+
+Genie feels “present”
+
+No more ChatGPT-2009 vibes
+
+2️⃣ Mode switching: how to make it feel intelligent (not manual)
+
+You already have:
+
+Discovery
+
+Trip
+
+Analytics
+
+Project
+
+The mistake to avoid:
+❌ Treating mode as a hard override
+
+The correct mental model
+
+Modes are constraints, not commands.
+
+How the Genie should behave when mode changes
+A. Mode = soft context, not a reset
+
+When user switches mode:
+
+DO NOT clear memory
+
+DO NOT re-ask basics
+
+DO NOT restart conversation
+
+Instead, Genie should acknowledge + adapt
+
+Example
+User switches from Discovery → Project
+
+Genie:
+
+“Alright — switching to Project mode. I’ll focus on planning and materials based on what you’ve already told me.”
+
+That’s it. No more. No less.
+
+B. Mode acts as a response filter
+
+Same user input, different framing:
+
+User: “Land in Njoro”
+
+Discovery mode → listings + clarification
+
+Analytics mode → zoning, demand, risk
+
+Project mode → suitability for building + utilities
+
+Trip mode → logistics & viewing options
+
+👉 Same intent, different lens.
+
+Implementation tip (important)
+
+Send the mode to the Genie as metadata, not text.
+
+{
+  "mode": "PROJECT",
+  "last_intent": "land_search",
+  "conversation_summary": "User wants land in Njoro for development"
+}
+
+
+The Genie decides how to respond — not whether.
+
+3️⃣ Why “yes / ok / sure” is breaking your flow (and how to fix it)
+
+Right now:
+
+User says “yes”
+
+Genie treats it like a new query
+
+Context collapses
+
+You loop
+
+This is classic missing confirmation state.
+
+The fix: Pending Question Memory
+
+Every time the Genie asks a question, it must store:
+
+pendingQuestion = {
+  type: "adjust_search",
+  options: ["expand_area", "adjust_budget"],
+  context: lastSearchContext
+}
+
+
+Then:
+
+If user replies with:
+
+“yes”
+
+“ok”
+
+“sure”
+
+“please do”
+
+👉 Genie resolves the pending question, not the whole search.
+
+Example
+Genie asked:
+
+“Should we adjust budget or expand area?”
+
+User:
+
+“yes”
+
+Correct Genie response:
+
+“Got it — I’ll expand the search slightly around Njoro while keeping your budget in range.”
+
+Then fetch.
+
+Fallback rule (non-negotiable)
+
+If user says “yes” and multiple options exist:
+
+Genie must choose the least risky option first and explain it.
+
+This alone will eliminate 80% of your loops.
+
+4️⃣ Making Investor & Build flows feel human (not robotic)
+
+Right now the Genie jumps straight to:
+
+Cards
+
+Lists
+
+Prices
+
+That’s why it feels cold.
+
+Rule to enforce
+
+No cards without narrative framing. Ever.
+
+Correct flow for INVESTORS
+
+User: “Yield in Nakuru CBD”
+
+Wrong
+
+Bullet points
+
+Generic suggestions
+
+Correct
+
+Acknowledge intent
+
+Frame uncertainty
+
+THEN give insight
+
+Example:
+
+“When people ask about yield in Nakuru CBD, they’re usually comparing rental income versus land appreciation. Based on current demand signals, here’s how it generally breaks down — this is directional, not a guarantee.”
+
+Then insights.
+Then:
+
+“If you want, I can narrow this to residential, mixed-use, or short-stay rentals.”
+
+That feels like a professional, not a bot.
+
+Correct flow for BUILDING / MATERIALS
+
+Right now you jump straight to materials.
+That’s wrong for big builds (like a mall).
+
+New rule
+Before materials, always confirm scale + purpose.
+
+User: “I want to construct a mall in Njoro”
+
+Correct Genie response:
+
+“Understood. A mall changes the approach significantly. Before I suggest materials, I need to understand:
+• Approximate size (small neighborhood vs multi-floor)
+• Target users (students, general retail, offices)
+• Whether utilities and access roads are already in place”
+
+Only after that → Project Mode cards.
+
+This makes it feel senior, not transactional.
