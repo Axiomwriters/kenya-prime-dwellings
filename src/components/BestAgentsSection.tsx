@@ -116,7 +116,6 @@ export function BestAgentsSection() {
             totalListings: listingCount,
             priceRange: `KSh ${(Math.random() * 8 + 1).toFixed(1)}M`,
             specialization,
-            specialization,
             avatar: agent.avatar_url || undefined,
             verified: listingCount > 20,
             topRated: rating > 4.7,

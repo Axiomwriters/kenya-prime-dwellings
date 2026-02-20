@@ -110,7 +110,7 @@ export function ProfileDrawer({ open, onOpenChange }: ProfileDrawerProps) {
           </div>
         </div>
 
-        <ScrollArea className="flex-1 px-6 py-6" className="space-y-6 pb-20">
+        <ScrollArea className="flex-1 px-6 py-6 space-y-6 pb-20">
           {/* 1. Identity & Trust Layer */}
           <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <IdentityCard user={user} profile={profile} />
