@@ -41,6 +41,7 @@ import BookingCheckout from "./pages/ShortStay/BookingCheckout";
 import BookingConfirmation from "./pages/ShortStay/BookingConfirmation";
 import GuestDashboard from "./pages/ShortStay/GuestDashboard";
 import TripDetails from "./pages/ShortStay/TripDetails";
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react';
 
 const queryClient = new QueryClient();
 
@@ -105,9 +106,15 @@ const App = () => {
                     <Route
                       path="/agent/*"
                       element={
-                        <ProtectedRoute requiredRole="agent">
+                        <>
+                        <SignedIn>
+                          <UserButton />
                           <AgentDashboard />
-                        </ProtectedRoute>
+                        </SignedIn>
+                        <SignedOut>
+                          <Auth />
+                        </SignedOut>
+                        </>
                       }
                     />
                     <Route
