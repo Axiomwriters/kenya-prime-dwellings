@@ -108,7 +108,6 @@ const App = () => {
                       element={
                         <>
                         <SignedIn>
-                          <UserButton />
                           <AgentDashboard />
                         </SignedIn>
                         <SignedOut>
