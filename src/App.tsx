@@ -41,7 +41,9 @@ import BookingCheckout from "./pages/ShortStay/BookingCheckout";
 import BookingConfirmation from "./pages/ShortStay/BookingConfirmation";
 import GuestDashboard from "./pages/ShortStay/GuestDashboard";
 import TripDetails from "./pages/ShortStay/TripDetails";
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react';
+import { SignedIn, SignedOut } from '@clerk/clerk-react';
+import SignInPage from "./pages/SignIn";
+import SignUpPage from "./pages/SignUp";
 
 const queryClient = new QueryClient();
 
@@ -88,6 +90,8 @@ const App = () => {
                     <Route path="/auth/reset" element={<ResetPassword />} />
                     <Route path="/profile/settings" element={<UserProfileSettings />} />
                     <Route path="/saved-properties" element={<SavedProperties />} />
+                    <Route path="/sign-in" element={<SignInPage />}/>
+                    <Route path="/sign-up" element={<SignUpPage />}/>
                     <Route path="/account/settings" element={<AccountSettings />} />
                     <Route path="/agents/profile/:id" element={<AgentProfile />} />
                     <Route path="/become-agent" element={

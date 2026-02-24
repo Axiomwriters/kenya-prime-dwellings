@@ -12,6 +12,7 @@ export default function Auth() {
   // const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const navigate = useNavigate()
   // const [showPassword, setShowPassword] = useState(false);
   // const [loginType, setLoginType] = useState<"user" | "agent" | "professional">("user");
 
@@ -171,12 +172,18 @@ export default function Auth() {
               type="submit"
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 text-base transition-all duration-300"
               disabled={isLoading}
-            ><SignInButton /></Button>
+              onClick={() => navigate('/sign-in')}
+            >
+              Sign In
+            </Button>
             <Button
               type="submit"
               className="w-full bg-primary mt-3 hover:bg-primary/90 text-primary-foreground h-11 text-base transition-all duration-300"
               disabled={isLoading}
-            ><SignUpButton /></Button>
+              onClick={() => navigate('/sign-up')}
+            >
+              Sign Up
+            </Button>
           
           {/* <form onSubmit={handleSubmit} className="space-y-5">
             {activeTab === "signup" && (
