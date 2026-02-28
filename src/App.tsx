@@ -44,6 +44,7 @@ import TripDetails from "./pages/ShortStay/TripDetails";
 import { SignedIn, SignedOut } from '@clerk/clerk-react';
 import SignInPage from "./pages/SignIn";
 import SignUpPage from "./pages/SignUp";
+import Redirect from "./pages/Redirect";
 
 const queryClient = new QueryClient();
 
@@ -92,6 +93,7 @@ const App = () => {
                     <Route path="/saved-properties" element={<SavedProperties />} />
                     <Route path="/sign-in" element={<SignInPage />}/>
                     <Route path="/sign-up" element={<SignUpPage />}/>
+                    <Route path="/redirect" element={<Redirect />}/>
                     <Route path="/account/settings" element={<AccountSettings />} />
                     <Route path="/agents/profile/:id" element={<AgentProfile />} />
                     <Route path="/become-agent" element={
