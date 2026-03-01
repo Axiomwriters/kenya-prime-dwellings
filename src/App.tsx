@@ -41,7 +41,6 @@ import BookingCheckout from "./pages/ShortStay/BookingCheckout";
 import BookingConfirmation from "./pages/ShortStay/BookingConfirmation";
 import GuestDashboard from "./pages/ShortStay/GuestDashboard";
 import TripDetails from "./pages/ShortStay/TripDetails";
-import { SignedIn, SignedOut } from '@clerk/clerk-react';
 import SignInPage from "./pages/SignIn";
 import SignUpPage from "./pages/SignUp";
 import Redirect from "./pages/Redirect";
@@ -91,8 +90,8 @@ const App = () => {
                     <Route path="/auth/reset" element={<ResetPassword />} />
                     <Route path="/profile/settings" element={<UserProfileSettings />} />
                     <Route path="/saved-properties" element={<SavedProperties />} />
-                    <Route path="/sign-in" element={<SignInPage />}/>
-                    <Route path="/sign-up" element={<SignUpPage />}/>
+                    <Route path="/sign-in/*" element={<SignInPage />}/>
+                    <Route path="/sign-up/*" element={<SignUpPage />}/>
                     <Route path="/redirect" element={<Redirect />}/>
                     <Route path="/account/settings" element={<AccountSettings />} />
                     <Route path="/agents/profile/:id" element={<AgentProfile />} />
@@ -112,14 +111,9 @@ const App = () => {
                     <Route
                       path="/agent/*"
                       element={
-                        <>
-                        <SignedIn>
-                          <AgentDashboard />
-                        </SignedIn>
-                        <SignedOut>
-                          <Auth />
-                        </SignedOut>
-                        </>
+                          <ProtectedRoute requiredRole="agent">
+                            <AgentDashboard />
+                          </ProtectedRoute>
                       }
                     />
                     <Route

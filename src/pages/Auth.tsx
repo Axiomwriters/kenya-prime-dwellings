@@ -169,20 +169,20 @@ export default function Auth() {
             </div>
           )} */}
           <Button
-              type="submit"
+              type="button"
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 text-base transition-all duration-300"
               disabled={isLoading}
               onClick={() => navigate('/sign-in')}
             >
-              Sign In
+              <SignInButton />
             </Button>
             <Button
-              type="submit"
+              type="button"
               className="w-full bg-primary mt-3 hover:bg-primary/90 text-primary-foreground h-11 text-base transition-all duration-300"
               disabled={isLoading}
               onClick={() => navigate('/sign-up')}
             >
-              Sign Up
+              <SignUpButton />
             </Button>
           
           {/* <form onSubmit={handleSubmit} className="space-y-5">

@@ -18,9 +18,9 @@ export default function SignUpPage () {
   const setRole = async () => {
     const role = localStorage.getItem('selectedRole') || 'buyer'
 
-    if (!user.publicMetadata?.role) {
+    if (!user.unsafeMetadata?.role) {
       await user.update({
-        publicMetadata: {
+        unsafeMetadata: {
           role,
           onboardingComplete: role === 'agent' ? false : true
         }
@@ -48,7 +48,7 @@ export default function SignUpPage () {
         </select>
       </div>
 
-      <SignUp 
+      <SignUp
         routing="path"
         path="/sign-up"
         fallbackRedirectUrl="/redirect"
