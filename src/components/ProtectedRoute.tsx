@@ -4,9 +4,12 @@ import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 
+// All valid role values that Clerk unsafeMetadata.role can hold
+type AppRole = 'buyer' | 'agent' | 'host' | 'professional' | 'admin';
+
 interface ProtectedRouteProps {
   children: ReactNode;
-  requiredRole?: 'agent' | 'admin' | 'professional' | 'host' | 'buyer';
+  requiredRole?: AppRole;
   redirectTo?: string;
 }
 
@@ -16,10 +19,10 @@ export function ProtectedRoute({
   redirectTo = '/sign-in'
 }: ProtectedRouteProps) {
   const location = useLocation();
-  const { isLoaded, isSignedIn } = useAuth();  // ← Clerk's useAuth
-  const { user } = useUser();                  // ← Clerk's useUser
+  const { isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
 
-  // Clerk is still loading — show spinner
+  // Still loading Clerk session
   if (!isLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -28,15 +31,14 @@ export function ProtectedRoute({
     );
   }
 
-  // Not signed in — redirect to sign-in
+  // Not authenticated → redirect to sign-in
   if (!isSignedIn) {
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
-  // Read role from Clerk unsafeMetadata
-  const userRole = user?.unsafeMetadata?.role as string | undefined;
+  const userRole = user?.unsafeMetadata?.role as AppRole | undefined;
 
-  // Role-based guard
+  // Role guard — admin always passes through
   if (requiredRole && userRole !== requiredRole && userRole !== 'admin') {
     return <Navigate to="/unauthorized" replace />;
   }
