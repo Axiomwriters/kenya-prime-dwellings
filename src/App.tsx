@@ -1,3 +1,4 @@
+// src/App.tsx — COMPLETE FILE
 import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -51,22 +52,13 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate initial loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-
+    const timer = setTimeout(() => setIsLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
         <TooltipProvider>
           <TripProvider>
             <LocationAgentProvider>
@@ -78,6 +70,8 @@ const App = () => {
                   <ScrollToTopHandler />
                   <ScrollToTop />
                   <Routes>
+
+                    {/* ─── Public Routes ─────────────────────────────── */}
                     <Route element={<MainLayout />}>
                       <Route path="/" element={<Dashboard />} />
                       <Route path="/properties" element={<Properties />} />
@@ -86,46 +80,50 @@ const App = () => {
                       <Route path="/affordability" element={<AffordabilityPage />} />
                       <Route path="/shop/building-materials" element={<BuildingMaterialsShop />} />
                     </Route>
+
+                    {/* ─── Auth Routes ────────────────────────────────── */}
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/auth/reset" element={<ResetPassword />} />
+                    <Route path="/sign-in/*" element={<SignInPage />} />
+                    <Route path="/sign-up/*" element={<SignUpPage />} />
+                    <Route path="/redirect" element={<Redirect />} />
+
+                    {/* ─── Account Routes ─────────────────────────────── */}
                     <Route path="/profile/settings" element={<UserProfileSettings />} />
                     <Route path="/saved-properties" element={<SavedProperties />} />
-                    <Route path="/sign-in/*" element={<SignInPage />}/>
-                    <Route path="/sign-up/*" element={<SignUpPage />}/>
-                    <Route path="/redirect" element={<Redirect />}/>
                     <Route path="/account/settings" element={<AccountSettings />} />
                     <Route path="/agents/profile/:id" element={<AgentProfile />} />
+
+                    {/* ─── Protected: Become Agent ────────────────────── */}
                     <Route path="/become-agent" element={
                       <ProtectedRoute>
                         <BecomeAgent />
                       </ProtectedRoute>
                     } />
-                    <Route
-                      path="/professional/*"
-                      element={
-                        <ProtectedRoute requiredRole="professional">
-                          <ProfessionalDashboard />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/agent/*"
-                      element={
-                          <ProtectedRoute requiredRole="agent">
-                            <AgentDashboard />
-                          </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/host/*"
-                      element={
-                        <ProtectedRoute requiredRole="agent">
-                          <HostDashboard />
-                        </ProtectedRoute>
-                      }
-                    />
 
-                    {/* Short Stay Routes */}
+                    {/* ─── Protected: Agent Dashboard ─────────────────── */}
+                    <Route path="/agent/*" element={
+                      <ProtectedRoute requiredRole="agent">
+                        <AgentDashboard />
+                      </ProtectedRoute>
+                    } />
+
+                    {/* ─── Protected: Host Dashboard ───────────────────
+                         FIX: was requiredRole="agent", hosts have role="host" */}
+                    <Route path="/host/*" element={
+                      <ProtectedRoute requiredRole="host">
+                        <HostDashboard />
+                      </ProtectedRoute>
+                    } />
+
+                    {/* ─── Protected: Professional Dashboard ──────────── */}
+                    <Route path="/professional/*" element={
+                      <ProtectedRoute requiredRole="professional">
+                        <ProfessionalDashboard />
+                      </ProtectedRoute>
+                    } />
+
+                    {/* ─── Short Stay Routes ───────────────────────────── */}
                     <Route path="/short-stay" element={<ShortStayLayout />}>
                       <Route index element={<ShortStaySearch />} />
                       <Route path=":id" element={<ShortStayDetails />} />
@@ -135,15 +133,26 @@ const App = () => {
                       <Route path="trips/:id" element={<TripDetails />} />
                     </Route>
 
-
-                    {/* Admin Portal Routes */}
+                    {/* ─── Admin Routes ───────────────────────────────────
+                         FIX: added /command-center and /admin/* routes
+                         Redirect.tsx sends admin to /command-center        */}
                     <Route path="/admin-portal" element={<AdminLogin />} />
                     <Route path="/admin-dashboard" element={<AdminDashboard />} />
-                    <Route path="/hydrate" element={<HydrateData />} />
+                    <Route path="/admin/*" element={
+                      <ProtectedRoute requiredRole="admin">
+                        <AdminDashboard />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/command-center" element={
+                      <ProtectedRoute requiredRole="admin">
+                        <AdminDashboard />
+                      </ProtectedRoute>
+                    } />
 
+                    <Route path="/hydrate" element={<HydrateData />} />
                     <Route path="/unauthorized" element={<Unauthorized />} />
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
+
                   </Routes>
                 </AuthProvider>
               </BrowserRouter>
