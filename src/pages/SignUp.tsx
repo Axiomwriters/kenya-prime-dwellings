@@ -1,41 +1,19 @@
-import { SignUp } from '@clerk/react-router'
-import { useUser } from '@clerk/clerk-react'
-import { useEffect, useState, useRef } from 'react'
+// src/pages/SignUp.tsx
+import { SignUp } from '@clerk/clerk-react'  // ← switch to clerk-react (not react-router)
+import { useState, useEffect } from 'react'
 
-export default function SignUpPage () {
-  const { user, isLoaded } = useUser()
+export default function SignUpPage() {
   const [selectedRole, setSelectedRole] = useState('buyer')
-  const roleAssigned = useRef(false)
 
+  // Persist role to localStorage (Redirect.tsx reads this as fallback)
   useEffect(() => {
     localStorage.setItem('selectedRole', selectedRole)
   }, [selectedRole])
 
-  useEffect(() => {
-      if(!isLoaded ||  !user) return
-      if(roleAssigned.current) return
-
-  const setRole = async () => {
-    const role = localStorage.getItem('selectedRole') || 'buyer'
-
-    if (!user.unsafeMetadata?.role) {
-      await user.update({
-        unsafeMetadata: {
-          role,
-          onboardingComplete: role === 'agent' ? false : true
-        }
-      })
-    }
-    roleAssigned.current = true
-  }
-  setRole()
-  }, [isLoaded, user])
-
   return (
     <div className='w-full flex flex-col items-center mt-10 gap-6'>
       <div className="w-[400px]">
-        <label className="font-semibold">Select your role:</label>
-
+        <label className="font-semibold text-foreground">Select your role:</label>
         <select
           className="w-full border p-2 rounded-full mt-2"
           value={selectedRole}
@@ -48,7 +26,13 @@ export default function SignUpPage () {
         </select>
       </div>
 
+      {/*
+        key={selectedRole} forces a full remount of <SignUp> when the
+        role changes — this ensures Clerk initialises a fresh sign-up
+        attempt with the correct unsafeMetadata value every time.
+      */}
       <SignUp
+        key={selectedRole}
         routing="path"
         path="/sign-up"
         fallbackRedirectUrl="/redirect"
