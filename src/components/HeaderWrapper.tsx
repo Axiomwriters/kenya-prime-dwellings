@@ -11,7 +11,7 @@ interface HeaderWrapperProps {
   onOpenTrip?: () => void;
 }
 
-export default function HeaderWrapper({
+export function HeaderWrapper({
   isScrolled = false,
 }: HeaderWrapperProps) {
   const [searchParams, setSearchParams] = useSearchParams();
