@@ -37,6 +37,13 @@ export function ProtectedRoute({
   }
 
 const userRole = user?.publicMetadata?.role as AppRole | undefined;
+  // Also fix the role guard to handle undefined role gracefully
+if (requiredRole && userRole !== requiredRole && userRole !== 'admin') {
+  // Add: if userRole is undefined, redirect to a "complete your profile" page
+  if (!userRole) return <Navigate to="/sign-in" replace />;
+  return <Navigate to="/unauthorized" replace />;
+}
+
   // Role guard — admin always passes through
   if (requiredRole && userRole !== requiredRole && userRole !== 'admin') {
     return <Navigate to="/unauthorized" replace />;
