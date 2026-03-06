@@ -4,6 +4,6 @@
     Savanah Dwelling
   </h1>
   <p className="text-xs text-muted-foreground whitespace-nowrap">
-    Kenya's Premier Property Platform
+    Nakuru's Premier Property Platform
   </p>
 </div>
