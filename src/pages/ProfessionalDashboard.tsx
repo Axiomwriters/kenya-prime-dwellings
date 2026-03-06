@@ -19,3 +19,7 @@ function DashboardHome() {
         </div>
       </div>
       {/* rest of the component stays the same */}
+      </div>
+);
+}
+export default DashboardHome;
