@@ -101,13 +101,13 @@ async function sendWelcomeAgentEmail({ email, name }: { email: string; name: str
           <p style="color:#374151;font-size:16px;line-height:1.6">
             You can now list properties, connect with buyers, and manage your portfolio from the Agent Dashboard.
           </p>
-          <a href="https://kenya-prime-dwellings-sigma.vercel.app/agent"
+          <a href="https://savanahdwellings.co.ke/agent"
              style="display:inline-block;background:#16a34a;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:16px">
             Go to Agent Dashboard →
           </a>
           <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0" />
           <p style="color:#9ca3af;font-size:12px">
-            Savanah Dwelling · Powered by Kenya Prime Dwellings & PataHome<br/>
+            Savanah Dwelling · Savanah Dwelling<br/>
             Questions? Reply to this email.
           </p>
         </div>
