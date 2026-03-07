@@ -79,7 +79,7 @@ const App = () => {
 
                         {/* ─── Onboarding ─────────────────────────────── */}
                         <Route path="/onboarding/sync" element={<SyncPage />} />
-
+                        <Route path="/redirect" element={<SyncPage />} />
                         {/* ─── Public Routes ─────────────────────────────── */}
                         <Route element={<MainLayout />}>
                           <Route path="/" element={<Dashboard />} />
