@@ -3,7 +3,6 @@ import { useSearchParams } from "react-router-dom";
 import { TopHeaderBar } from "@/components/TopHeaderBar";
 import DashboardHeader from "@/components/DashboardHeader";
 import { cn } from "@/lib/utils";
-import { useSidebar } from "@/components/ui/sidebar";
 
 interface HeaderWrapperProps {
   isScrolled?: boolean;
@@ -17,8 +16,6 @@ export function HeaderWrapper({
   const [searchTerm, setSearchTerm] = useState(
     searchParams.get("search") || ""
   );
-  const { state: sidebarState } = useSidebar();
-  const isSidebarCollapsed = sidebarState === "collapsed";
 
   useEffect(() => {
     setSearchTerm(searchParams.get("search") || "");

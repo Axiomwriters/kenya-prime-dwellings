@@ -1,4 +1,6 @@
 import { cn } from "@/lib/utils";
+
+
 import {
   Home,
   Users,
@@ -7,31 +9,16 @@ import {
   ChevronLeft,
   ChevronRight,
   GraduationCap,
-  Baby, // For Family Homes
-  Coins, // For Investment
-  Shield, // For Gated Communities
-  Sparkles, // For First-Time Buyers
-  Crown, // For Luxury Living
-  Warehouse, // For Warehouses
-  Building2, // For Mixed-Use
+  Baby,
+  Coins,
+  Shield,
+  Sparkles,
+  Crown,
+  Warehouse,
+  Building2,
   Compass,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-  useSidebar,
-} from "@/components/ui/sidebar";
 import {
   Collapsible,
   CollapsibleContent,
@@ -39,6 +26,8 @@ import {
 } from "@/components/ui/collapsible";
 import { UserProfileCard } from "@/components/UserProfileCard";
 import { useAuth } from "@/hooks/useAuth";
+import { Button } from "./ui/button";
+import { useSidebar } from "./ui/sidebar";
 
 const menuItems = [
   {
@@ -47,10 +36,10 @@ const menuItems = [
     icon: Home,
   },
   {
-    title: "Explore", // Renamed from Properties
+    title: "Explore",
     url: "/explore",
-    icon: Compass, // Changed icon to Compass to represent exploration
-    isCollapsible: true, // Flag to identify dropdown
+    icon: Compass,
+    isCollapsible: true,
     items: [
       {
         title: "Student Housing",
@@ -92,14 +81,13 @@ const menuItems = [
         url: "/explore/mixed-use",
         icon: Building2,
       },
-    ]
+    ],
   },
   {
     title: "Short Stay",
     url: "/short-stay",
     icon: Home,
   },
-
   {
     title: "Agents",
     url: "/agent",
@@ -118,131 +106,99 @@ const menuItems = [
 ];
 
 interface AppSidebarProps {
-  isScrolled: boolean;
   onOpenProfile: () => void;
 }
 
-export function AppSidebar({ isScrolled, onOpenProfile }: AppSidebarProps) {
+export function AppSidebar({ onOpenProfile }: AppSidebarProps) {
   const location = useLocation();
-  const { state, isMobile } = useSidebar();
   const { isAdmin } = useAuth();
-  const isCollapsed = state === "collapsed" && !isMobile;
+  const { open: isOpen, toggleSidebar } = useSidebar();
+  const isCollapsed = !isOpen;
 
   return (
-    <Sidebar
-      collapsible="icon"
-      className="border-r border-primary/10 shadow-2xl"
+    <aside
+      className={cn(
+        "fixed top-0 left-0 h-full bg-background/95 backdrop-blur-xl border-r border-primary/10 shadow-2xl z-50 transition-all duration-300 ease-in-out",
+        isOpen ? "w-64" : "w-16"
+      )}
     >
-      <SidebarContent className="bg-background/95 backdrop-blur-xl pt-9">
-        {/* Navigation Menu */}
-        <SidebarGroup>
-          <SidebarGroupLabel className={isCollapsed ? "sr-only" : ""}>
-            <div className="flex items-center justify-between w-full">
-              <span>Navigation</span>
-              <button
-                onClick={() => {
-                  const trigger = document.querySelector('[data-sidebar="trigger"]') as HTMLButtonElement;
-                  trigger?.click();
-                }}
-                className="hover:text-primary transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-            </div>
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => {
-                const isActive = location.pathname.startsWith(item.url) && item.url !== '/';
-                // Dashboard special case
-                const isDashboardActive = item.url === '/' && location.pathname === '/';
+      <div className="flex flex-col h-full">
+        <div className="flex items-center justify-between p-4">
+          <span className={cn("font-bold text-lg", isCollapsed && "sr-only")}>Savanah</span>
+          <Button variant="ghost" size="icon" onClick={toggleSidebar}>
+            {isOpen ? <ChevronLeft /> : <ChevronRight />}
+          </Button>
+        </div>
+        <nav className="flex-1 px-2 space-y-2">
+          {menuItems.map((item) => {
+            const isActive = location.pathname.startsWith(item.url) && item.url !== "/";
+            const isDashboardActive = item.url === "/" && location.pathname === "/";
 
-                if (item.isCollapsible && item.items) {
-                  return (
-                    <Collapsible
-                      key={item.title}
-                      asChild
-                      defaultOpen={isActive}
-                      className="group/collapsible"
-                    >
-                      <SidebarMenuItem>
-                        <CollapsibleTrigger asChild>
-                          <SidebarMenuButton
-                            tooltip={isCollapsed ? item.title : undefined}
+            if (item.isCollapsible && item.items) {
+              return (
+                <Collapsible key={item.title} asChild defaultOpen={isActive} className="group/collapsible">
+                  <>
+                    <CollapsibleTrigger asChild>
+                      <Link
+                        to={item.url}
+                        className={cn(
+                          "flex items-center justify-between w-full p-2 rounded-md transition-all duration-200",
+                          isActive ? "text-primary" : "hover:bg-primary/5 hover:text-primary"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <item.icon className="w-5 h-5" />
+                          {!isCollapsed && <span>{item.title}</span>}
+                        </div>
+                        {!isCollapsed && (
+                          <ChevronRight className="ml-auto w-4 h-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                        )}
+                      </Link>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="ml-4 mt-2 space-y-2">
+                      {item.items.map((subItem) => {
+                        const isSubActive = location.pathname === subItem.url;
+                        return (
+                          <Link
+                            key={subItem.title}
+                            to={subItem.url}
                             className={cn(
-                              "transition-all duration-200 group-data-[state=open]/collapsible:bg-primary/5",
-                              isActive ? 'text-primary' : 'hover:bg-primary/5 hover:text-primary'
+                              "flex items-center gap-3 p-2 rounded-md transition-all duration-200",
+                              isSubActive ? "text-primary font-medium bg-primary/10" : "hover:text-primary"
                             )}
                           >
-                            <item.icon className="w-5 h-5" />
-                            {!isCollapsed && (
-                              <>
-                                <span>{item.title}</span>
-                                <ChevronRight className="ml-auto w-4 h-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                              </>
-                            )}
-                          </SidebarMenuButton>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          <SidebarMenuSub>
-                            {item.items.map((subItem) => {
-                              const isSubActive = location.pathname === subItem.url || location.search.includes(subItem.url.split('?')[1] || 'non-existent-param');
-                              return (
-                                <SidebarMenuSubItem key={subItem.title}>
-                                  <SidebarMenuSubButton
-                                    asChild
-                                    isActive={isSubActive}
-                                    className={cn(
-                                      "transition-all duration-200",
-                                      isSubActive ? 'text-primary font-medium bg-primary/10' : 'hover:text-primary'
-                                    )}
-                                  >
-                                    <Link to={subItem.url} className="flex items-center gap-2">
-                                      <subItem.icon className="w-4 h-4 opacity-70" />
-                                      <span>{subItem.title}</span>
-                                    </Link>
-                                  </SidebarMenuSubButton>
-                                </SidebarMenuSubItem>
-                              );
-                            })}
-                          </SidebarMenuSub>
-                        </CollapsibleContent>
-                      </SidebarMenuItem>
-                    </Collapsible>
-                  );
-                }
+                            <subItem.icon className="w-4 h-4 opacity-70" />
+                            <span>{subItem.title}</span>
+                          </Link>
+                        );
+                      })}
+                    </CollapsibleContent>
+                  </>
+                </Collapsible>
+              );
+            }
 
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isDashboardActive || (isActive && !item.isCollapsible)}
-                      className={`
-                        transition-all duration-200
-                        ${(isDashboardActive || (isActive && !item.isCollapsible))
-                          ? 'bg-primary/10 text-primary hover:bg-primary/15 font-semibold border-l-2 border-primary'
-                          : 'hover:bg-primary/5 hover:text-primary'
-                        }
-                      `}
-                      tooltip={isCollapsed ? item.title : undefined}
-                    >
-                      <Link to={item.url} className="flex items-center gap-3">
-                        <item.icon className={`w-5 h-5 ${(isDashboardActive || (isActive && !item.isCollapsible)) ? 'text-primary' : ''}`} />
-                        {!isCollapsed && <span>{item.title}</span>}
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-
-      {/* User Profile Card at Bottom */}
-      <SidebarFooter className="mt-auto border-t border-primary/10 bg-background/95 backdrop-blur-xl p-0">
-        <UserProfileCard onOpenProfile={onOpenProfile} />
-      </SidebarFooter>
-    </Sidebar>
+            return (
+              <Link
+                key={item.title}
+                to={item.url}
+                className={cn(
+                  "flex items-center gap-3 p-2 rounded-md transition-all duration-200",
+                  (isDashboardActive || (isActive && !item.isCollapsible))
+                    ? "bg-primary/10 text-primary hover:bg-primary/15 font-semibold"
+                    : "hover:bg-primary/5 hover:text-primary"
+                )}
+              >
+                <item.icon className={cn("w-5 h-5", (isDashboardActive || (isActive && !item.isCollapsible)) && "text-primary")} />
+                {!isCollapsed && <span>{item.title}</span>}
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="mt-auto p-2">
+          <UserProfileCard onOpenProfile={onOpenProfile} isCollapsed={isCollapsed} />
+        </div>
+      </div>
+    </aside>
   );
 }

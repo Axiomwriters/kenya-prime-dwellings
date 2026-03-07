@@ -1,5 +1,3 @@
-
-// src/pages/onboarding/sync.tsx
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
@@ -28,17 +26,17 @@ const SyncPage = () => {
           // Record found, proceed with role-based redirect
           const role = user.unsafeMetadata.role as string;
           switch (role) {
-            case 'AGENT':
+            case 'agent':
               navigate('/dashboard/agent', { replace: true });
               break;
-            case 'HOST':
+            case 'host':
               navigate('/dashboard/short-stay', { replace: true });
               break;
-            case 'TENANT':
+            case 'tenant':
               navigate('/dashboard/tenant', { replace: true });
               break;
-            case 'ADMIN':
-              navigate('/dashboard/admin', { replace: true });
+            case 'admin':
+              navigate('/admin', { replace: true });
               break;
             default:
               navigate('/', { replace: true });

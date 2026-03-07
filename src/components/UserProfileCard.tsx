@@ -10,14 +10,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
-import { useSidebar } from "@/components/ui/sidebar";
 import {
-  Eye,
   BadgeCheck,
   Briefcase,
   Key,
-  Wallet,
-  User
+  User,
+  Wallet
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -25,22 +23,19 @@ import { Badge } from "@/components/ui/badge";
 
 interface UserProfileCardProps {
   onOpenProfile: () => void;
+  isCollapsed: boolean;
 }
 
-export function UserProfileCard({ onOpenProfile }: UserProfileCardProps) {
+export function UserProfileCard({ onOpenProfile, isCollapsed }: UserProfileCardProps) {
   const { user, userRole, isAuthenticated, signOut, viewMode, toggleViewMode } = useAuth();
-  const { state, isMobile } = useSidebar();
   const location = useLocation();
-  const isCollapsed = state === "collapsed" && !isMobile;
   const [showRegistration, setShowRegistration] = useState(false);
 
   // Deduced User State
   const isAgent = userRole === "agent";
   const isAdmin = userRole === "admin";
-  const isProfessional = userRole === "professional"; // Assuming this might be a role
+  const isProfessional = userRole === "professional";
 
-  // For demo purposes, standard users are both aspiring Buyers and Renters
-  // In a real app, these would come from user preferences
   const isBuyer = !isAgent && !isAdmin && !isProfessional;
   const isRenter = !isAgent && !isAdmin && !isProfessional;
 

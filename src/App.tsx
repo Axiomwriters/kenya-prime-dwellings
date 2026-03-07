@@ -114,28 +114,28 @@ const App = () => {
 
                         {/* ─── Protected: Agent Dashboard ─────────────────── */}
                         <Route path="/dashboard/agent" element={
-                          <ProtectedRoute requiredRole="AGENT">
+                          <ProtectedRoute requiredRole="agent">
                             <AgentDashboard />
                           </ProtectedRoute>
                         } />
 
                         {/* ─── Protected: Host Dashboard ─────────────────── */}
                         <Route path="/dashboard/short-stay" element={
-                          <ProtectedRoute requiredRole="HOST">
+                          <ProtectedRoute requiredRole="host">
                             <HostDashboard />
                           </ProtectedRoute>
                         } />
 
                         {/* ─── Protected: Tenant Dashboard ─────────────────── */}
                         <Route path="/dashboard/tenant" element={
-                          <ProtectedRoute requiredRole="TENANT">
+                          <ProtectedRoute requiredRole="tenant">
                             <Dashboard />
                           </ProtectedRoute>
                         } />
 
                         {/* ─── Protected: Admin Dashboard ─────────────────── */}
                         <Route path="/dashboard/admin" element={
-                          <ProtectedRoute requiredRole="ADMIN">
+                          <ProtectedRoute requiredRole="admin">
                             <AdminDashboard />
                           </ProtectedRoute>
                         } />
