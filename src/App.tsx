@@ -27,6 +27,7 @@ import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import AgentDashboard from "./pages/AgentDashboard";
 import AgentProfile from "./pages/AgentProfile";
+import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 import HostDashboard from "./pages/HostDashboard";
@@ -113,6 +114,13 @@ const App = () => {
                     <Route path="/agent/*" element={
                       <ProtectedRoute requiredRole="agent">
                         <AgentDashboard />
+                      </ProtectedRoute>
+                    } />
+
+                    {/* ─── Protected: Professional Dashboard ─────────────────── */}
+                    <Route path="/professional/*" element={
+                      <ProtectedRoute requiredRole="professional">
+                        <ProfessionalDashboard />
                       </ProtectedRoute>
                     } />
 

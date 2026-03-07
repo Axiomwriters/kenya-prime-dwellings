@@ -58,7 +58,7 @@ export function HeroAI() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'ai', 
-      content: "I am the Savanah Genie. Tell me what you're looking for, a home in Milimani/Kiamunyi, land in Njoro, or perhaps planning a new build?",
+      content: "I am the Savanah Dwelling AI. Tell me what you're looking for, a home in Milimani/Kiamunyi, land in Njoro, or perhaps planning a new build?",
       mode: 'DISCOVERY'
     }
   ]);
@@ -305,7 +305,7 @@ export function HeroAI() {
               <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900 flex items-center justify-center animate-pulse" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight uppercase">Savanah Genie</h3>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight uppercase">Savanah Dwelling</h3>
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">Online & Nationwide</span>
@@ -342,7 +342,7 @@ export function HeroAI() {
             <div key={idx} className={cn("flex flex-col gap-2 animate-fade-in", msg.role === 'user' ? "items-end" : "items-start")}>
               <div className={cn("flex gap-3", msg.role === 'user' ? "flex-row-reverse" : "")}>
                 <div className={cn("w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center shadow-sm font-bold text-[10px]", msg.role === 'ai' ? "bg-primary text-primary-foreground" : "bg-slate-100 dark:bg-secondary text-slate-900 dark:text-secondary-foreground")}>
-                  {msg.role === 'ai' ? "G" : "U"}
+                  {msg.role === 'ai' ? "AI" : "U"}
                 </div>
                 <div className={cn("rounded-2xl p-4 text-sm shadow-sm max-w-[85%] leading-relaxed font-medium", msg.role === 'ai' ? "bg-slate-50 dark:bg-muted/90 rounded-tl-none border border-slate-200 dark:border-border/50 text-slate-900 dark:text-slate-100" : "bg-primary text-primary-foreground rounded-tr-none")}>
                   {msg.type === 'options' && msg.options && (
@@ -416,7 +416,7 @@ export function HeroAI() {
           ))}
           {isTyping && (
             <div className="flex items-center gap-3 animate-pulse">
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center font-bold text-[10px] text-primary-foreground">G</div>
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center font-bold text-[10px] text-primary-foreground">AI</div>
               <div className="bg-slate-50 dark:bg-muted/90 rounded-2xl rounded-tl-none p-4 border border-slate-200 dark:border-border/50">
                 <div className="flex gap-1">
                   <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" />

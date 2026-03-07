@@ -234,67 +234,6 @@ export function AppSidebar({ isScrolled, onOpenProfile }: AppSidebarProps) {
                   </SidebarMenuItem>
                 );
               })}
-
-              {/* Testing Links - Always visible for usability testing */}
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={location.pathname.startsWith('/agent')}
-                  className={`
-                    transition-all duration-200
-                    ${location.pathname.startsWith('/agent')
-                      ? 'bg-primary/10 text-primary hover:bg-primary/15 font-semibold border-l-2 border-primary'
-                      : 'hover:bg-primary/5 hover:text-primary'
-                    }
-                  `}
-                  tooltip={isCollapsed ? "Agent Dashboard" : undefined}
-                >
-                  <Link to="/agent" className="flex items-center gap-3">
-                    <Users className={`w-5 h-5 ${location.pathname.startsWith('/agent') ? 'text-primary' : ''}`} />
-                    {!isCollapsed && <span>Agent Dashboard</span>}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={location.pathname.startsWith('/professional')}
-                  className={`
-                    transition-all duration-200
-                    ${location.pathname.startsWith('/professional')
-                      ? 'bg-primary/10 text-primary hover:bg-primary/15 font-semibold border-l-2 border-primary'
-                      : 'hover:bg-primary/5 hover:text-primary'
-                    }
-                  `}
-                  tooltip={isCollapsed ? "Professional Dashboard" : undefined}
-                >
-                  <Link to="/professional" className="flex items-center gap-3">
-                    <Users className={`w-5 h-5 ${location.pathname.startsWith('/professional') ? 'text-primary' : ''}`} />
-                    {!isCollapsed && <span>Professional Dashboard</span>}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={location.pathname.startsWith('/host')}
-                  className={`
-                    transition-all duration-200
-                    ${location.pathname.startsWith('/host')
-                      ? 'bg-primary/10 text-primary hover:bg-primary/15 font-semibold border-l-2 border-primary'
-                      : 'hover:bg-primary/5 hover:text-primary'
-                    }
-                  `}
-                  tooltip={isCollapsed ? "Host Dashboard" : undefined}
-                >
-                  <Link to="/host" className="flex items-center gap-3">
-                    <Home className={`w-5 h-5 ${location.pathname.startsWith('/host') ? 'text-primary' : ''}`} />
-                    {!isCollapsed && <span>Host Dashboard</span>}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
