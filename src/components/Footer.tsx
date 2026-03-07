@@ -14,7 +14,7 @@ export const Footer = () => {
           {/* Brand Section */}
           <div className="space-y-4">
             <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-              PropertyHub
+              Savanah Dwellings
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Your trusted partner in finding the perfect home. Making real estate dreams come true across Kenya.
@@ -78,7 +78,7 @@ export const Footer = () => {
               <div className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-primary flex-shrink-0" />
                 <p className="text-sm text-muted-foreground">
-                  hello@propertyhub.ke
+                  hello@savannahdwellings.ke
                 </p>
               </div>
             </div>
@@ -88,7 +88,7 @@ export const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-border/50 pt-10 flex flex-col md:flex-row justify-between items-center gap-8">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} PropertyHub. All rights reserved.
+            © {new Date().getFullYear()} Savanah Dwellings. All rights reserved.
           </p>
 
           {/* Social Icons with Glassmorphism */}

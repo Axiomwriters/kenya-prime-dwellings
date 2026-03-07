@@ -9,7 +9,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ searchTerm, onSearchC
   return (
     <div className="hidden lg:block">
       <h1 className="text-lg sm:text-xl font-bold text-foreground group-hover:text-primary transition-colors whitespace-nowrap">
-        Savanah Dwelling
+        Savanah Dwellings
       </h1>
       <p className="text-xs text-muted-foreground whitespace-nowrap">
         Nakuru's Premier Property Platform

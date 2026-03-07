@@ -1,12 +1,12 @@
-🏡 Kenya Prime Dwellings
+🏡 Savanah Dwellings
 
-Kenya Prime Dwellings is a real estate web platform built to simplify property discovery and increase transparency in Kenya’s housing market.
+Savanah Dwellings is a real estate web platform built to simplify property discovery and increase transparency in Kenya’s housing market.
 The project is currently in its prototype stage, serving both as a showcase build for feedback and an early MVP for live testing.
 
 
 🌍 Overview
 
-Kenya Prime Dwellings bridges the gap between digital property search and real-world real estate data. The platform is designed for users to browse, explore, and evaluate properties with a modern, responsive interface.
+Savanah Dwellings bridges the gap between digital property search and real-world real estate data. The platform is designed for users to browse, explore, and evaluate properties with a modern, responsive interface.
 
 The system structure supports easy scaling into a production-ready MVP — with room for data integration, user authentication, and verified listings.
 
