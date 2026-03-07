@@ -8,7 +8,7 @@ export default function WelcomeEmail() {
         <div className="bg-gradient-to-r from-primary to-primary-glow p-8 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Home className="w-8 h-8 text-white" />
-            <span className="text-2xl font-bold text-white">Savanah Dwellings</span>
+            <span className="text-2xl font-bold text-white">Savanah Dwelling</span>
           </div>
         </div>
 
@@ -41,7 +41,7 @@ export default function WelcomeEmail() {
           </h1>
           
           <p className="text-center text-muted-foreground mb-8 text-lg leading-relaxed">
-            Thank you for joining Savanah Dwellings! We're thrilled to have you on board. 
+            Thank you for joining Savanah Dwelling! We're thrilled to have you on board. 
             Get ready to discover Kenya's finest properties and connect with top real estate professionals.
           </p>
 
@@ -118,10 +118,10 @@ export default function WelcomeEmail() {
         {/* Footer */}
         <div className="bg-muted/30 border-t border-border p-6 text-center">
           <p className="text-sm text-muted-foreground mb-2">
-            You're receiving this email because you created an account on Savanah Dwellings.
+            You're receiving this email because you created an account on Savanah Dwelling.
           </p>
           <p className="text-xs text-muted-foreground mb-4">
-            © 2024 Savanah Dwellings. All rights reserved.
+            © 2024 Savanah Dwelling. All rights reserved.
           </p>
           <div className="flex justify-center gap-4 text-xs text-muted-foreground">
             <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a>

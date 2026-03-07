@@ -58,7 +58,7 @@ export function HeroAI() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'ai', 
-      content: "I am the PataHome Genie. Tell me what you're looking for, a home in Milimani/Kiamunyi, land in Njoro, or perhaps planning a new build?",
+      content: "I am the Savanah Genie. Tell me what you're looking for, a home in Milimani/Kiamunyi, land in Njoro, or perhaps planning a new build?",
       mode: 'DISCOVERY'
     }
   ]);
@@ -305,7 +305,7 @@ export function HeroAI() {
               <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900 flex items-center justify-center animate-pulse" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight uppercase">PataHome Genie</h3>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight uppercase">Savanah Genie</h3>
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider">Online & Nationwide</span>
