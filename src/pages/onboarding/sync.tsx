@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
@@ -34,8 +33,6 @@ const SyncPage = () => {
   const [status, setStatus] = useState<SyncStatus>('checking');
   const [isAssigningRole, setIsAssigningRole] = useState(false);
 
-  useEffect(() => {
-    if (!isLoaded || !user) {
   const role = user?.unsafeMetadata?.role as AppRole;
   const roleRedirectPath = useMemo(() => getRoleRedirectPath(role), [role]);
 
@@ -44,40 +41,6 @@ const SyncPage = () => {
       return;
     }
 
-    const checkSupabaseRecord = async () => {
-      let retries = 5;
-      while (retries > 0) {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('clerk_user_id')
-          .eq('clerk_user_id', user.id)
-          .single();
-
-        if (data) {
-          // Record found, proceed with role-based redirect
-          const role = user.unsafeMetadata.role as string;
-          switch (role) {
-            case 'agent':
-              navigate('/dashboard/agent', { replace: true });
-              break;
-            case 'host':
-              navigate('/dashboard/short-stay', { replace: true });
-              break;
-            case 'tenant':
-              navigate('/dashboard/tenant', { replace: true });
-              break;
-            case 'admin':
-              navigate('/admin', { replace: true });
-              break;
-            default:
-              navigate('/', { replace: true });
-          }
-          return;
-        }
-
-        // Record not found, wait and retry
-        retries--;
-        await new Promise(resolve => setTimeout(resolve, 1000));
     setStatus('checking');
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt += 1) {
@@ -96,9 +59,6 @@ const SyncPage = () => {
         console.error('Profile sync check failed:', error.message);
       }
 
-      // If after 5 seconds the record is still not there, redirect to an error page or show a message
-      navigate('/error', { state: { message: 'Failed to sync your account. Please contact support.' } });
-    };
       const backoffMs = Math.min(BASE_BACKOFF_MS * (2 ** attempt), MAX_BACKOFF_MS);
       await new Promise(resolve => setTimeout(resolve, backoffMs));
     }
@@ -147,8 +107,6 @@ const SyncPage = () => {
     void checkSupabaseRecord();
   }, [checkSupabaseRecord, isLoaded, role, user]);
 
-    checkSupabaseRecord();
-  }, [isLoaded, user, navigate]);
   if (isLoaded && user && !role) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-6">
