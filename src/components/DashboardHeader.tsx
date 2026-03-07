@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
@@ -16,21 +15,18 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ searchTerm, onSearchC
 
   return (
     <div className="flex items-center justify-between w-full px-4 py-2 lg:px-6">
-      <div className="flex items-center gap-4">
-        <SidebarTrigger />
+      <div className="flex items-center gap-2">
+        <div className="md:hidden">
+            <SidebarTrigger />
+        </div>
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-foreground group-hover:text-primary transition-colors whitespace-nowrap">
-            Savanah Dwelling
-          </h1>
-          <p className="text-xs text-muted-foreground whitespace-nowrap">
-            Nakuru's Premier Property Platform
-          </p>
+          <img src="/logo.svg" alt="Savanah" className="h-6" />
         </div>
       </div>
-      <div className="flex-1 max-w-lg px-4">
+      <div className="hidden md:flex flex-1 max-w-lg px-4">
         <Searchbar searchTerm={searchTerm} onSearchChange={onSearchChange} />
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
         <Button
             variant="ghost"
             size="icon"

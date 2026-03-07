@@ -157,8 +157,18 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  body, html {
+    overflow-x: hidden;
+  }
+
   body {
     @apply bg-background text-foreground;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
   }
 
   /* Page transition animations */

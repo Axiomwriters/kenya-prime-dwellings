@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useState, useMemo, Fragment } from "react";
 import { Helmet } from "react-helmet";
 import {
   Building2,
@@ -298,17 +298,6 @@ export default function ExplorePage() {
                     { icon: MapPin, label: "Zone", value: "Zone A" }
                   ]}
                 />
-                {/* Smart Page Section Injection (Mock) - Every 6 items */}
-                {index === 5 && (
-                  <div className="col-span-full py-8 text-center bg-muted/20 rounded-2xl border border-dashed border-border mt-6">
-                    <h3 className="text-lg font-semibold mb-2">Not finding what you need?</h3>
-                    <p className="text-muted-foreground mb-4">Our AI can scan off-market listings for you.</p>
-                    <Button variant="default" onClick={() => handleAiAction("off-market scan")}>
-                      <Bot className="w-4 h-4 mr-2" />
-                      Ask AI to Find More
-                    </Button>
-                  </div>
-                )}
               </div>
             ))}
           </div>

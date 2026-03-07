@@ -32,7 +32,7 @@ export function PropertyListingFilters({
 
   return (
     <div className="sticky top-20 z-40 bg-background/95 backdrop-blur-lg border-b border-border/50 shadow-sm transition-all duration-300">
-      <div className="container mx-auto px-4 py-4 space-y-4">
+      <div className="px-4 py-4 space-y-4 md:container md:mx-auto md:px-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input

@@ -163,7 +163,7 @@ export default function Dashboard() {
 
         <HeroAI />
 
-        <main id="property-listings" className="max-w-7xl mx-auto py-8 px-[20px]">
+        <main id="property-listings" className="max-w-7xl mx-auto py-8">
           <div className="space-y-8">
             {/* Filters */}
             <PropertyFilters
