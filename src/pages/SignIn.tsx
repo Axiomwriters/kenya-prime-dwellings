@@ -1,6 +1,6 @@
 // src/pages/SignIn.tsx — Headless Clerk with custom UI
-import { useSignIn } from '@clerk/clerk-react'
-import { useState } from 'react'
+import { useAuth, useSignIn, useUser } from '@clerk/clerk-react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,12 +10,28 @@ import { Eye, EyeOff, Home, Loader2 } from 'lucide-react'
 
 export default function SignInPage() {
   const { isLoaded, signIn, setActive } = useSignIn()
+  const { isSignedIn } = useAuth()
+  const { user, isLoaded: isUserLoaded } = useUser()
   const navigate = useNavigate()
 
   const [email, setEmail]               = useState('')
   const [password, setPassword]         = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading]           = useState(false)
+
+  useEffect(() => {
+    if (!isLoaded || !isUserLoaded || !isSignedIn) {
+      return
+    }
+
+    const role = user?.unsafeMetadata?.role as string | undefined
+    if (role === 'agent') {
+      navigate('/dashboard/agent', { replace: true })
+      return
+    }
+
+    navigate('/onboarding/sync', { replace: true })
+  }, [isLoaded, isSignedIn, isUserLoaded, navigate, user])
 
   /* ── Google OAuth ──────────────────────────────────── */
   const handleGoogleSignIn = async () => {
