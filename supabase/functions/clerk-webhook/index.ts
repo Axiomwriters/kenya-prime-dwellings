@@ -6,7 +6,7 @@
 // Events to subscribe: user.created, user.updated
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { Webhook }      from 'https://esm.sh/svix@1.4.0'
+import { Webhook }      from 'https://esm.sh/svix@1.22.0'
 
 const RESEND_API_KEY    = Deno.env.get('RESEND_API_KEY')!
 const SUPABASE_URL      = Deno.env.get('SUPABASE_URL')!
@@ -62,7 +62,7 @@ Deno.serve(async (req: Request) => {
           role,
           onboarding_complete: onboarding,
         },
-        { onConflict: 'clerk_user_id' }
+        { onConflict: 'email' }
       )
 
     if (upsertError) {
