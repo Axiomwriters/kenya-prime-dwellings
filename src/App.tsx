@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -44,6 +44,7 @@ import BookingCheckout from "./pages/ShortStay/BookingCheckout";
 import BookingConfirmation from "./pages/ShortStay/BookingConfirmation";
 import GuestDashboard from "./pages/ShortStay/GuestDashboard";
 import TripDetails from "./pages/ShortStay/TripDetails";
+import ProfessionalLanding from "./pages/ProfessionalLanding";
 import SignInPage from "./pages/SignIn";
 import SignUpPage from "./pages/SignUp";
 import SSOCallback from "./pages/SSOCallback";
@@ -88,6 +89,7 @@ const App = () => {
                           <Route path="/listings/:id" element={<PropertyDetail />} />
                           <Route path="/affordability" element={<AffordabilityPage />} />
                           <Route path="/shop/building-materials" element={<BuildingMaterialsShop />} />
+                          <Route path="/professional" element={<ProfessionalLanding />} />
                         </Route>
 
                         {/* ─── Auth Routes ────────────────────────────────── */}
@@ -111,7 +113,7 @@ const App = () => {
                             <Dashboard />
                           </ProtectedRoute>
                         } />
-                         <Route path="/professionalDashboard" element={
+                        <Route path="/professionalDashboard" element={
                           <ProtectedRoute>
                             <ProfessionalDashboard />
                           </ProtectedRoute>
@@ -119,6 +121,26 @@ const App = () => {
                         <Route path="/become-agent" element={
                           <ProtectedRoute>
                             <BecomeAgent />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/dashboard/agent" element={
+                          <ProtectedRoute>
+                            <AgentDashboard />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/dashboard/short-stay" element={
+                          <ProtectedRoute>
+                            <HostDashboard />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/dashboard/tenant" element={
+                          <ProtectedRoute>
+                            <Dashboard />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/dashboard/admin" element={
+                          <ProtectedRoute>
+                            <AdminDashboard />
                           </ProtectedRoute>
                         } />
 
@@ -132,6 +154,9 @@ const App = () => {
                           <Route path="trips/:id" element={<TripDetails />} />
                         </Route>
 
+
+                        <Route path="/Dashboard" element={<Navigate to="/dashboard" replace />} />
+                        <Route path="/ProfessionalDashboard/*" element={<Navigate to="/professionalDashboard" replace />} />
                         <Route path="/hydrate" element={<HydrateData />} />
                         <Route path="/unauthorized" element={<Unauthorized />} />
                         <Route path="*" element={<NotFound />} />

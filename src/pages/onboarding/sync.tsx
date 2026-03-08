@@ -1,68 +1,163 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AppRole } from '@/utils/AuthRedirectHandler';
+import { resolveRoleFromMetadata } from '@/utils/roleRedirect';
+import { getSelectedRole, clearSelectedRole } from '@/utils/role-selection';
+
+type SyncStatus = 'checking' | 'timeout';
+
+const MAX_RETRIES = 7;
+const BASE_BACKOFF_MS = 500;
+const MAX_BACKOFF_MS = 4000;
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const SyncPage = () => {
   const { user, isLoaded } = useUser();
   const navigate = useNavigate();
+  const [status, setStatus] = useState<SyncStatus>('checking');
+  const [isAssigningRole, setIsAssigningRole] = useState(false);
 
-  useEffect(() => {
-    if (!isLoaded || !user) {
-      return;
-    }
+  const role = user?.unsafeMetadata?.role as AppRole;
+  const email = user?.primaryEmailAddress?.emailAddress;
+  const roleRedirectPath = useMemo(() => resolveRoleFromMetadata(role), [role]);
 
-    const checkSupabaseRecord = async () => {
-      let retries = 5;
-      while (retries > 0) {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('clerk_user_id')
-          .eq('clerk_user_id', user.id)
-          .single();
+  const checkSupabaseRecord = useCallback(async (): Promise<void> => {
+    if (!user || !email) return;
 
-        if (data) {
-          // Record found, proceed with role-based redirect
-          const role = user.unsafeMetadata.role as string;
-          switch (role) {
-            case 'agent':
-              navigate('/dashboard/agent', { replace: true });
-              break;
-            case 'host':
-              navigate('/dashboard/short-stay', { replace: true });
-              break;
-            case 'tenant':
-              navigate('/dashboard/tenant', { replace: true });
-              break;
-            case 'admin':
-              navigate('/admin', { replace: true });
-              break;
-            default:
-              navigate('/', { replace: true });
-          }
-          return;
-        }
+    setStatus('checking');
 
-        // Record not found, wait and retry
-        retries--;
-        await new Promise(resolve => setTimeout(resolve, 1000));
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt += 1) {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (data?.email) {
+        console.log(`Detected role: ${role ?? 'buyer'}`);
+        console.log(`Redirecting \u2192 ${roleRedirectPath}`);
+        navigate(roleRedirectPath, { replace: true });
+        return;
       }
 
-      // If after 5 seconds the record is still not there, redirect to an error page or show a message
-      navigate('/error', { state: { message: 'Failed to sync your account. Please contact support.' } });
-    };
+      if (error && error.code !== 'PGRST116') {
+        console.error('Profile sync check failed:', error.message);
+      }
 
-    checkSupabaseRecord();
-  }, [isLoaded, user, navigate]);
+      const backoffMs = Math.min(BASE_BACKOFF_MS * (2 ** attempt), MAX_BACKOFF_MS);
+      await sleep(backoffMs);
+    }
+
+    setStatus('timeout');
+  }, [email, navigate, role, roleRedirectPath, user]);
+
+  const handleRoleSelection = useCallback(async (nextRole: 'agent' | 'host' | 'professional' | 'tenant'): Promise<void> => {
+    if (!user || !email) return;
+
+    setIsAssigningRole(true);
+
+    await user.update({
+      unsafeMetadata: {
+        ...user.unsafeMetadata,
+        role: nextRole,
+        onboardingComplete: false,
+      },
+    });
+
+    const { error } = await supabase
+      .from('profiles')
+      .upsert(
+        {
+          clerk_user_id: user.id,
+          email,
+          role: nextRole,
+          onboarding_complete: false,
+        },
+        { onConflict: 'email' }
+      );
+
+    if (error) {
+      console.error('Profile role sync failed:', error.message);
+    }
+
+    setIsAssigningRole(false);
+    const destination = resolveRoleFromMetadata(nextRole);
+    console.log(`Detected role: ${nextRole}`);
+    console.log(`Redirecting \u2192 ${destination}`);
+    navigate(destination, { replace: true });
+  }, [email, navigate, user]);
+
+  useEffect(() => {
+    if (!isLoaded || !user || !role) return;
+    void checkSupabaseRecord();
+  }, [checkSupabaseRecord, isLoaded, role, user]);
+
+  useEffect(() => {
+    if (!isLoaded || !user || role) return;
+
+    const persistedRole = getSelectedRole();
+    if (persistedRole === 'agent' || persistedRole === 'host' || persistedRole === 'professional' || persistedRole === 'tenant') {
+      void handleRoleSelection(persistedRole);
+      clearSelectedRole();
+    }
+  }, [handleRoleSelection, isLoaded, role, user]);
+
+  if (isLoaded && user && !role) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <div className="max-w-xl w-full border rounded-xl p-6 bg-card text-center space-y-4">
+          <p className="text-xl font-semibold">Choose Your Role</p>
+          <p className="text-sm text-muted-foreground">
+            Select how you want to use Savanah Dwelling so we can route you to the correct command center.
+          </p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Button disabled={isAssigningRole} onClick={() => void handleRoleSelection('agent')}>
+              {isAssigningRole ? 'Assigning...' : 'I am an Agent'}
+            </Button>
+            <Button disabled={isAssigningRole} variant="outline" onClick={() => void handleRoleSelection('host')}>
+              {isAssigningRole ? 'Assigning...' : 'I am a Host'}
+            </Button>
+            <Button disabled={isAssigningRole} variant="secondary" onClick={() => void handleRoleSelection('professional')}>
+              {isAssigningRole ? 'Assigning...' : 'I am a Professional'}
+            </Button>
+            <Button disabled={isAssigningRole} variant="ghost" onClick={() => void handleRoleSelection('tenant')}>
+              {isAssigningRole ? 'Assigning...' : 'I am a Tenant / Buyer'}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === 'timeout') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <div className="max-w-md w-full text-center space-y-4 border rounded-xl p-6 bg-card">
+          <p className="text-lg font-semibold">We are still finalizing your account.</p>
+          <p className="text-sm text-muted-foreground">
+            Your profile is taking longer than expected to provision. You can retry sync now or continue.
+          </p>
+          <div className="flex flex-col gap-2">
+            <Button onClick={() => void checkSupabaseRecord()}>Retry profile sync</Button>
+            <Button variant="outline" onClick={() => navigate(roleRedirectPath, { replace: true })}>
+              Continue to dashboard
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="text-center space-y-3">
         <Loader2 className="w-10 h-10 mx-auto animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground animate-pulse">
-          Finalizing your account setup...
-        </p>
+        <p className="text-sm text-muted-foreground animate-pulse">Finalizing your account setup...</p>
       </div>
     </div>
   );

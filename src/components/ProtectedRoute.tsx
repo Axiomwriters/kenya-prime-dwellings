@@ -1,15 +1,23 @@
+import { useAuth, useUser } from '@clerk/clerk-react';
+import { ReactNode } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+import { AppRole, isProfessionalTier } from '@/utils/AuthRedirectHandler';
+import { resolveRoleFromMetadata } from '@/utils/roleRedirect';
 
-import { useAuth, useUser } from "@clerk/clerk-react";
-import { ReactNode } from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { Loader2 } from "lucide-react";
-import { resolveDashboard } from "@/utils/roleRedirect";
+type RequiredRole = Exclude<AppRole, null | undefined> | 'professional-tier';
 
 interface ProtectedRouteProps {
   children: ReactNode;
+  requiredRole?: RequiredRole;
+  redirectTo?: string;
 }
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
+export function ProtectedRoute({
+  children,
+  requiredRole,
+  redirectTo = '/sign-in',
+}: ProtectedRouteProps) {
   const location = useLocation();
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
@@ -23,20 +31,28 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!isSignedIn) {
-    return <Navigate to="/sign-in" state={{ from: location }} replace />;
+    return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
-  const role = user?.unsafeMetadata?.role as string;
+  const userRole = user?.unsafeMetadata?.role as AppRole;
 
-  // If the user is on a page that is not their dashboard, redirect them.
-  const currentPath = location.pathname;
-  const destination = resolveDashboard(role);
-
-  if (currentPath !== destination) {
-    console.log(`Detected role: ${role}`)
-    console.log(`Redirecting to ${destination}`)
-    return <Navigate to={destination} replace />;
+  if (!requiredRole) {
+    return <>{children}</>;
   }
 
-  return <>{children}</>;
+  if (!userRole) {
+    return <Navigate to="/redirect" replace />;
+  }
+
+  if (requiredRole === 'professional-tier') {
+    return isProfessionalTier(userRole)
+      ? <>{children}</>
+      : <Navigate to={resolveRoleFromMetadata(userRole)} replace />;
+  }
+
+  if (requiredRole === userRole || userRole === 'admin') {
+    return <>{children}</>;
+  }
+
+  return <Navigate to={resolveRoleFromMetadata(userRole)} replace />;
 }
