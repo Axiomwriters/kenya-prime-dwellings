@@ -2,15 +2,12 @@
 import React from 'react';
 import DashboardHeader from '../../components/DashboardHeader';
 import { AgentSidebar } from '../../components/AgentSidebar';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 
 const NewAgentDashboard: React.FC = () => {
   return (
-    <SidebarProvider>
       <div className="flex h-screen bg-gray-100">
         <AgentSidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <SidebarInset>
             <DashboardHeader searchTerm="" onSearchChange={() => {}} />
             <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
               <div className="container mx-auto">
@@ -18,10 +15,8 @@ const NewAgentDashboard: React.FC = () => {
                 <p className="mt-2 text-gray-600">This is your new dashboard.</p>
               </div>
             </main>
-          </SidebarInset>
         </div>
       </div>
-    </SidebarProvider>
   );
 };
 

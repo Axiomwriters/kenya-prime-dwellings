@@ -13,7 +13,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -46,10 +45,7 @@ const mainItems = [
 ];
 
 export function AgentSidebar() {
-  const { state } = useSidebar();
-  // const { user, signOut } = useAuth();
   const location = useLocation();
-  const isCollapsed = state === "collapsed";
   const [pendingCount, setPendingCount] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const { user, isLoaded } = useUser();
@@ -87,12 +83,13 @@ export function AgentSidebar() {
   // };
 
   return (
-    <Sidebar className={isCollapsed ? "w-14" : "w-60"}>
-      <SidebarTrigger className="m-2 self-end" />
-
+    <Sidebar className="w-64 sticky top-0 h-screen border-r">
       <SidebarContent>
+        <div className="flex justify-center p-6">
+            <img src="/logo.svg" alt="PataHome" className="h-10" />
+        </div>
         <SidebarGroup>
-          <SidebarGroupLabel className={isCollapsed ? "hidden" : ""}>
+          <SidebarGroupLabel>
             Agent Dashboard
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -110,7 +107,6 @@ export function AgentSidebar() {
                         )}
                       >
                         <item.icon className="w-4 h-4" />
-                        {!isCollapsed && (
                           <>
                             <span>{item.title}</span>
                             {item.title === "My Listings" && pendingCount > 0 && (
@@ -120,7 +116,6 @@ export function AgentSidebar() {
                               <Badge className="ml-auto bg-primary">{unreadCount}</Badge>
                             )}
                           </>
-                        )}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -131,12 +126,10 @@ export function AgentSidebar() {
         </SidebarGroup>
 
         <div className="mt-auto">
-          {!isCollapsed && (
             <>
               <SponsoredSpotlight />
               <AccountTierWidget />
             </>
-          )}
         </div>
 
         <SidebarGroup>
@@ -149,7 +142,7 @@ export function AgentSidebar() {
                     className="flex items-center gap-3 hover:bg-muted transition-all"
                   >
                     <ArrowLeft className="w-4 h-4" />
-                    {!isCollapsed && <span>Back to Main Site</span>}
+                    <span>Back to Main Site</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
