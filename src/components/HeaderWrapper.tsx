@@ -1,17 +1,22 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { TopHeaderBar } from "@/components/TopHeaderBar";
 import DashboardHeader from "@/components/DashboardHeader";
 import { cn } from "@/lib/utils";
 
 interface HeaderWrapperProps {
   isScrolled?: boolean;
   onOpenTrip?: () => void;
+  hideLogo?: boolean;
+  hideSearchBar?: boolean;
+  hideThemeSwitcher?: boolean;
 }
 
 export function HeaderWrapper({
   isScrolled = false,
   onOpenTrip,
+  hideLogo = false,
+  hideSearchBar = false,
+  hideThemeSwitcher = false,
 }: HeaderWrapperProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(
@@ -43,23 +48,13 @@ export function HeaderWrapper({
           : "bg-background shadow-sm"
       )}
     >
-      {/* Top announcement / info bar */}
-      <div
-        className={cn(
-          "w-full overflow-hidden transition-[height,opacity] duration-150 ease-out",
-          isScrolled ? "h-0 opacity-0" : "h-auto opacity-100"
-        )}
-      >
-        <div className="border-b border-border/10">
-          <TopHeaderBar />
-        </div>
-      </div>
-
       {/* Main dashboard header */}
       <DashboardHeader
         searchTerm={searchTerm}
         onSearchChange={handleSearch}
-        onOpenTrip={onOpenTrip}
+        hideLogo={hideLogo}
+        hideSearchBar={hideSearchBar}
+        hideThemeSwitcher={hideThemeSwitcher}
       />
     </div>
   );

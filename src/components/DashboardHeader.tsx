@@ -9,31 +9,41 @@ interface DashboardHeaderProps {
   searchTerm: string;
   onSearchChange: (term: string) => void;
   hideSearchBar?: boolean;
+  hideLogo?: boolean;
+  hideThemeSwitcher?: boolean;
 }
 
-const DashboardHeader: React.FC<DashboardHeaderProps> = ({ searchTerm, onSearchChange, hideSearchBar }) => {
+const DashboardHeader: React.FC<DashboardHeaderProps> = ({ searchTerm, onSearchChange, hideSearchBar, hideLogo, hideThemeSwitcher }) => {
   const { setTheme, theme } = useTheme();
 
   return (
-    <div className="flex items-center justify-between w-full px-4 py-2 lg:px-6 border-b">
-      <div className="flex items-center gap-2">
-        <img src="/Savanahdwell.png" alt="Savanah Dwelling" className="h-8" />
+    <div className="grid grid-cols-3 items-center w-full px-4 py-2 lg:px-6 border-b">
+      <div className="flex items-center gap-2 justify-start">
+        {!hideLogo && (
+          <img src="/Savanahdwell.png" alt="Savanah Dwelling" className="h-8" />
+        )}
       </div>
-      {!hideSearchBar && (
-        <div className="hidden md:flex flex-1 max-w-lg px-4">
-          <Searchbar searchTerm={searchTerm} onSearchChange={onSearchChange} />
-        </div>
-      )}
-      <div className="flex items-center gap-2">
-        <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-          >
-            <Sun className="h-[1.5rem] w-[1.3rem] dark:hidden" />
-            <Moon className="hidden h-5 w-5 dark:block" />
-            <span className="sr-only">Toggle theme</span>
-          </Button>
+
+      <div className="hidden md:flex flex-1 justify-center px-4 col-start-2">
+        {!hideSearchBar && (
+          <div className="w-full max-w-lg">
+            <Searchbar searchTerm={searchTerm} onSearchChange={onSearchChange} />
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center gap-2 justify-end col-start-3">
+        {!hideThemeSwitcher && (
+          <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+            >
+              <Sun className="h-[1.5rem] w-[1.3rem] dark:hidden" />
+              <Moon className="hidden h-5 w-5 dark:block" />
+              <span className="sr-only">Toggle theme</span>
+            </Button>
+        )}
       </div>
     </div>
   );
