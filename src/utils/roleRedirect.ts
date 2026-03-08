@@ -3,11 +3,11 @@ import { AppRole } from '@/utils/AuthRedirectHandler';
 
 const PROFESSIONAL_ROLES = new Set(['agent', 'host', 'airbnb host', 'professional']);
 
-export function resolveDashboard(role: string | null | undefined): '/dashboard' | '/professionalDashboard' | '/dashboard/agent' | '/dashboard/short-stay' {
+export function resolveDashboard(role: string | null | undefined): '/dashboard' | '/professionalDashboard' | '/agent/dashboard' | '/dashboard/short-stay' {
   const normalizedRole = role?.trim().toLowerCase();
 
   if (normalizedRole === 'agent') {
-    return '/dashboard/agent';
+    return '/agent/dashboard';
   }
 
   if (normalizedRole === 'host') {
@@ -21,7 +21,7 @@ export function resolveDashboard(role: string | null | undefined): '/dashboard' 
   return PROFESSIONAL_ROLES.has(normalizedRole) ? '/professionalDashboard' : '/dashboard';
 }
 
-export function resolveRoleFromMetadata(role: AppRole): '/dashboard' | '/professionalDashboard' | '/dashboard/admin' | '/dashboard/agent' | '/dashboard/short-stay' {
+export function resolveRoleFromMetadata(role: AppRole): '/dashboard' | '/professionalDashboard' | '/dashboard/admin' | '/agent/dashboard' | '/dashboard/short-stay' {
   const normalizedRole = role?.trim().toLowerCase();
 
   if (normalizedRole === 'admin') {

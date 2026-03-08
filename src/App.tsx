@@ -26,6 +26,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import AgentDashboard from "./pages/AgentDashboard";
+import NewAgentDashboard from "./pages/AgentDashboard/NewAgentDashboard";
 import AgentProfile from "./pages/AgentProfile";
 import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 import Unauthorized from "./pages/Unauthorized";
@@ -109,6 +110,7 @@ const App = () => {
                         <Route path="/professionalDashboard" element={<ProtectedRoute><ProfessionalDashboard /></ProtectedRoute>} />
                         <Route path="/become-agent" element={<ProtectedRoute><BecomeAgent /></ProtectedRoute>} />
                         <Route path="/dashboard/agent" element={<ProtectedRoute><AgentDashboard /></ProtectedRoute>} />
+                        <Route path="/agent/dashboard" element={<ProtectedRoute><NewAgentDashboard /></ProtectedRoute>} />
                         <Route path="/dashboard/short-stay" element={<ProtectedRoute><HostDashboard /></ProtectedRoute>} />
                         <Route path="/dashboard/tenant" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                         <Route path="/dashboard/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
