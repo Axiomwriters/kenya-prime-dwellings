@@ -1,9 +1,10 @@
+
 // src/hooks/useAuth.tsx
 import {
   useAuth as useClerkAuth,
   useUser,
 } from "@clerk/clerk-react";
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AppRole, isProfessionalTier } from "@/utils/AuthRedirectHandler";
@@ -19,6 +20,7 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
+  refreshRole: () => Promise<void>;
   viewMode: 'buyer' | 'renter';
   toggleViewMode: () => void;
 }
@@ -54,6 +56,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     toast.success('Successfully signed out');
   };
 
+  const refreshRole = useCallback(async () => {
+    if (user) {
+      await user.reload();
+    }
+  }, [user]);
+
   // Derive role from Clerk unsafeMetadata
   const userRole = (user?.unsafeMetadata?.role as AppRole) ?? null;
   const isAuthenticated = !!isSignedIn;
@@ -75,6 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAdmin,
         loading,
         signOut,
+        refreshRole,
         viewMode,
         toggleViewMode,
       }}

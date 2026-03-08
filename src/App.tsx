@@ -1,5 +1,5 @@
 
-// src/App.tsx — COMPLETE FILE
+// src/App.tsx — CORRECTED FILE
 import { useState, useEffect, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -22,7 +22,6 @@ import HydrateData from "./pages/HydrateData";
 import Listings from "./pages/Listings";
 import PropertyDetail from "./pages/PropertyDetail";
 import AffordabilityPage from "./pages/AffordabilityPage";
-import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
@@ -78,73 +77,43 @@ const App = () => {
                   <ErrorBoundary fallback={<div>Something went wrong. Please refresh.</div>}>
                     <Suspense fallback={<Preloader />}>
                       <Routes>
+                        <Route path="/" element={<Navigate to="/professional" replace />} />
+                        <Route path="/professional" element={<ProfessionalLanding />} />
 
-                        {/* ─── Onboarding ─────────────────────────────── */}
-                        <Route path="/onboarding/sync" element={<SyncPage />} />
-
-                        {/* ─── Public Routes ─────────────────────────────── */}
+                        {/* --- Main Layout Routes --- */}
                         <Route element={<MainLayout />}>
                           <Route path="/explore/:category" element={<ExplorePage />} />
                           <Route path="/listings" element={<Listings />} />
                           <Route path="/listings/:id" element={<PropertyDetail />} />
                           <Route path="/affordability" element={<AffordabilityPage />} />
                           <Route path="/shop/building-materials" element={<BuildingMaterialsShop />} />
-                          <Route path="/professional" element={<ProfessionalLanding />} />
                         </Route>
 
-                        {/* ─── Auth Routes ────────────────────────────────── */}
+                        {/* --- Auth Routes --- */}
                         <Route path="/auth" element={<Auth />} />
                         <Route path="/auth/reset" element={<ResetPassword />} />
                         <Route path="/sign-in/*" element={<SignInPage />} />
                         <Route path="/sign-up/*" element={<SignUpPage />} />
                         <Route path="/sso-callback" element={<SSOCallback />} />
                         <Route path="/redirect" element={<RedirectPage />} />
+                        <Route path="/onboarding/sync" element={<SyncPage />} />
 
-
-                        {/* ─── Account Routes ─────────────────────────────── */}
+                        {/* --- Account Routes --- */}
                         <Route path="/profile/settings" element={<UserProfileSettings />} />
                         <Route path="/saved-properties" element={<SavedProperties />} />
                         <Route path="/account/settings" element={<AccountSettings />} />
                         <Route path="/agents/profile/:id" element={<AgentProfile />} />
 
-                        {/* ─── Protected Routes ────────────────────── */}
-                        <Route path="/dashboard" element={
-                          <ProtectedRoute>
-                            <Dashboard />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/professionalDashboard" element={
-                          <ProtectedRoute>
-                            <ProfessionalDashboard />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/become-agent" element={
-                          <ProtectedRoute>
-                            <BecomeAgent />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/dashboard/agent" element={
-                          <ProtectedRoute>
-                            <AgentDashboard />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/dashboard/short-stay" element={
-                          <ProtectedRoute>
-                            <HostDashboard />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/dashboard/tenant" element={
-                          <ProtectedRoute>
-                            <Dashboard />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/dashboard/admin" element={
-                          <ProtectedRoute>
-                            <AdminDashboard />
-                          </ProtectedRoute>
-                        } />
+                        {/* --- Protected Dashboards --- */}
+                        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                        <Route path="/professionalDashboard" element={<ProtectedRoute><ProfessionalDashboard /></ProtectedRoute>} />
+                        <Route path="/become-agent" element={<ProtectedRoute><BecomeAgent /></ProtectedRoute>} />
+                        <Route path="/dashboard/agent" element={<ProtectedRoute><AgentDashboard /></ProtectedRoute>} />
+                        <Route path="/dashboard/short-stay" element={<ProtectedRoute><HostDashboard /></ProtectedRoute>} />
+                        <Route path="/dashboard/tenant" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                        <Route path="/dashboard/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
 
-                        {/* ─── Short Stay Routes ───────────────────────────── */}
+                        {/* --- Short Stay Routes --- */}
                         <Route path="/short-stay" element={<ShortStayLayout />}>
                           <Route index element={<ShortStaySearch />} />
                           <Route path=":id" element={<ShortStayDetails />} />
@@ -154,9 +123,7 @@ const App = () => {
                           <Route path="trips/:id" element={<TripDetails />} />
                         </Route>
 
-
-                        <Route path="/Dashboard" element={<Navigate to="/dashboard" replace />} />
-                        <Route path="/ProfessionalDashboard/*" element={<Navigate to="/professionalDashboard" replace />} />
+                        {/* --- Utility & Fallback --- */}
                         <Route path="/hydrate" element={<HydrateData />} />
                         <Route path="/unauthorized" element={<Unauthorized />} />
                         <Route path="*" element={<NotFound />} />

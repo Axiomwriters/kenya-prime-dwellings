@@ -8,24 +8,29 @@ import Searchbar from './Searchbar';
 interface DashboardHeaderProps {
   searchTerm: string;
   onSearchChange: (term: string) => void;
+  hideSearchBar?: boolean;
 }
 
-const DashboardHeader: React.FC<DashboardHeaderProps> = ({ searchTerm, onSearchChange }) => {
+const DashboardHeader: React.FC<DashboardHeaderProps> = ({ searchTerm, onSearchChange, hideSearchBar }) => {
   const { setTheme, theme } = useTheme();
 
   return (
     <div className="flex items-center justify-between w-full px-4 py-2 lg:px-6">
       <div className="flex items-center gap-2">
-        <div className="md:hidden">
+        {!hideSearchBar && (
+          <div className="md:hidden">
             <SidebarTrigger />
-        </div>
+          </div>
+        )}
         <div>
           <img src="/logo.svg" alt="Savanah" className="h-6" />
         </div>
       </div>
-      <div className="hidden md:flex flex-1 max-w-lg px-4">
-        <Searchbar searchTerm={searchTerm} onSearchChange={onSearchChange} />
-      </div>
+      {!hideSearchBar && (
+        <div className="hidden md:flex flex-1 max-w-lg px-4">
+          <Searchbar searchTerm={searchTerm} onSearchChange={onSearchChange} />
+        </div>
+      )}
       <div className="flex items-center gap-2">
         <Button
             variant="ghost"
