@@ -14,28 +14,16 @@ import {
 import { ChevronDown } from 'lucide-react';
 
 const ProfessionalHeader = () => {
-  const { isAuthenticated, userRole } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleSignIn = (role: 'agent' | 'host') => {
-    if (isAuthenticated) {
-      if (role === 'agent') {
-        navigate('/agent/dashboard');
-      } else {
-        navigate('/dashboard/short-stay');
-      }
-    } else {
-      navigate(`/sign-in?role=${role}`);
-    }
+    navigate(`/sign-in?role=${role}`);
   };
 
   const handleDashboard = () => {
-    if (userRole === 'host') {
-      navigate('/dashboard/short-stay');
-    } else {
-      navigate('/agent/dashboard');
-    }
+    navigate('/professional');
   };
 
   return (
