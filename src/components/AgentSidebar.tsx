@@ -60,66 +60,68 @@ export function AgentSidebarContent({ onNavigate }: AgentSidebarContentProps = {
           className="h-14 object-contain"
         />
       </div>
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
-        <p className="px-3 pb-2 text-xs font-semibold text-muted-foreground tracking-wider uppercase">
-          Agent Dashboard
-        </p>
-        {mainItems.map((item) => (
-          <NavLink
-            key={item.title}
-            to={item.url}
-            end={item.url === "."} // Ensures only exact match for Dashboard
-            onClick={onNavigate}
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-primary/15 text-primary"
-                  : "text-foreground/70 hover:bg-muted hover:text-foreground"
-              )
-            }
-          >
-            <item.icon className="w-4 h-4 shrink-0" />
-            <span className="flex-1 truncate">{item.title}</span>
-            {item.title === "My Listings" && pendingCount > 0 && (
-              <Badge className="ml-auto bg-yellow-500 text-white text-xs">
-                {pendingCount}
-              </Badge>
-            )}
-            {item.title === "Notifications" && unreadCount > 0 && (
-              <Badge className="ml-auto bg-primary text-primary-foreground text-xs">
-                {unreadCount}
-              </Badge>
-            )}
-          </NavLink>
-        ))}
-        
-        <p className="px-3 pt-4 pb-2 text-xs font-semibold text-muted-foreground tracking-wider uppercase">
-          Help & Support
-        </p>
-        {supportItems.map((item) => (
-          <a
-            key={item.title}
-            href={item.url}
+      <div className="flex-1 overflow-y-auto">
+        <nav className="px-3 py-4 space-y-0.5">
+          <p className="px-3 pb-2 text-xs font-semibold text-muted-foreground tracking-wider uppercase">
+            Agent Dashboard
+          </p>
+          {mainItems.map((item) => (
+            <NavLink
+              key={item.title}
+              to={item.url}
+              end={item.url === "."} // Ensures only exact match for Dashboard
+              onClick={onNavigate}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-primary/15 text-primary"
+                    : "text-foreground/70 hover:bg-muted hover:text-foreground"
+                )
+              }
+            >
+              <item.icon className="w-4 h-4 shrink-0" />
+              <span className="flex-1 truncate">{item.title}</span>
+              {item.title === "My Listings" && pendingCount > 0 && (
+                <Badge className="ml-auto bg-yellow-500 text-white text-xs">
+                  {pendingCount}
+                </Badge>
+              )}
+              {item.title === "Notifications" && unreadCount > 0 && (
+                <Badge className="ml-auto bg-primary text-primary-foreground text-xs">
+                  {unreadCount}
+                </Badge>
+              )}
+            </NavLink>
+          ))}
+          
+          <p className="px-3 pt-4 pb-2 text-xs font-semibold text-muted-foreground tracking-wider uppercase">
+            Help & Support
+          </p>
+          {supportItems.map((item) => (
+            <a
+              key={item.title}
+              href={item.url}
+              onClick={onNavigate}
+              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors text-foreground/70 hover:bg-muted hover:text-foreground"
+            >
+              <item.icon className="w-4 h-4 shrink-0" />
+              <span>{item.title}</span>
+            </a>
+          ))}
+        </nav>
+        <div className="px-3 py-4 space-y-3 border-t">
+          <SponsoredSpotlight />
+          <AccountTierWidget />
+          <Link
+            to="/"
             onClick={onNavigate}
             className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors text-foreground/70 hover:bg-muted hover:text-foreground"
           >
-            <item.icon className="w-4 h-4 shrink-0" />
-            <span>{item.title}</span>
-          </a>
-        ))}
-      </nav>
-      <div className="shrink-0 border-t px-3 py-4 space-y-3">
-        <SponsoredSpotlight />
-        <AccountTierWidget />
-        <Link
-          to="/"
-          onClick={onNavigate}
-          className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors text-foreground/70 hover:bg-muted hover:text-foreground"
-        >
-          <ArrowLeft className="w-4 h-4 shrink-0" />
-          <span>Back to Main Site</span>
-        </Link>
+            <ArrowLeft className="w-4 h-4 shrink-0" />
+            <span>Back to Main Site</span>
+          </Link>
+        </div>
       </div>
       <div className="shrink-0 border-t px-4 py-3">
         <div className="flex items-center gap-3 min-w-0">
