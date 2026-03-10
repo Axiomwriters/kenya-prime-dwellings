@@ -118,7 +118,7 @@ export default function MyListings() {
   const filteredListings = displayListings?.filter(_ => true); // Replace with actual filter logic
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="flex-1 space-y-8">
       <AddListingModal open={isAddListingOpen} onOpenChange={setIsAddListingOpen} />
 
       {/* Header Section */}
