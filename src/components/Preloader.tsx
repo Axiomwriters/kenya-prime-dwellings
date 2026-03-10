@@ -53,7 +53,7 @@ export function Preloader() {
                 {/* Brand Name */}
                 <div className="text-center space-y-2">
                     <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60 animate-pulse">
-                        Kenya Prime Dwellings
+                        Savanah Dwelling
                     </h1>
                     <div className="h-6 overflow-hidden relative">
                         {icons.map((item, index) => (
