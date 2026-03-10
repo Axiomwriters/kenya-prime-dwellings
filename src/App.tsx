@@ -1,5 +1,3 @@
-
-// src/App.tsx — CORRECTED FILE
 import { useState, useEffect, Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -15,11 +13,11 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import { TripProvider } from "@/contexts/TripContext";
 import { LocationAgentProvider } from "@/contexts/LocationAgentContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { agentRoutes } from "@/routes/agentRoutes"; // Corrected import path
 
 // Layouts
 import MainLayout from "@/components/MainLayout";
 import ShortStayLayout from "@/components/layouts/ShortStayLayout";
-import AgentDashboardLayout from "./pages/AgentDashboard/AgentDashboardLayout";
 
 // Page Components (sorted alphabetically)
 const AccountSettings = lazy(() => import("./pages/AccountSettings"));
@@ -27,8 +25,6 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AffordabilityPage = lazy(() => import("./pages/AffordabilityPage"));
 const AgentDashboard = lazy(() => import("./pages/AgentDashboard"));
 const AgentProfile = lazy(() => import("./pages/AgentProfile"));
-const AgentSettings = lazy(() => import("./pages/AgentDashboard/AgentSettings"));
-const AgentTrips = lazy(() => import("./pages/AgentDashboard/AgentTrips"));
 const Auth = lazy(() => import("./pages/Auth"));
 const BecomeAgent = lazy(() => import("./pages/BecomeAgent"));
 const BookingCheckout = lazy(() => import("./pages/ShortStay/BookingCheckout"));
@@ -40,10 +36,7 @@ const GuestDashboard = lazy(() => import("./pages/ShortStay/GuestDashboard"));
 const HostDashboard = lazy(() => import("./pages/HostDashboard"));
 const HydrateData = lazy(() => import("./pages/HydrateData"));
 const Listings = lazy(() => import("./pages/Listings"));
-const MyListings = lazy(() => import("./pages/AgentDashboard/MyListings"));
-const NewAgentDashboard = lazy(() => import("./pages/AgentDashboard/NewAgentDashboard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const Notifications = lazy(() => import("./pages/AgentDashboard/Notifications"));
 const ProfessionalDashboard = lazy(() => import("./pages/ProfessionalDashboard"));
 const ProfessionalLanding = lazy(() => import("./pages/ProfessionalLanding"));
 const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
@@ -59,8 +52,6 @@ const SyncPage = lazy(() => import('./pages/onboarding/sync'));
 const TripDetails = lazy(() => import("./pages/ShortStay/TripDetails"));
 const Unauthorized = lazy(() => import("./pages/Unauthorized"));
 const UserProfileSettings = lazy(() => import("./pages/UserProfileSettings"));
-const AgentDashboardProfile = lazy(() => import("./pages/AgentDashboard/AgentProfile"));
-
 
 const queryClient = new QueryClient();
 
@@ -85,7 +76,6 @@ const App = () => {
                 <AuthProvider>
                   <ScrollToTopHandler />
                   <ScrollToTop />
-
                   <ErrorBoundary fallback={<div>Something went wrong. Please refresh.</div>}>
                     <Suspense fallback={<Preloader />}>
                       <Routes>
@@ -116,24 +106,19 @@ const App = () => {
                         <Route path="/account/settings" element={<AccountSettings />} />
                         <Route path="/agents/profile/:id" element={<AgentProfile />} />
 
-                        {/* --- Legacy/Protected Dashboards (Review & Refactor) --- */}
+                        {/* --- Legacy/Protected Dashboards (To be phased out) --- */}
                         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                         <Route path="/professionalDashboard" element={<ProtectedRoute><ProfessionalDashboard /></ProtectedRoute>} />
                         <Route path="/become-agent" element={<ProtectedRoute><BecomeAgent /></ProtectedRoute>} />
-                        <Route path="/dashboard/agent" element={<ProtectedRoute><AgentDashboard /></ProtectedRoute>} />
                         <Route path="/dashboard/short-stay" element={<ProtectedRoute><HostDashboard /></ProtectedRoute>} />
                         <Route path="/dashboard/tenant" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                         <Route path="/dashboard/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
 
-                        {/* --- New Agent Dashboard Layout --- */}
-                        <Route path="/agent" element={<ProtectedRoute><AgentDashboardLayout /></ProtectedRoute>}>
-                          <Route index element={<Navigate to="dashboard" replace />} />
-                          <Route path="dashboard" element={<NewAgentDashboard />} />
-                          <Route path="profile" element={<AgentDashboardProfile />} />
-                          <Route path="listings" element={<MyListings />} />
-                          <Route path="trips" element={<AgentTrips />} />
-                          <Route path="notifications" element={<Notifications />} />
-                          <Route path="settings" element={<AgentSettings />} />
+                        {/* --- Scalable Agent Dashboard --- */}
+                        <Route path="/agent" element={<ProtectedRoute><AgentDashboard /></ProtectedRoute>}>
+                          {agentRoutes.map((route, index) => (
+                            <Route key={index} index={route.index} path={route.path} element={route.element} />
+                          ))}
                         </Route>
 
                         {/* --- Short Stay Routes --- */}
@@ -150,7 +135,6 @@ const App = () => {
                         <Route path="/hydrate" element={<HydrateData />} />
                         <Route path="/unauthorized" element={<Unauthorized />} />
                         <Route path="*" element={<NotFound />} />
-
                       </Routes>
                     </Suspense>
                   </ErrorBoundary>
