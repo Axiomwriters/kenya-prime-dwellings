@@ -69,8 +69,6 @@ export default function AgentProfile() {
   useEffect(() => {
     if (isLoaded && user) {
       fetchProfile();
-    } else if (!isLoaded) {
-      setLoading(false);
     }
   }, [user, isLoaded]);
 
