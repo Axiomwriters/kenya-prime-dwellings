@@ -116,7 +116,7 @@ const App = () => {
                         <Route path="/dashboard/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
 
                         {/* --- Scalable Agent Dashboard --- */}
-                        <Route path="/agent" element={<ProtectedRoute><DashboardLayout sidebar={<AgentSidebar />} /></ProtectedRoute>}>
+                        <Route path="/agent" element={<ProtectedRoute><DashboardLayout sidebar={<AgentSidebar isMobileOpen={false} onMobileToggle={() => {}} />} /></ProtectedRoute>}>
                           {agentRoutes.map((route, index) => (
                             <Route key={index} index={route.index} path={route.path} element={route.element} />
                           ))}

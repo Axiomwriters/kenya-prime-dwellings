@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import DashboardHeader from "@/components/DashboardHeader";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
 
 interface HeaderWrapperProps {
   isScrolled?: boolean;
@@ -10,6 +12,8 @@ interface HeaderWrapperProps {
   hideSearchBar?: boolean;
   hideThemeSwitcher?: boolean;
   isAgentDashboard?: boolean;
+  isMobileSidebarOpen?: boolean;
+  onMobileToggle?: () => void;
 }
 
 export function HeaderWrapper({
@@ -19,6 +23,8 @@ export function HeaderWrapper({
   hideSearchBar = false,
   hideThemeSwitcher = false,
   isAgentDashboard = false,
+  isMobileSidebarOpen = false,
+  onMobileToggle,
 }: HeaderWrapperProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(
@@ -50,6 +56,35 @@ export function HeaderWrapper({
           : "bg-background shadow-sm"
       )}
     >
+      {/* Mobile Header */}
+      <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-border/40 bg-background/90">
+        <div className="flex items-center gap-3">
+          {!hideLogo && (
+            <img src="/logo.svg" alt="Savanah Dwelling" className="h-8" />
+          )}
+          <h1 className="text-lg font-bold">Savanah Dwelling</h1>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              console.log('HeaderWrapper: Hamburger clicked, calling onMobileToggle');
+              onMobileToggle?.();
+            }}
+            className="lg:hidden"
+            aria-label={isMobileSidebarOpen ? "Close menu" : "Open menu"}
+          >
+            {isMobileSidebarOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </Button>
+        </div>
+      </div>
+
       {/* Main dashboard header */}
       <DashboardHeader
         searchTerm={searchTerm}

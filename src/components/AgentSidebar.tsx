@@ -13,6 +13,8 @@ import {
   ArrowLeft,
   HelpCircle,
   Mail,
+  Menu,
+  X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { SponsoredSpotlight } from "./agent-sidebar-widgets/SponsoredSpotlight";
@@ -34,6 +36,12 @@ const supportItems = [
 
 interface AgentSidebarContentProps {
   onNavigate?: () => void;
+}
+
+interface AgentSidebarProps {
+  onNavigate?: () => void;
+  isMobileOpen?: boolean;
+  onMobileToggle?: () => void;
 }
 
 export function AgentSidebarContent({ onNavigate }: AgentSidebarContentProps = {}) {
@@ -140,6 +148,113 @@ export function AgentSidebarContent({ onNavigate }: AgentSidebarContentProps = {
   );
 }
 
-export function AgentSidebar() {
-  return <AgentSidebarContent />;
+export function AgentSidebar({ onNavigate, isMobileOpen = false, onMobileToggle }: AgentSidebarProps) {
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block">
+        <AgentSidebarContent onNavigate={onNavigate} />
+      </div>
+
+      {/* Mobile Sidebar */}
+      <div 
+        className={cn(
+          "fixed left-0 top-0 z-50 h-full w-64 bg-background border-r border-border/50 shadow-xl transform transition-transform duration-300 ease-in-out lg:hidden",
+          isMobileOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-border/50">
+          <div className="flex items-center gap-3">
+            <img src="/Savanahdwell.png" alt="Savanah Dwelling" className="h-8" />
+            <h1 className="text-lg font-bold">Agent Dashboard</h1>
+          </div>
+          <button
+            onClick={onMobileToggle}
+            className="p-2 rounded-md hover:bg-muted transition-colors"
+            aria-label={isMobileOpen ? "Close menu" : "Open menu"}
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          <nav className="p-4 space-y-2">
+            <p className="px-2 pb-2 text-xs font-semibold text-muted-foreground tracking-wider uppercase">
+              Agent Dashboard
+            </p>
+            {mainItems.map((item) => (
+              <NavLink
+                key={item.title}
+                to={item.url}
+                end={item.url === "."}
+                onClick={() => {
+                  onNavigate?.();
+                  onMobileToggle?.();
+                }}
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-3 p-3 rounded-lg text-sm transition-colors",
+                    isActive
+                      ? "bg-accent text-accent-foreground"
+                      : "hover:bg-accent"
+                  )
+                }
+              >
+                <item.icon className="w-4 h-4" />
+                <span>{item.title}</span>
+              </NavLink>
+            ))}
+            
+            <p className="px-2 pt-4 pb-2 text-xs font-semibold text-muted-foreground tracking-wider uppercase">
+              Help & Support
+            </p>
+            {supportItems.map((item) => (
+              <a
+                key={item.title}
+                href={item.url}
+                onClick={() => {
+                  onNavigate?.();
+                  onMobileToggle?.();
+                }}
+                className={cn(
+                  "flex items-center gap-3 p-3 rounded-lg text-sm transition-colors",
+                  "hover:bg-accent"
+                )}
+              >
+                <item.icon className="w-4 h-4" />
+                <span>{item.title}</span>
+              </a>
+            ))}
+          </nav>
+        </div>
+
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border/50 bg-background/90">
+          <div className="space-y-3">
+            <SponsoredSpotlight />
+            <AccountTierWidget />
+            <Link
+              to="/"
+              onClick={() => {
+                onNavigate?.();
+                onMobileToggle?.();
+              }}
+              className="flex items-center gap-3 p-3 rounded-lg text-sm transition-colors hover:bg-accent"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Main Site</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      <div 
+        className={cn(
+          "fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300 lg:hidden",
+          isMobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        )}
+        onClick={onMobileToggle}
+      />
+    </>
+  );
 }

@@ -9,6 +9,7 @@ import { LocationAgentWidget } from "@/components/LocationAgentWidget";
 export default function MainLayout() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,15 +20,50 @@ export default function MainLayout() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Close mobile sidebar when route changes
+  useEffect(() => {
+    const handleRouteChange = () => {
+      setIsMobileSidebarOpen(false);
+    };
+    
+    window.addEventListener('popstate', handleRouteChange);
+    return () => window.removeEventListener('popstate', handleRouteChange);
+  }, []);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('MainLayout: isMobileSidebarOpen =', isMobileSidebarOpen);
+  }, [isMobileSidebarOpen]);
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
-        <AppSidebar onOpenProfile={() => setIsProfileOpen(true)} />
+        {/* Mobile Sidebar Overlay */}
+        <div 
+          className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity duration-300 lg:hidden ${
+            isMobileSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+        
+        {/* Sidebar */}
+        <AppSidebar 
+          onOpenProfile={() => setIsProfileOpen(true)}
+          isMobileOpen={isMobileSidebarOpen}
+          onMobileToggle={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+        />
+        
+        {/* Main Content */}
         <SidebarInset className="w-full">
-          <header className="sticky top-0 z-40 border-b">
-            <HeaderWrapper onOpenTrip={() => setIsProfileOpen(true)} isScrolled={isScrolled} />
+          <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-md">
+            <HeaderWrapper 
+              onOpenTrip={() => setIsProfileOpen(true)} 
+              isScrolled={isScrolled}
+              isMobileSidebarOpen={isMobileSidebarOpen}
+              onMobileToggle={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+            />
           </header>
-          <main className="flex-1">
+          <main className="flex-1 p-4 lg:p-6">
             <Outlet />
           </main>
         </SidebarInset>
