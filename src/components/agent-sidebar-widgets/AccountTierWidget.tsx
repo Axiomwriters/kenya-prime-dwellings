@@ -8,23 +8,22 @@ export function AccountTierWidget() {
     const [isPro, setIsPro] = useState(false);
 
     return (
-        <div className="mx-2 mb-4">
-            <div className="rounded-xl border bg-card p-4 transition-all hover:bg-accent/5">
-                <div className="flex items-center justify-between mb-4">
+        <div className="mx-1">
+            <div className="rounded-xl border bg-card p-3 md:p-4 transition-all hover:bg-accent/5">
+                <div className="flex items-center justify-between mb-2 md:mb-3">
                     <div>
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Your Plan</p>
-                        <h4 className="font-bold text-sm">{isPro ? "Pro Agent 🚀" : "Free Plan"}</h4>
+                        <p className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wider">Your Plan</p>
+                        <h4 className="font-bold text-xs md:text-sm">{isPro ? "Pro Agent" : "Free Plan"}</h4>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <span className={`text-xs ${!isPro ? 'font-bold' : 'text-muted-foreground'}`}>Free</span>
+                    <div className="flex items-center gap-1.5 md:gap-2">
+                        <span className={`text-[10px] md:text-xs ${!isPro ? 'font-bold' : 'text-muted-foreground'}`}>Free</span>
                         <Switch checked={isPro} onCheckedChange={setIsPro} className="scale-75 data-[state=checked]:bg-primary" />
-                        <span className={`text-xs ${isPro ? 'font-bold text-primary' : 'text-muted-foreground'}`}>Pro</span>
+                        <span className={`text-[10px] md:text-xs ${isPro ? 'font-bold text-primary' : 'text-muted-foreground'}`}>Pro</span>
                     </div>
                 </div>
 
-                <div className="space-y-3 mb-4">
-                    {/* Feature List */}
-                    <div className="space-y-2">
+                <div className="space-y-2 md:space-y-3 mb-3 md:mb-4">
+                    <div className="space-y-1.5 md:space-y-2">
                         <FeatureRow label="Smart Pricing Engine" active={isPro} tooltip="AI-driven price recommendations" />
                         <FeatureRow label="Lead Intent Scoring" active={isPro} tooltip="Know who is ready to buy" />
                         <FeatureRow label="Viewing Trips" active={isPro} tooltip="Organize and track viewings" />
@@ -37,12 +36,12 @@ export function AccountTierWidget() {
                         <p className="text-[10px] text-center text-primary font-medium">
                             Agents on Pro close 2.4x more deals
                         </p>
-                        <Button size="sm" variant="outline" className="w-full h-8 text-xs">
+                        <Button size="sm" variant="outline" className="w-full h-7 md:h-8 text-[10px] md:text-xs">
                             Manage Subscription
                         </Button>
                     </div>
                 ) : (
-                    <Button size="sm" className="w-full h-8 text-xs bg-primary hover:bg-primary/90 shadow-sm">
+                    <Button size="sm" className="w-full h-7 md:h-8 text-[10px] md:text-xs bg-primary hover:bg-primary/90 shadow-sm">
                         Upgrade to Pro
                     </Button>
                 )}
@@ -53,21 +52,21 @@ export function AccountTierWidget() {
 
 function FeatureRow({ label, active, tooltip }: { label: string, active: boolean, tooltip: string }) {
     return (
-        <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-1.5">
+        <div className="flex items-center justify-between text-[10px] md:text-xs">
+            <div className="flex items-center gap-1">
                 {active ? (
-                    <Check className="w-3 h-3 text-primary" />
+                    <Check className="w-2.5 h-2.5 md:w-3 md:h-3 text-primary" />
                 ) : (
-                    <Lock className="w-3 h-3 text-muted-foreground" />
+                    <Lock className="w-2.5 h-2.5 md:w-3 md:h-3 text-muted-foreground" />
                 )}
                 <span className={active ? "text-foreground" : "text-muted-foreground"}>{label}</span>
             </div>
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger>
-                        <Info className="w-3 h-3 text-muted-foreground/50 hover:text-muted-foreground" />
+                        <Info className="w-2.5 h-2.5 md:w-3 md:h-3 text-muted-foreground/50 hover:text-muted-foreground" />
                     </TooltipTrigger>
-                    <TooltipContent className="text-xs">
+                    <TooltipContent className="text-[10px] md:text-xs">
                         {tooltip}
                     </TooltipContent>
                 </Tooltip>

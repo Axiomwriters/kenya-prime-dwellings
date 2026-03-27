@@ -14,9 +14,6 @@ export function DashboardLayout({ sidebar }: DashboardLayoutProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // This component no longer relies on the window scroll event.
-  // The scroll event is handled by the main content area.
-
   return (
     <SidebarProvider>
       <div className="h-screen flex w-full bg-background overflow-hidden">
@@ -26,7 +23,7 @@ export function DashboardLayout({ sidebar }: DashboardLayoutProps) {
         })}
 
         <SidebarInset className="flex-1 w-full flex flex-col">
-          <div className="shrink-0 z-40 w-full bg-background/95 backdrop-blur-sm border-b">
+          <div className="shrink-0 z-30 w-full bg-background border-b border-zinc-200 dark:border-zinc-800">
             <HeaderWrapper 
               isScrolled={isScrolled} 
               hideLogo={true} 
@@ -39,7 +36,7 @@ export function DashboardLayout({ sidebar }: DashboardLayoutProps) {
           </div>
 
           <main 
-            className={cn("flex-1 overflow-y-auto p-6 lg:p-8")}
+            className={cn("flex-1 overflow-y-auto p-4 md:p-6 lg:p-8")}
             onScroll={(e) => setIsScrolled(e.currentTarget.scrollTop > 5)}
           >
             <Outlet />
