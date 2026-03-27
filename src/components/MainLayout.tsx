@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { HeaderWrapper } from "@/components/HeaderWrapper";
@@ -7,6 +7,7 @@ import { ProfileDrawer } from "@/components/ProfileDrawer";
 import { LocationAgentWidget } from "@/components/LocationAgentWidget";
 
 export default function MainLayout() {
+  const location = useLocation();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -22,25 +23,15 @@ export default function MainLayout() {
 
   // Close mobile sidebar when route changes
   useEffect(() => {
-    const handleRouteChange = () => {
-      setIsMobileSidebarOpen(false);
-    };
-    
-    window.addEventListener('popstate', handleRouteChange);
-    return () => window.removeEventListener('popstate', handleRouteChange);
-  }, []);
-
-  // Debug logging
-  useEffect(() => {
-    console.log('MainLayout: isMobileSidebarOpen =', isMobileSidebarOpen);
-  }, [isMobileSidebarOpen]);
+    setIsMobileSidebarOpen(false);
+  }, [location.pathname]);
 
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
         {/* Mobile Sidebar Overlay */}
         <div 
-          className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity duration-300 lg:hidden ${
+          className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity duration-300 md:hidden ${
             isMobileSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
           onClick={() => setIsMobileSidebarOpen(false)}
