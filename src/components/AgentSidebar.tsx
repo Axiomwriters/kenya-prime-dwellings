@@ -13,7 +13,6 @@ import {
   ArrowLeft,
   HelpCircle,
   Mail,
-  Menu,
   X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
