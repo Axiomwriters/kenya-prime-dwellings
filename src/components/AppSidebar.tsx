@@ -4,7 +4,6 @@ import {
   Users,
   TrendingUp,
   FileText,
-  ChevronRight,
   GraduationCap,
   Baby,
   Coins,
@@ -14,7 +13,6 @@ import {
   Warehouse,
   Building2,
   Compass,
-  ChevronLeft,
   ChevronRight as ChevronRightIcon,
   X,
 } from "lucide-react";
@@ -26,7 +24,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { UserProfileCard } from "@/components/UserProfileCard";
-import { useAuth } from "@/hooks/useAuth";
 import { Button } from "./ui/button";
 import {
   Sidebar,
@@ -128,24 +125,19 @@ export function AppSidebar({ onOpenProfile, isMobileOpen = false, onMobileToggle
   const location = useLocation();
   const { open: isSidebarOpen, setOpen } = useSidebar();
 
-  // Handle mobile sidebar state
+  // Keep desktop sidebar enabled only at tablet/desktop widths.
   useEffect(() => {
-    if (window.innerWidth < 1024) {
-      setOpen(false); // Disable Radix sidebar on mobile
+    if (window.innerWidth < 768) {
+      setOpen(false);
     } else {
-      setOpen(true); // Enable Radix sidebar on desktop
+      setOpen(true);
     }
   }, [setOpen]);
-
-  // Debug logging
-  useEffect(() => {
-    console.log('AppSidebar: isMobileOpen =', isMobileOpen);
-  }, [isMobileOpen]);
 
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:block">
+      <div className="hidden md:block">
         <Sidebar collapsible="icon" variant="inset">
           <SidebarHeader className="h-14 justify-between px-3">
             <img 
@@ -227,7 +219,7 @@ export function AppSidebar({ onOpenProfile, isMobileOpen = false, onMobileToggle
       {/* Mobile Sidebar */}
       <div 
         className={cn(
-          "fixed left-0 top-0 z-50 h-full w-64 bg-background border-r border-border/50 shadow-xl transform transition-transform duration-300 ease-in-out lg:hidden",
+          "fixed left-0 top-0 z-50 h-full w-64 bg-background border-r border-border/50 shadow-xl transform transition-transform duration-300 ease-in-out md:hidden",
           isMobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -246,7 +238,7 @@ export function AppSidebar({ onOpenProfile, isMobileOpen = false, onMobileToggle
           </Button>
         </div>
 
-        <nav className="p-4 space-y-2">
+        <nav className="h-[calc(100%-12rem)] overflow-y-auto p-4 space-y-2 pb-24">
           {menuItems.map((item) => {
             const isActive = location.pathname.startsWith(item.url) && item.url !== "/";
             const isDashboardActive = item.url === "/" && location.pathname === "/";
@@ -267,6 +259,7 @@ export function AppSidebar({ onOpenProfile, isMobileOpen = false, onMobileToggle
                         <Link
                           key={subItem.title}
                           to={subItem.url}
+                          onClick={onMobileToggle}
                           className={cn(
                             "flex items-center gap-3 p-3 rounded-lg text-sm transition-colors",
                             location.pathname === subItem.url 
@@ -288,6 +281,7 @@ export function AppSidebar({ onOpenProfile, isMobileOpen = false, onMobileToggle
               <Link
                 key={item.title}
                 to={item.url}
+                onClick={onMobileToggle}
                 className={cn(
                   "flex items-center gap-3 p-3 rounded-lg transition-colors",
                   (isDashboardActive || isActive) 

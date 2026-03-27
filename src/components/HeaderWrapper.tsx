@@ -57,7 +57,7 @@ export function HeaderWrapper({
       )}
     >
       {/* Mobile Header */}
-      <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-border/40 bg-background/90">
+      <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border/40 bg-background/90">
         <div className="flex items-center gap-3">
           {!hideLogo && (
             <img src="/logo.svg" alt="Savanah Dwelling" className="h-8" />
@@ -69,11 +69,8 @@ export function HeaderWrapper({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => {
-              console.log('HeaderWrapper: Hamburger clicked, calling onMobileToggle');
-              onMobileToggle?.();
-            }}
-            className="lg:hidden"
+            onClick={onMobileToggle}
+            className="md:hidden"
             aria-label={isMobileSidebarOpen ? "Close menu" : "Open menu"}
           >
             {isMobileSidebarOpen ? (

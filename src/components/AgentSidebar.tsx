@@ -152,14 +152,14 @@ export function AgentSidebar({ onNavigate, isMobileOpen = false, onMobileToggle 
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:block">
+      <div className="hidden md:block">
         <AgentSidebarContent onNavigate={onNavigate} />
       </div>
 
       {/* Mobile Sidebar */}
       <div 
         className={cn(
-          "fixed left-0 top-0 z-50 h-full w-64 bg-background border-r border-border/50 shadow-xl transform transition-transform duration-300 ease-in-out lg:hidden",
+          "fixed left-0 top-0 z-50 h-full w-64 bg-background border-r border-border/50 shadow-xl transform transition-transform duration-300 ease-in-out md:hidden",
           isMobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -177,7 +177,7 @@ export function AgentSidebar({ onNavigate, isMobileOpen = false, onMobileToggle 
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="h-[calc(100%-12rem)] overflow-y-auto pb-24">
           <nav className="p-4 space-y-2">
             <p className="px-2 pb-2 text-xs font-semibold text-muted-foreground tracking-wider uppercase">
               Agent Dashboard
@@ -250,7 +250,7 @@ export function AgentSidebar({ onNavigate, isMobileOpen = false, onMobileToggle 
       {/* Mobile Sidebar Overlay */}
       <div 
         className={cn(
-          "fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300 lg:hidden",
+          "fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300 md:hidden",
           isMobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         )}
         onClick={onMobileToggle}
