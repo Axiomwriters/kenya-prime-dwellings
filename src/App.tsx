@@ -14,16 +14,19 @@ import { TripProvider } from "@/contexts/TripContext";
 import { LocationAgentProvider } from "@/contexts/LocationAgentContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { agentRoutes } from "@/routes/agentRoutes";
+import { adminRoutes } from "@/routes/adminRoutes";
 
 // Layouts
 import MainLayout from "@/components/MainLayout";
 import ShortStayLayout from "@/components/layouts/ShortStayLayout";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import { AgentSidebar } from "@/components/AgentSidebar";
+import { AdminSidebar } from "@/components/AdminSidebarNew";
+import { AdminProtectedRoute } from "@/components/AdminProtectedRoute";
 
 // Page Components
 const AccountSettings = lazy(() => import("./pages/AccountSettings"));
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminLogin = lazy(() => import("./pages/Admin/AdminLogin"));
 const AffordabilityPage = lazy(() => import("./pages/AffordabilityPage"));
 const AgentProfile = lazy(() => import("./pages/AgentProfile"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -57,6 +60,93 @@ const VerificationPage = lazy(() => import("./pages/Verification/VerificationPag
 
 const queryClient = new QueryClient();
 
+// Admin Routes Component (without Clerk Auth)
+function AdminApp() {
+  return (
+    <Routes>
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin" element={<AdminProtectedRoute><DashboardLayout sidebar={<AdminSidebar isMobileOpen={false} onMobileToggle={() => {}} />} /></AdminProtectedRoute>}>
+        {adminRoutes.map((route, index) => (
+          <Route key={index} index={route.index} path={route.path} element={route.element} />
+        ))}
+      </Route>
+    </Routes>
+  );
+}
+
+// Main App Routes (with Clerk Auth)
+function MainApp() {
+  return (
+    <AuthProvider>
+      <ScrollToTopHandler />
+      <ScrollToTop />
+      <ErrorBoundary fallback={<div>Something went wrong. Please refresh.</div>}>
+        <Suspense fallback={<Preloader />}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/professional" replace />} />
+            <Route path="/professional" element={<ProfessionalLanding />} />
+
+            {/* --- Main Layout Routes --- */}
+            <Route element={<MainLayout />}>
+              <Route path="/explore/:category" element={<ExplorePage />} />
+              <Route path="/listings" element={<Listings />} />
+              <Route path="/listings/:id" element={<PropertyDetail />} />
+              <Route path="/affordability" element={<AffordabilityPage />} />
+              <Route path="/shop/building-materials" element={<BuildingMaterialsShop />} />
+            </Route>
+
+            {/* --- Auth Routes --- */}
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/reset" element={<ResetPassword />} />
+            <Route path="/sign-in/*" element={<SignInPage />} />
+            <Route path="/sign-up/*" element={<SignUpPage />} />
+            <Route path="/sso-callback" element={<SSOCallback />} />
+            <Route path="/redirect" element={<RedirectPage />} />
+            <Route path="/onboarding/sync" element={<SyncPage />} />
+            <Route path="/verification" element={<VerificationPage />} />
+
+            {/* --- Account Routes --- */}
+            <Route path="/profile/settings" element={<UserProfileSettings />} />
+            <Route path="/saved-properties" element={<SavedProperties />} />
+            <Route path="/account/settings" element={<AccountSettings />} />
+            <Route path="/agents/profile/:id" element={<AgentProfile />} />
+
+            {/* --- Legacy/Protected Dashboards --- */}
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/professionalDashboard" element={<ProtectedRoute><ProfessionalDashboard /></ProtectedRoute>} />
+            <Route path="/become-agent" element={<ProtectedRoute><BecomeAgent /></ProtectedRoute>} />
+            <Route path="/dashboard/short-stay" element={<ProtectedRoute><HostDashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/tenant" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/admin" element={<AdminProtectedRoute><DashboardLayout sidebar={<AdminSidebar isMobileOpen={false} onMobileToggle={() => {}} />} /></AdminProtectedRoute>} />
+
+            {/* --- Scalable Agent Dashboard --- */}
+            <Route path="/agent" element={<ProtectedRoute><DashboardLayout sidebar={<AgentSidebar isMobileOpen={false} onMobileToggle={() => {}} />} /></ProtectedRoute>}>
+              {agentRoutes.map((route, index) => (
+                <Route key={index} index={route.index} path={route.path} element={route.element} />
+              ))}
+            </Route>
+
+            {/* --- Short Stay Routes --- */}
+            <Route path="/short-stay" element={<ShortStayLayout />}>
+              <Route index element={<ShortStaySearch />} />
+              <Route path=":id" element={<ShortStayDetails />} />
+              <Route path="book/:id" element={<BookingCheckout />} />
+              <Route path="confirmation" element={<BookingConfirmation />} />
+              <Route path="trips" element={<GuestDashboard />} />
+              <Route path="trips/:id" element={<TripDetails />} />
+            </Route>
+
+            {/* --- Utility & Fallback --- */}
+            <Route path="/hydrate" element={<HydrateData />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
+    </AuthProvider>
+  );
+}
+
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
 
@@ -74,74 +164,9 @@ const App = () => {
               {isLoading && <Preloader />}
               <Toaster />
               <Sonner />
-              <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <AuthProvider>
-                  <ScrollToTopHandler />
-                  <ScrollToTop />
-                  <ErrorBoundary fallback={<div>Something went wrong. Please refresh.</div>}>
-                    <Suspense fallback={<Preloader />}>
-                      <Routes>
-                        <Route path="/" element={<Navigate to="/professional" replace />} />
-                        <Route path="/professional" element={<ProfessionalLanding />} />
-
-                        {/* --- Main Layout Routes --- */}
-                        <Route element={<MainLayout />}>
-                          <Route path="/explore/:category" element={<ExplorePage />} />
-                          <Route path="/listings" element={<Listings />} />
-                          <Route path="/listings/:id" element={<PropertyDetail />} />
-                          <Route path="/affordability" element={<AffordabilityPage />} />
-                          <Route path="/shop/building-materials" element={<BuildingMaterialsShop />} />
-                        </Route>
-
-                        {/* --- Auth Routes --- */}
-                        <Route path="/auth" element={<Auth />} />
-                        <Route path="/auth/reset" element={<ResetPassword />} />
-                        <Route path="/sign-in/*" element={<SignInPage />} />
-                        <Route path="/sign-up/*" element={<SignUpPage />} />
-                        <Route path="/sso-callback" element={<SSOCallback />} />
-                        <Route path="/redirect" element={<RedirectPage />} />
-                        <Route path="/onboarding/sync" element={<SyncPage />} />
-                        <Route path="/verification" element={<VerificationPage />} />
-
-                        {/* --- Account Routes --- */}
-                        <Route path="/profile/settings" element={<UserProfileSettings />} />
-                        <Route path="/saved-properties" element={<SavedProperties />} />
-                        <Route path="/account/settings" element={<AccountSettings />} />
-                        <Route path="/agents/profile/:id" element={<AgentProfile />} />
-
-                        {/* --- Legacy/Protected Dashboards (To be phased out) --- */}
-                        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                        <Route path="/professionalDashboard" element={<ProtectedRoute><ProfessionalDashboard /></ProtectedRoute>} />
-                        <Route path="/become-agent" element={<ProtectedRoute><BecomeAgent /></ProtectedRoute>} />
-                        <Route path="/dashboard/short-stay" element={<ProtectedRoute><HostDashboard /></ProtectedRoute>} />
-                        <Route path="/dashboard/tenant" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                        <Route path="/dashboard/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-
-                        {/* --- Scalable Agent Dashboard --- */}
-                        <Route path="/agent" element={<ProtectedRoute><DashboardLayout sidebar={<AgentSidebar isMobileOpen={false} onMobileToggle={() => {}} />} /></ProtectedRoute>}>
-                          {agentRoutes.map((route, index) => (
-                            <Route key={index} index={route.index} path={route.path} element={route.element} />
-                          ))}
-                        </Route>
-
-                        {/* --- Short Stay Routes --- */}
-                        <Route path="/short-stay" element={<ShortStayLayout />}>
-                          <Route index element={<ShortStaySearch />} />
-                          <Route path=":id" element={<ShortStayDetails />} />
-                          <Route path="book/:id" element={<BookingCheckout />} />
-                          <Route path="confirmation" element={<BookingConfirmation />} />
-                          <Route path="trips" element={<GuestDashboard />} />
-                          <Route path="trips/:id" element={<TripDetails />} />
-                        </Route>
-
-                        {/* --- Utility & Fallback --- */}
-                        <Route path="/hydrate" element={<HydrateData />} />
-                        <Route path="/unauthorized" element={<Unauthorized />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </Suspense>
-                  </ErrorBoundary>
-                </AuthProvider>
+              <BrowserRouter>
+                <AdminApp />
+                <MainApp />
               </BrowserRouter>
             </LocationAgentProvider>
           </TripProvider>
