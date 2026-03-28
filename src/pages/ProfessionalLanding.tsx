@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import ProfessionalHeader from '@/components/professional/ProfessionalHeader';
 import { BestLocationsSection } from '@/components/BestLocationsSection';
+import { ProfessionalFAQ } from '@/components/professional/ProfessionalFAQ';
 import '@/styles/professional.css';
 
 const ProfessionalLanding = () => {
@@ -91,9 +92,8 @@ const ProfessionalLanding = () => {
             </p>
           </div>
         </section>
-        <section className="professional-locations-section">
-          <BestLocationsSection />
-        </section>
+        <BestLocationsSection />
+        <ProfessionalFAQ />
       </main>
       <footer className="professional-footer">
         <div className="professional-footer-container">
