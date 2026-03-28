@@ -27,11 +27,11 @@ export function resolveDashboard(role: string | null | undefined): '/dashboard' 
   return PROFESSIONAL_ROLES.has(normalizedRole) ? '/professionalDashboard' : '/dashboard';
 }
 
-export function resolveRoleFromMetadata(role: AppRole): '/dashboard' | '/professionalDashboard' | '/dashboard/admin' | '/agent/dashboard' | '/dashboard/short-stay' {
+export function resolveRoleFromMetadata(role: AppRole): '/dashboard' | '/professionalDashboard' | '/admin' | '/agent/dashboard' | '/dashboard/short-stay' {
   const normalizedRole = role?.trim().toLowerCase();
 
   if (normalizedRole === 'admin') {
-    return '/dashboard/admin';
+    return '/admin';
   }
 
   return resolveDashboard(normalizedRole);

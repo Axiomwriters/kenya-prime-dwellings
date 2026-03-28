@@ -8,9 +8,9 @@ const publicPaths = ['/sign-in', '/sign-up', '/onboarding'];
 
 // The mapping of roles to their allowed dashboard paths.
 const rolePaths = {
-  AGENT: '/dashboard/agent',
-  HOST: '/dashboard/host',
-  ADMIN: '/dashboard/admin',
+  AGENT: '/agent',
+  HOST: '/short-stay',
+  ADMIN: '/admin',
 };
 
 export async function middleware(req: NextRequest) {

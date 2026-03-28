@@ -17,6 +17,7 @@ const AdminReportsPage = lazy(() => import("../pages/Admin/AdminReports"));
 export const adminRoutes = [
   {
     index: true,
+    path: undefined,
     element: <AdminDashboardPage />,
   },
   {

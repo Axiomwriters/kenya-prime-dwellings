@@ -14,7 +14,6 @@ import { TripProvider } from "@/contexts/TripContext";
 import { LocationAgentProvider } from "@/contexts/LocationAgentContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { agentRoutes } from "@/routes/agentRoutes";
-import { adminRoutes } from "@/routes/adminRoutes";
 
 // Layouts
 import MainLayout from "@/components/MainLayout";
@@ -27,6 +26,19 @@ import { AdminProtectedRoute } from "@/components/AdminProtectedRoute";
 // Page Components
 const AccountSettings = lazy(() => import("./pages/AccountSettings"));
 const AdminLogin = lazy(() => import("./pages/Admin/AdminLogin"));
+const AdminDashboard = lazy(() => import("./pages/Admin/AdminDashboard"));
+const AdminAccounts = lazy(() => import("./pages/Admin/AdminAccounts"));
+const AdminVerifications = lazy(() => import("./pages/Admin/AdminVerifications"));
+const AdminListings = lazy(() => import("./pages/Admin/AdminListings"));
+const AdminTrips = lazy(() => import("./pages/Admin/AdminTrips"));
+const AdminViewings = lazy(() => import("./pages/Admin/AdminViewings"));
+const AdminAgents = lazy(() => import("./pages/Admin/AdminAgents"));
+const AdminLandlords = lazy(() => import("./pages/Admin/AdminLandlords"));
+const AdminAgencies = lazy(() => import("./pages/Admin/AdminAgencies"));
+const AdminHosts = lazy(() => import("./pages/Admin/AdminHosts"));
+const AdminInsights = lazy(() => import("./pages/Admin/AdminInsights"));
+const AdminReports = lazy(() => import("./pages/Admin/AdminReports"));
+const AdminSettings = lazy(() => import("./pages/Admin/AdminSettings"));
 const AffordabilityPage = lazy(() => import("./pages/AffordabilityPage"));
 const AgentProfile = lazy(() => import("./pages/AgentProfile"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -60,20 +72,6 @@ const VerificationPage = lazy(() => import("./pages/Verification/VerificationPag
 
 const queryClient = new QueryClient();
 
-// Admin Routes Component (without Clerk Auth)
-function AdminApp() {
-  return (
-    <Routes>
-      <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/admin" element={<AdminProtectedRoute><DashboardLayout sidebar={<AdminSidebar isMobileOpen={false} onMobileToggle={() => {}} />} /></AdminProtectedRoute>}>
-        {adminRoutes.map((route, index) => (
-          <Route key={index} index={route.index} path={route.path} element={route.element} />
-        ))}
-      </Route>
-    </Routes>
-  );
-}
-
 // Main App Routes (with Clerk Auth)
 function MainApp() {
   return (
@@ -83,6 +81,25 @@ function MainApp() {
       <ErrorBoundary fallback={<div>Something went wrong. Please refresh.</div>}>
         <Suspense fallback={<Preloader />}>
           <Routes>
+            {/* --- Admin Routes --- */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={<AdminProtectedRoute><DashboardLayout sidebar={<AdminSidebar isMobileOpen={false} onMobileToggle={() => {}} />} showHeader={false} /></AdminProtectedRoute>}>
+              <Route index element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="accounts" element={<AdminAccounts />} />
+              <Route path="verifications" element={<AdminVerifications />} />
+              <Route path="listings" element={<AdminListings />} />
+              <Route path="trips" element={<AdminTrips />} />
+              <Route path="viewings" element={<AdminViewings />} />
+              <Route path="agents" element={<AdminAgents />} />
+              <Route path="landlords" element={<AdminLandlords />} />
+              <Route path="agencies" element={<AdminAgencies />} />
+              <Route path="hosts" element={<AdminHosts />} />
+              <Route path="insights" element={<AdminInsights />} />
+              <Route path="reports" element={<AdminReports />} />
+              <Route path="settings" element={<AdminSettings />} />
+            </Route>
+
             <Route path="/" element={<Navigate to="/professional" replace />} />
             <Route path="/professional" element={<ProfessionalLanding />} />
 
@@ -117,7 +134,6 @@ function MainApp() {
             <Route path="/become-agent" element={<ProtectedRoute><BecomeAgent /></ProtectedRoute>} />
             <Route path="/dashboard/short-stay" element={<ProtectedRoute><HostDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/tenant" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/dashboard/admin" element={<AdminProtectedRoute><DashboardLayout sidebar={<AdminSidebar isMobileOpen={false} onMobileToggle={() => {}} />} /></AdminProtectedRoute>} />
 
             {/* --- Scalable Agent Dashboard --- */}
             <Route path="/agent" element={<ProtectedRoute><DashboardLayout sidebar={<AgentSidebar isMobileOpen={false} onMobileToggle={() => {}} />} /></ProtectedRoute>}>
@@ -165,7 +181,6 @@ const App = () => {
               <Toaster />
               <Sonner />
               <BrowserRouter>
-                <AdminApp />
                 <MainApp />
               </BrowserRouter>
             </LocationAgentProvider>

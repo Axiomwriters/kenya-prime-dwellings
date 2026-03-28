@@ -19,23 +19,23 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 const mainItems = [
-  { title: "Dashboard", url: ".", icon: LayoutDashboard },
-  { title: "Accounts", url: "accounts", icon: Users },
-  { title: "Verifications", url: "verifications", icon: Shield },
-  { title: "Listings", url: "listings", icon: Home },
-  { title: "Trips", url: "trips", icon: Map },
-  { title: "Viewings", url: "viewings", icon: Calendar },
+  { title: "Dashboard", url: "/admin/dashboard", icon: LayoutDashboard },
+  { title: "Accounts", url: "/admin/accounts", icon: Users },
+  { title: "Verifications", url: "/admin/verifications", icon: Shield },
+  { title: "Listings", url: "/admin/listings", icon: Home },
+  { title: "Trips", url: "/admin/trips", icon: Map },
+  { title: "Viewings", url: "/admin/viewings", icon: Calendar },
 ];
 
 const managementItems = [
-  { title: "Agents", url: "agents", icon: UserCog },
-  { title: "Landlords", url: "landlords", icon: Building },
-  { title: "Agencies", url: "agencies", icon: Building2 },
-  { title: "Hosts", url: "hosts", icon: Crown },
+  { title: "Agents", url: "/admin/agents", icon: UserCog },
+  { title: "Landlords", url: "/admin/landlords", icon: Building },
+  { title: "Agencies", url: "/admin/agencies", icon: Building2 },
+  { title: "Hosts", url: "/admin/hosts", icon: Crown },
 ];
 
 const systemItems = [
-  { title: "Settings", url: "settings", icon: Settings },
+  { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 
 interface AdminSidebarContentProps {

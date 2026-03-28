@@ -219,7 +219,7 @@ export default function AdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Link to="verifications">
+            <Link to="/admin/verifications">
               <Button variant="outline" className="w-full justify-between h-auto py-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-yellow-500/10">
@@ -234,7 +234,7 @@ export default function AdminDashboard() {
               </Button>
             </Link>
 
-            <Link to="accounts">
+            <Link to="/admin/accounts">
               <Button variant="outline" className="w-full justify-between h-auto py-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10">
@@ -249,7 +249,7 @@ export default function AdminDashboard() {
               </Button>
             </Link>
 
-            <Link to="listings">
+            <Link to="/admin/listings">
               <Button variant="outline" className="w-full justify-between h-auto py-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-blue-500/10">
@@ -264,7 +264,7 @@ export default function AdminDashboard() {
               </Button>
             </Link>
 
-            <Link to="viewings">
+            <Link to="/admin/viewings">
               <Button variant="outline" className="w-full justify-between h-auto py-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-purple-500/10">
@@ -302,7 +302,7 @@ export default function AdminDashboard() {
                 </div>
               ))}
             </div>
-            <Link to="accounts">
+            <Link to="/admin/accounts">
               <Button variant="ghost" className="w-full mt-4 text-xs">
                 View all accounts <ArrowRight className="w-3 h-3 ml-1" />
               </Button>
@@ -329,7 +329,7 @@ export default function AdminDashboard() {
                 </div>
               ))}
             </div>
-            <Link to="listings">
+            <Link to="/admin/listings">
               <Button variant="ghost" className="w-full mt-4 text-xs">
                 View all listings <ArrowRight className="w-3 h-3 ml-1" />
               </Button>
@@ -356,7 +356,7 @@ export default function AdminDashboard() {
                 </div>
               ))}
             </div>
-            <Link to="viewings">
+            <Link to="/admin/viewings">
               <Button variant="ghost" className="w-full mt-4 text-xs">
                 View all viewings <ArrowRight className="w-3 h-3 ml-1" />
               </Button>

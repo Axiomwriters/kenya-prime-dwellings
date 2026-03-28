@@ -16,13 +16,12 @@ type VerificationStatus = "all" | "verified" | "pending" | "rejected";
 
 interface Profile {
   id: string;
-  email: string;
   full_name: string | null;
-  avatar_url: string | null;
+  email: string | null;
   role: string | null;
   verification_status: string | null;
-  phone: string | null;
   created_at: string;
+  updated_at: string | null;
 }
 
 const ITEMS_PER_PAGE = 20;
@@ -47,21 +46,27 @@ export default function AdminAccounts() {
     }
     
     try {
-      // Build base query
-      let query = supabase
-        .from("profiles")
-        .select("*", { count: "exact" })
-        .order("created_at", { ascending: false })
-        .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          full_name,
+          email,
+          role,
+          verification_status,
+          created_at,
+          updated_at
+        `)
+        .order('created_at', { ascending: false });
 
-      const { data, error, count } = await query;
+      console.log('Profiles fetch result:', { profiles, error });
 
       if (error) {
         console.error("Error fetching profiles:", error);
         toast.error("Failed to load accounts - " + error.message);
         setProfiles([]);
       } else {
-        let filteredData = data || [];
+        let filteredData = profiles || [];
         
         if (roleFilter !== "all") {
           filteredData = filteredData.filter((p) => p.role === roleFilter);
@@ -72,16 +77,17 @@ export default function AdminAccounts() {
         }
         
         setProfiles(filteredData);
-        setTotalCount(count || 0);
+        setTotalCount(filteredData.length);
       }
     } catch (error: any) {
       console.error("Error fetching profiles:", error);
-      toast.error("Failed to load accounts");
+      toast.error("Failed to load accounts: " + error.message);
+      setProfiles([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [currentPage, roleFilter, verificationFilter]);
+  }, [roleFilter, verificationFilter]);
 
   // Initial fetch and auto-refresh every 30 seconds
   useEffect(() => {
@@ -102,25 +108,33 @@ export default function AdminAccounts() {
 
   // Real-time subscription for profile changes
   useEffect(() => {
-    const channel = supabase
-      .channel('profiles-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles'
-        },
-        (payload) => {
-          console.log('Profile change detected:', payload);
-          fetchProfiles(true);
-          toast.info("New account detected - refreshing...");
-        }
-      )
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    
+    try {
+      channel = supabase
+        .channel('profiles-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'profiles'
+          },
+          (payload) => {
+            console.log('Profile change detected:', payload);
+            fetchProfiles(true);
+            toast.info("New account detected - refreshing...");
+          }
+        )
+        .subscribe();
+    } catch (err) {
+      console.warn('Real-time subscription failed:', err);
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [fetchProfiles]);
 
@@ -251,6 +265,7 @@ export default function AdminAccounts() {
             <TableHeader>
               <TableRow>
                 <TableHead>User</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Verification</TableHead>
                 <TableHead>Joined</TableHead>
@@ -260,7 +275,7 @@ export default function AdminAccounts() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
+                  <TableCell colSpan={6} className="text-center py-8">
                     <div className="flex items-center justify-center gap-2 text-muted-foreground">
                       <Loader2 className="w-5 h-5 animate-spin" />
                       Loading accounts...
@@ -269,7 +284,7 @@ export default function AdminAccounts() {
                 </TableRow>
               ) : filteredProfiles.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     No accounts found
                   </TableCell>
                 </TableRow>
@@ -279,16 +294,18 @@ export default function AdminAccounts() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={profile.avatar_url || ""} />
                           <AvatarFallback>
-                            {profile.full_name?.charAt(0) || profile.email?.charAt(0) || "?"}
+                            {profile.full_name?.charAt(0) || "?"}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <p className="font-medium">{profile.full_name || "Unnamed User"}</p>
-                          <p className="text-xs text-muted-foreground">{profile.email}</p>
+                          <p className="text-xs text-muted-foreground">ID: {profile.id.slice(0, 8)}...</p>
                         </div>
                       </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {profile.email || "N/A"}
                     </TableCell>
                     <TableCell>
                       <Badge className={getRoleBadgeColor(profile.role)}>
@@ -320,17 +337,20 @@ export default function AdminAccounts() {
                             <div className="space-y-4">
                               <div className="flex items-center gap-4">
                                 <Avatar className="h-16 w-16">
-                                  <AvatarImage src={selectedProfile.avatar_url || ""} />
                                   <AvatarFallback className="text-lg">
-                                    {selectedProfile.full_name?.charAt(0) || selectedProfile.email?.charAt(0) || "?"}
+                                    {selectedProfile.full_name?.charAt(0) || "?"}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
                                   <p className="text-lg font-semibold">{selectedProfile.full_name || "Unnamed User"}</p>
-                                  <p className="text-sm text-muted-foreground">{selectedProfile.email}</p>
+                                  <p className="text-sm text-muted-foreground">ID: {selectedProfile.id}</p>
                                 </div>
                               </div>
                               <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <p className="text-muted-foreground">Email</p>
+                                  <p>{selectedProfile.email || "N/A"}</p>
+                                </div>
                                 <div>
                                   <p className="text-muted-foreground">Role</p>
                                   <Badge className={getRoleBadgeColor(selectedProfile.role)}>
@@ -342,12 +362,12 @@ export default function AdminAccounts() {
                                   {getVerificationBadge(selectedProfile.verification_status)}
                                 </div>
                                 <div>
-                                  <p className="text-muted-foreground">Phone</p>
-                                  <p>{selectedProfile.phone || "Not provided"}</p>
-                                </div>
-                                <div>
                                   <p className="text-muted-foreground">Joined</p>
                                   <p>{selectedProfile.created_at ? new Date(selectedProfile.created_at).toLocaleDateString() : "N/A"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground">Last Updated</p>
+                                  <p>{selectedProfile.updated_at ? new Date(selectedProfile.updated_at).toLocaleDateString() : "N/A"}</p>
                                 </div>
                               </div>
                               <div className="flex gap-2 pt-4">
