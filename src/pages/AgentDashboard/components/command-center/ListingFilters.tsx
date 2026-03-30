@@ -10,14 +10,12 @@ interface ListingFiltersProps {
 export function ListingFilters({ activeFilter, onFilterChange }: ListingFiltersProps) {
     const filters = [
         "All Listings",
+        "Active Listings",
+        "Draft Listings",
         "Student Housing",
         "Family Homes",
         "Investment",
         "Gated Communities",
-        "First-Time Buyers",
-        "Luxury Living",
-        "Warehouses",
-        "Mixed-Use"
     ];
 
     const types = [

@@ -4,38 +4,39 @@ import { Plus, Loader2, Sparkles } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { ListingHealthStats } from "./components/command-center/ListingHealthStats";
 import { ListingFilters } from "./components/command-center/ListingFilters";
 import { ListingCommandItem } from "./components/command-center/ListingCommandItem";
 import { EmptyListingState } from "./components/command-center/EmptyListingState";
-import { AddListingModal } from "./components/add-listing-modal/AddListingModal";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+
+const AddListingModal = lazy(() => import("./components/add-listing-modal/AddListingModal").then(module => ({ default: module.AddListingModal })));
 
 export default function MyListings() {
   const { user } = useAuth();
   const [activeFilter, setActiveFilter] = useState("All Listings");
   const [isAddListingOpen, setIsAddListingOpen] = useState(false);
 
-  const { data: listings, isLoading } = useQuery({
+  const { data: listings, isLoading, error } = useQuery({
     queryKey: ["agent-listings", user?.id],
     queryFn: async () => {
-      // Return null on error to trigger fallback to mock data
+      if (!user) return [];
       try {
         const { data, error } = await supabase
           .from("agent_listings")
           .select("*")
-          .eq("agent_id", user?.id)
+          .eq("agent_id", user.id)
           .order("created_at", { ascending: false });
 
         if (error) {
-          console.error("Supabase error:", error);
-          return null;
+          console.warn("Supabase error (using empty list):", error.message);
+          return [];
         }
-        return data;
+        return data || [];
       } catch (err) {
         console.error("Fetch error:", err);
-        return null;
+        return [];
       }
     },
     enabled: !!user,
@@ -49,21 +50,25 @@ export default function MyListings() {
     );
   }
 
-  // Use real listings from database
+  // Use listings from database
   const displayListings = listings || [];
   
   // Filter logic
   const filteredListings = activeFilter === "All Listings" 
     ? displayListings 
-    : activeFilter === "Active" 
+    : activeFilter === "Active Listings" 
       ? displayListings.filter((l: any) => l.status === 'approved')
-      : activeFilter === "Draft" 
+      : activeFilter === "Draft Listings" 
         ? displayListings.filter((l: any) => l.status === 'draft')
         : displayListings;
 
   return (
     <div className="space-y-8">
-      <AddListingModal open={isAddListingOpen} onOpenChange={setIsAddListingOpen} />
+      {isAddListingOpen && (
+        <Suspense fallback={<div className="p-4">Loading...</div>}>
+          <AddListingModal open={isAddListingOpen} onOpenChange={setIsAddListingOpen} />
+        </Suspense>
+      )}
 
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

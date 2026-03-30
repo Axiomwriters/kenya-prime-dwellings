@@ -159,17 +159,28 @@ export function AgentSidebar({ onNavigate, isMobileOpen = false, onMobileToggle 
   const fetchCounts = async () => {
     if (!user) return;
     try {
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from("profiles")
         .select("pending_listings_count, unread_notifications_count")
         .eq("id", user.id)
         .single();
+      
+      if (error) {
+        // Columns might not exist yet, use fallback
+        console.warn("Profile counts not available:", error.message);
+        setPendingCount(0);
+        setUnreadCount(0);
+        return;
+      }
+      
       if (profile) {
         setPendingCount(profile.pending_listings_count || 0);
         setUnreadCount(profile.unread_notifications_count || 0);
       }
     } catch (error) {
       console.error("Error fetching counts:", error);
+      setPendingCount(0);
+      setUnreadCount(0);
     }
   };
 

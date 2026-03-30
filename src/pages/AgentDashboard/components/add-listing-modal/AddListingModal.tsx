@@ -1,10 +1,16 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { useState, useEffect, useRef } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
 import { ListingTypePicker } from "./ListingTypePicker";
-import { ListingDetailsForm } from "./ListingDetailsForm";
 import { ListingMediaForm } from "./ListingMediaForm";
-import { ChevronLeft, Check, Loader2 } from "lucide-react";
+import { MapPicker } from "@/components/ui/map-picker";
+import { ChevronLeft, Check, Loader2, Save, MapPin, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadPropertyImage } from "@/utils/upload";
@@ -12,228 +18,378 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
 interface AddListingModalProps {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export type ListingCategory = 'house' | 'apartment' | 'villa' | 'bungalow' | 'townhouse' | 'cottage' | 
+  'land' | 'residential_plot' | 'commercial_land' | 'agricultural' | 'industrial' | 'commercial';
+export type ListingType = 'sale' | 'rent' | 'lease';
+
+interface FormData {
+  listing_type: ListingType;
+  category: ListingCategory;
+  title: string;
+  price: string;
+  location: string;
+  area: string;
+  bedrooms: string;
+  bathrooms: string;
+  amenities: string[];
+  description: string;
+  size: string;
+  furnishing: string;
+  parking: string;
+  pets_allowed: boolean;
+  pinned: boolean;
+  latitude: number | null;
+  longitude: number | null;
+  video_url: string;
+  year_built: string;
+  floor: string;
+  unit_number: string;
+  zoning: string;
+}
+
+const HOUSE_AMENITIES = [
+  "Parking", "Garden", "Pool", "Gym", "Security", "CCTV", "Backup Generator", 
+  "Borehole", "Water Tank", "Solar Panels", "Air Conditioning", "Fireplace",
+  "Balcony", "Terrace", "Servant Quarters", "Guest House", "Electric Fence"
+];
+
+const LAND_AMENITIES = [
+  "Water", "Electricity", "Perimeter Wall", "Fenced", "Gated Community", 
+  "Surveyed", "Title Deed", "Paved Access", "Drilled Well"
+];
+
+const initialFormData: FormData = {
+  listing_type: 'sale',
+  category: 'house',
+  title: '',
+  price: '',
+  location: '',
+  area: '',
+  bedrooms: '',
+  bathrooms: '',
+  amenities: [],
+  description: '',
+  size: '',
+  furnishing: 'unfurnished',
+  parking: 'none',
+  pets_allowed: false,
+  pinned: false,
+  latitude: null,
+  longitude: null,
+  video_url: '',
+  year_built: '',
+  floor: '',
+  unit_number: '',
+  zoning: ''
+};
+
+function ListingDetailsFormSimple({ 
+  formData, 
+  handleChange, 
+  listingType,
+  onOpenMap
+}: { 
+  formData: FormData; 
+  handleChange: (field: string, value: any) => void;
+  listingType: string;
+  onOpenMap: () => void;
+}) {
+  const amenities = listingType === 'land' ? LAND_AMENITIES : HOUSE_AMENITIES;
+  const selectedAmenities = formData.amenities || [];
+
+  return (
+    <div className="space-y-6 py-2">
+      <div className="space-y-2">
+        <Label>Property Title *</Label>
+        <Input
+          placeholder="e.g. Modern 3-Bedroom Apartment in Kilimani"
+          value={formData.title}
+          onChange={(e) => handleChange('title', e.target.value)}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Price (KSh) *</Label>
+          <Input
+            type="number"
+            placeholder="e.g. 15000000"
+            value={formData.price}
+            onChange={(e) => handleChange('price', e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Location *</Label>
+          <div className="flex gap-2">
+            <Input
+              placeholder="e.g. Kilimani, Nairobi"
+              value={formData.location}
+              onChange={(e) => handleChange('location', e.target.value)}
+              className="flex-1"
+            />
+            <Button 
+              variant="outline" 
+              size="icon" 
+              title="Pin Location" 
+              type="button" 
+              onClick={onOpenMap}
+              className={formData.pinned ? "border-green-500 text-green-600" : ""}
+            >
+              <MapPin className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Area / Neighborhood</Label>
+        <Input
+          placeholder="e.g. near UN Headquarter"
+          value={formData.area}
+          onChange={(e) => handleChange('area', e.target.value)}
+        />
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label>Bedrooms</Label>
+          <Input type="number" placeholder="3" value={formData.bedrooms} onChange={(e) => handleChange('bedrooms', e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <Label>Bathrooms</Label>
+          <Input type="number" placeholder="2" value={formData.bathrooms} onChange={(e) => handleChange('bathrooms', e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <Label>Size (sqm)</Label>
+          <Input placeholder="150" value={formData.size} onChange={(e) => handleChange('size', e.target.value)} />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Amenities</Label>
+        <div className="flex flex-wrap gap-2">
+          {amenities.map((amenity: string) => (
+            <Button
+              key={amenity}
+              variant={selectedAmenities.includes(amenity) ? "default" : "outline"}
+              size="sm"
+              className="h-8"
+              onClick={() => {
+                if (selectedAmenities.includes(amenity)) {
+                  handleChange('amenities', selectedAmenities.filter((a: string) => a !== amenity));
+                } else {
+                  handleChange('amenities', [...selectedAmenities, amenity]);
+                }
+              }}
+            >
+              {amenity}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Description</Label>
+        <Textarea
+          placeholder="Describe the property..."
+          className="h-24"
+          value={formData.description}
+          onChange={(e) => handleChange('description', e.target.value)}
+        />
+      </div>
+    </div>
+  );
 }
 
 export function AddListingModal({ open, onOpenChange }: AddListingModalProps) {
-    const [step, setStep] = useState(0);
-    const [isLoading, setIsLoading] = useState(false);
-    const { toast } = useToast();
-    const { user } = useAuth();
-    const navigate = useNavigate();
+  const [step, setStep] = useState(0);
+  const [isMapStep, setIsMapStep] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [images, setImages] = useState<{file: File; preview: string; status: 'pending' | 'uploading' | 'uploaded' | 'error'; url?: string}[]>([]);
+  const [isDirty, setIsDirty] = useState(false);
+  
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
-    // Form Data
-    const [formData, setFormData] = useState({
-        listing_type: 'sale',
-        category: 'house',
-        title: '',
-        price: '',
-        location: '',
-        bedrooms: '',
-        bathrooms: '',
-        amenities: '',
-        description: '',
-        size: '',
-        pinned: false
-    });
+  const selectedTypeGroup = formData.category === 'land' ? 'land' : 'house';
+  const minPhotos = selectedTypeGroup === 'land' ? 5 : 7;
 
-    // Validation
-    const isDetailsValid = formData.title && formData.price && formData.location;
+  const handleDataChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    setIsDirty(true);
+  };
 
-    const [images, setImages] = useState<File[]>([]);
-    const [previews, setPreviews] = useState<string[]>([]);
+  const handleTypeSelect = (typeId: string) => {
+    let category: ListingCategory = 'house';
+    if (typeId === 'land') category = 'land';
+    handleDataChange('category', category);
+    setStep(1);
+  };
 
-    // Determine type for logic
-    const selectedTypeGroup = formData.category === 'land' || formData.category.includes('plot') ? 'land' : 'house';
-    const minPhotos = selectedTypeGroup === 'land' ? 5 : 7;
-    const isMediaValid = images.length >= minPhotos;
+  const handleImagesChange = (newFiles: File[]) => {
+    const newImages = newFiles.map(file => ({
+      file,
+      preview: URL.createObjectURL(file),
+      status: 'pending' as const
+    }));
+    setImages(prev => [...prev, ...newImages]);
+    setIsDirty(true);
+  };
 
-    const handleDataChange = (field: string, value: any) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-    };
+  const handleRemoveImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+    setIsDirty(true);
+  };
 
-    const handleTypeSelect = (typeId: string) => {
-        // Map type picker ID to category defaults
-        let category = 'house';
-        if (typeId === 'land') category = 'land';
-        if (typeId === 'commercial') category = 'commercial';
+  const handleSubmit = async () => {
+    if (!user) return;
+    if (!formData.title || !formData.price || !formData.location) {
+      toast({ title: "Missing fields", description: "Please fill all required fields", variant: "destructive" });
+      return;
+    }
 
-        setFormData(prev => ({ ...prev, category }));
-        setStep(1);
-    };
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.from("agent_listings").insert({
+        agent_id: user.id,
+        title: formData.title,
+        description: formData.description || '',
+        category: formData.category,
+        listing_type: formData.listing_type,
+        price: Number(formData.price),
+        location: formData.location,
+        area: formData.area || null,
+        bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
+        bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
+        land_size: formData.size || null,
+        amenities: formData.amenities,
+        images: [],
+        status: 'approved'
+      });
 
-    const handleImagesChange = (newFiles: File[]) => {
-        const updatedFiles = [...images, ...newFiles];
-        const newPreviews = newFiles.map(file => URL.createObjectURL(file));
-        setImages(updatedFiles);
-        setPreviews([...previews, ...newPreviews]);
-    };
+      if (error) throw error;
 
-    const handleRemoveImage = (index: number) => {
-        setImages(prev => prev.filter((_, i) => i !== index));
-        setPreviews(prev => prev.filter((_, i) => i !== index));
-    };
+      toast({ title: "Success!", description: "Listing created" });
+      setFormData(initialFormData);
+      setImages([]);
+      setStep(0);
+      onOpenChange(false);
+      navigate('/agent/listings');
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    const handleSubmit = async () => {
-        if (!user) {
-            toast({
-                title: "Error",
-                description: "You must be logged in to create a listing",
-                variant: "destructive"
-            });
-            return;
-        }
+  const openDialog = open || isMapStep;
 
-        if (!isDetailsValid) {
-            toast({
-                title: "Error",
-                description: "Please fill in all required fields",
-                variant: "destructive"
-            });
-            return;
-        }
+  const handleDialogChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      setIsMapStep(false);
+      onOpenChange(false);
+    }
+  };
 
-        if (!isMediaValid) {
-            toast({
-                title: "Error",
-                description: `Please upload at least ${minPhotos} photos`,
-                variant: "destructive"
-            });
-            return;
-        }
+  return (
+    <Dialog open={openDialog} onOpenChange={handleDialogChange}>
+      <DialogContent className={isMapStep ? "max-w-2xl max-h-[95vh] overflow-hidden p-0" : "max-w-4xl max-h-[90vh] overflow-y-auto"}>
+        {isMapStep ? (
+          <>
+            <DialogHeader className="p-4 pb-2 flex flex-row items-center justify-between">
+              <DialogTitle>Pin Exact Location</DialogTitle>
+              <Button variant="ghost" size="icon" onClick={() => setIsMapStep(false)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </DialogHeader>
+            <div className="p-4 pt-0">
+              <MapPicker 
+                lat={formData.latitude || -1.2921} 
+                lng={formData.longitude || 36.8219}
+                autoLocate={true}
+                onLocationChange={(lat, lng) => {
+                  handleDataChange('latitude', lat);
+                  handleDataChange('longitude', lng);
+                  handleDataChange('pinned', true);
+                }}
+              />
+              <p className="text-sm text-muted-foreground mt-3">
+                {formData.latitude && formData.longitude 
+                  ? `Selected: ${formData.latitude.toFixed(5)}, ${formData.longitude.toFixed(5)}`
+                  : "Click on the map to pin the location"}
+              </p>
+            </div>
+            <div className="p-4 pt-2 flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => setIsMapStep(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => setIsMapStep(false)}>
+                Done
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>
+                {step === 0 ? "What are you listing?" : step === 1 ? "Property Details" : "Media"}
+              </DialogTitle>
+            </DialogHeader>
 
-        setIsLoading(true);
-        try {
-            // Upload images first
-            const imageUrls = await Promise.all(
-                images.map(file => uploadPropertyImage(file))
-            );
+            <div className="min-h-[300px]">
+              {step === 0 && (
+                <ListingTypePicker
+                  selectedType={selectedTypeGroup}
+                  onSelect={handleTypeSelect}
+                />
+              )}
+          {step === 1 && (
+            <ListingDetailsFormSimple
+              formData={formData}
+              handleChange={handleDataChange}
+              listingType={selectedTypeGroup}
+              onOpenMap={() => setIsMapStep(true)}
+            />
+          )}
+              {step === 2 && (
+                <ListingMediaForm
+                  images={images}
+                  previews={images.map(img => img.preview)}
+                  onImagesChange={handleImagesChange}
+                  onRemoveImage={handleRemoveImage}
+                  listingType={selectedTypeGroup}
+                  isUploading={isUploading}
+                  uploadProgress={uploadProgress}
+                />
+              )}
+            </div>
 
-            // Parse amenities into array
-            const amenitiesArray = formData.amenities 
-                ? formData.amenities.split(',').map((s: string) => s.trim()).filter(Boolean)
-                : [];
-
-            // Create listing
-            const { error } = await supabase.from("agent_listings").insert({
-                agent_id: user.id,
-                title: formData.title,
-                description: formData.description || '',
-                price: Number(formData.price),
-                location: formData.location,
-                listing_type: formData.listing_type,
-                category: formData.category,
-                images: imageUrls,
-                bedrooms: formData.bedrooms ? Number(formData.bedrooms) : null,
-                bathrooms: formData.bathrooms ? Number(formData.bathrooms) : null,
-                land_size: formData.size || null,
-                amenities: amenitiesArray,
-                status: 'approved'
-            });
-
-            if (error) throw error;
-
-            toast({
-                title: "Listing Published! 🎉",
-                description: "Your property is now live.",
-            });
-
-            onOpenChange(false);
-            // Reset for next time
-            setStep(0);
-            setImages([]);
-            setPreviews([]);
-            setFormData({
-                listing_type: 'sale',
-                category: 'house',
-                title: '',
-                price: '',
-                location: '',
-                bedrooms: '',
-                bathrooms: '',
-                amenities: '',
-                description: '',
-                size: '',
-                pinned: false
-            });
-            
-            // Navigate to listings page to see the new listing
-            navigate('/agent/listings');
-        } catch (error: any) {
-            console.error("Error creating listing:", error);
-            toast({
-                title: "Error",
-                description: error.message || "Failed to create listing",
-                variant: "destructive"
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto sm:h-auto">
-                <DialogHeader>
-                    <div className="flex items-center gap-2">
-                        {step > 0 && (
-                            <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2" onClick={() => setStep(step - 1)}>
-                                <ChevronLeft className="w-4 h-4" />
-                            </Button>
-                        )}
-                        <DialogTitle>
-                            {step === 0 ? "What are you listing?" : step === 1 ? "Property Details" : "Media & Quality"}
-                        </DialogTitle>
-                    </div>
-                    <DialogDescription>
-                        {step === 0 ? "Choose the property type to get started." : step === 1 ? "tell us about the key features." : "Add high-quality photos to boost ranking."}
-                    </DialogDescription>
-                </DialogHeader>
-
-                <div className="min-h-[300px]">
-                    {step === 0 && (
-                        <ListingTypePicker
-                            selectedType={selectedTypeGroup}
-                            onSelect={handleTypeSelect}
-                        />
-                    )}
-                    {step === 1 && (
-                        <ListingDetailsForm
-                            formData={formData}
-                            handleChange={handleDataChange}
-                            listingType={selectedTypeGroup}
-                        />
-                    )}
-                    {step === 2 && (
-                        <ListingMediaForm
-                            images={images}
-                            previews={previews}
-                            onImagesChange={handleImagesChange}
-                            onRemoveImage={handleRemoveImage}
-                            listingType={selectedTypeGroup}
-                        />
-                    )}
-                </div>
-
-                {step > 0 && (
-                    <DialogFooter className="gap-2 sm:gap-0">
-                        {step === 1 ? (
-                            <Button onClick={() => setStep(2)} disabled={!isDetailsValid}>
-                                Continue to Photos
-                            </Button>
-                        ) : (
-                            <div className="flex gap-2 w-full justify-end">
-                                <Button variant="secondary" onClick={() => onOpenChange(false)} disabled={isLoading}>Save Draft</Button>
-                                <Button onClick={handleSubmit} disabled={isLoading} className="gap-2">
-                                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                                    Publish Listing
-                                </Button>
-                            </div>
-                        )}
-                    </DialogFooter>
+            {step > 0 && (
+              <DialogFooter>
+                {step === 1 ? (
+                  <Button onClick={() => setStep(2)}>Continue to Photos</Button>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button variant="secondary" onClick={() => setStep(1)}>Back</Button>
+                    <Button onClick={handleSubmit} disabled={isLoading} className="gap-2">
+                      {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                      Publish
+                    </Button>
+                  </div>
                 )}
-            </DialogContent>
-        </Dialog>
-    );
+              </DialogFooter>
+            )}
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
 }
