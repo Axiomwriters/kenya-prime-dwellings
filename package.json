@@ -11,6 +11,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "leaflet": "^1.9.4",
+    "@types/leaflet": "^1.9.12",
     "@clerk/clerk-react": "^5.61.1",
     "@clerk/react-router": "^2.4.8",
     "@hookform/resolvers": "^3.10.0",
