@@ -1,4 +1,4 @@
--- Create performance indexes for agent_listings
+-- Create performance indexes for agent_listings (conditional)
 CREATE INDEX IF NOT EXISTS idx_agent_listings_category ON agent_listings(category);
 CREATE INDEX IF NOT EXISTS idx_agent_listings_listing_type ON agent_listings(listing_type);
 CREATE INDEX IF NOT EXISTS idx_agent_listings_price ON agent_listings(price);
