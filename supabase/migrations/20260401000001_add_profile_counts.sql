@@ -2,7 +2,7 @@
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pending_listings_count int DEFAULT 0;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS unread_notifications_count int DEFAULT 0;
 
--- Create function to update profile counts when listings change
+-- Create function to update profile counts
 DROP FUNCTION IF EXISTS update_profile_listing_count();
 
 CREATE FUNCTION update_profile_listing_count()
@@ -18,7 +18,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create trigger to update counts
+-- Trigger
 DROP TRIGGER IF EXISTS trigger_update_profile_listing_count ON agent_listings;
 
 CREATE TRIGGER trigger_update_profile_listing_count
