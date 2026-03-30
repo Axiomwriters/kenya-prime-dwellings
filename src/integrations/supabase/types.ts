@@ -33,6 +33,9 @@ export type Database = {
           price: number
           published_at: string | null
           rejection_reason: string | null
+          saves_count: number | null
+          inquiries_count: number | null
+          view_count_30d: number | null
           status: Database["public"]["Enums"]["listing_status"] | null
           title: string
           updated_at: string | null
@@ -56,6 +59,9 @@ export type Database = {
           price: number
           published_at?: string | null
           rejection_reason?: string | null
+          saves_count?: number | null
+          inquiries_count?: number | null
+          view_count_30d?: number | null
           status?: Database["public"]["Enums"]["listing_status"] | null
           title: string
           updated_at?: string | null

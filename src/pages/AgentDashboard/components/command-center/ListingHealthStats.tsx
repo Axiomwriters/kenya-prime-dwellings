@@ -1,6 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Eye, MessageSquare, AlertTriangle, CheckCircle2, CircleDashed } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { TrendingUp, TrendingDown, Eye, MessageSquare, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { Loader2 } from "lucide-react";
 
 interface StatProps {
     title: string;
@@ -46,41 +50,104 @@ function StatCard({ title, value, subtext, trend, trendValue, icon: Icon, color 
 }
 
 export function ListingHealthStats() {
+    const { user } = useAuth();
+
+    const { data: stats, isLoading } = useQuery({
+        queryKey: ["listing-stats", user?.id],
+        queryFn: async () => {
+            if (!user) return null;
+            
+            // Get all listings for this agent
+            const { data: listings, error } = await supabase
+                .from("agent_listings")
+                .select("id, status, view_count, saves_count, inquiries_count, images, description, price, location, amenities")
+                .eq("agent_id", user.id);
+
+            if (error || !listings) {
+                console.error("Error fetching stats:", error);
+                return null;
+            }
+
+            // Calculate stats
+            const activeListings = listings.filter(l => l.status === 'approved');
+            const draftListings = listings.filter(l => l.status === 'draft');
+            const totalViews = listings.reduce((sum, l) => sum + (l.view_count || 0), 0);
+            const totalSaves = listings.reduce((sum, l) => sum + (l.saves_count || 0), 0);
+            const totalInquiries = listings.reduce((sum, l) => sum + (l.inquiries_count || 0), 0);
+
+            // Calculate listings needing attention (low images, no description, etc.)
+            const needsAttention = listings.filter(l => {
+                const hasFewImages = !l.images || l.images.length < 3;
+                const hasNoDescription = !l.description || l.description.length < 50;
+                return hasFewImages || hasNoDescription;
+            }).length;
+
+            return {
+                activeCount: activeListings.length,
+                draftCount: draftListings.length,
+                totalViews,
+                totalSaves,
+                totalInquiries,
+                needsAttention,
+                listingCount: listings.length
+            };
+        },
+        enabled: !!user
+    });
+
+    if (isLoading) {
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[...Array(4)].map((_, i) => (
+                    <Card key={i} className="hover:shadow-md transition-all border-border/50">
+                        <CardContent className="p-6 flex items-center justify-center min-h-[120px]">
+                            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        );
+    }
+
+    const avgViews = stats && stats.listingCount > 0 
+        ? Math.round(stats.totalViews / stats.listingCount) 
+        : 0;
+
+    const inquiryRate = stats && stats.totalViews > 0 
+        ? ((stats.totalInquiries / stats.totalViews) * 100).toFixed(1) 
+        : "0.0";
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
                 title="Active Listings"
-                value="12"
-                subtext="3 drafts pending"
-                trend="up"
-                trendValue="+2"
+                value={stats?.activeCount || 0}
+                subtext={`${stats?.draftCount || 0} drafts pending`}
+                trend={stats && stats.activeCount > 0 ? "up" : undefined}
+                trendValue={stats && stats.activeCount > 0 ? `+${stats.activeCount}` : undefined}
                 icon={CheckCircle2}
                 color="bg-green-100 text-green-700"
             />
             <StatCard
-                title="Total Views (30d)"
-                value="2.4k"
-                subtext="Avg 200 per listing"
-                trend="up"
-                trendValue="+12.5%"
+                title="Total Views (All Time)"
+                value={stats?.totalViews || 0}
+                subtext={`Avg ${avgViews} per listing`}
                 icon={Eye}
                 color="bg-blue-100 text-blue-700"
             />
             <StatCard
-                title="Inquiry Rate"
-                value="3.8%"
-                subtext="4 Active Deals"
-                trend="down"
-                trendValue="-0.5%"
+                title="Total Inquiries"
+                value={stats?.totalInquiries || 0}
+                subtext={`${stats?.totalSaves || 0} saves`}
                 icon={MessageSquare}
                 color="bg-purple-100 text-purple-700"
             />
             <StatCard
                 title="Action Required"
-                value="3"
-                subtext="Optimize to boost reach"
+                value={stats?.needsAttention || 0}
+                subtext={stats?.needsAttention ? "Improve listings" : "All good!"}
                 icon={AlertTriangle}
-                color="bg-amber-100 text-amber-700"
+                color={stats?.needsAttention ? "bg-amber-100 text-amber-700" : "bg-green-100 text-green-700"}
             />
         </div>
     );

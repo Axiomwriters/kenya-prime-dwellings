@@ -6,6 +6,10 @@ import { ListingDetailsForm } from "./ListingDetailsForm";
 import { ListingMediaForm } from "./ListingMediaForm";
 import { ChevronLeft, Check, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { uploadPropertyImage } from "@/utils/upload";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 interface AddListingModalProps {
     open: boolean;
@@ -16,6 +20,8 @@ export function AddListingModal({ open, onOpenChange }: AddListingModalProps) {
     const [step, setStep] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
+    const { user } = useAuth();
+    const navigate = useNavigate();
 
     // Form Data
     const [formData, setFormData] = useState({
@@ -32,11 +38,16 @@ export function AddListingModal({ open, onOpenChange }: AddListingModalProps) {
         pinned: false
     });
 
+    // Validation
+    const isDetailsValid = formData.title && formData.price && formData.location;
+
     const [images, setImages] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
 
     // Determine type for logic
     const selectedTypeGroup = formData.category === 'land' || formData.category.includes('plot') ? 'land' : 'house';
+    const minPhotos = selectedTypeGroup === 'land' ? 5 : 7;
+    const isMediaValid = images.length >= minPhotos;
 
     const handleDataChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -65,20 +76,100 @@ export function AddListingModal({ open, onOpenChange }: AddListingModalProps) {
     };
 
     const handleSubmit = async () => {
+        if (!user) {
+            toast({
+                title: "Error",
+                description: "You must be logged in to create a listing",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        if (!isDetailsValid) {
+            toast({
+                title: "Error",
+                description: "Please fill in all required fields",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        if (!isMediaValid) {
+            toast({
+                title: "Error",
+                description: `Please upload at least ${minPhotos} photos`,
+                variant: "destructive"
+            });
+            return;
+        }
+
         setIsLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            setIsLoading(false);
-            onOpenChange(false);
+        try {
+            // Upload images first
+            const imageUrls = await Promise.all(
+                images.map(file => uploadPropertyImage(file))
+            );
+
+            // Parse amenities into array
+            const amenitiesArray = formData.amenities 
+                ? formData.amenities.split(',').map((s: string) => s.trim()).filter(Boolean)
+                : [];
+
+            // Create listing
+            const { error } = await supabase.from("agent_listings").insert({
+                agent_id: user.id,
+                title: formData.title,
+                description: formData.description || '',
+                price: Number(formData.price),
+                location: formData.location,
+                listing_type: formData.listing_type,
+                category: formData.category,
+                images: imageUrls,
+                bedrooms: formData.bedrooms ? Number(formData.bedrooms) : null,
+                bathrooms: formData.bathrooms ? Number(formData.bathrooms) : null,
+                land_size: formData.size || null,
+                amenities: amenitiesArray,
+                status: 'approved'
+            });
+
+            if (error) throw error;
+
             toast({
                 title: "Listing Published! 🎉",
-                description: "AI is now optimizing it for maximum visibility.",
+                description: "Your property is now live.",
             });
+
+            onOpenChange(false);
             // Reset for next time
             setStep(0);
             setImages([]);
             setPreviews([]);
-        }, 1500);
+            setFormData({
+                listing_type: 'sale',
+                category: 'house',
+                title: '',
+                price: '',
+                location: '',
+                bedrooms: '',
+                bathrooms: '',
+                amenities: '',
+                description: '',
+                size: '',
+                pinned: false
+            });
+            
+            // Navigate to listings page to see the new listing
+            navigate('/agent/listings');
+        } catch (error: any) {
+            console.error("Error creating listing:", error);
+            toast({
+                title: "Error",
+                description: error.message || "Failed to create listing",
+                variant: "destructive"
+            });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -128,7 +219,7 @@ export function AddListingModal({ open, onOpenChange }: AddListingModalProps) {
                 {step > 0 && (
                     <DialogFooter className="gap-2 sm:gap-0">
                         {step === 1 ? (
-                            <Button onClick={() => setStep(2)}>
+                            <Button onClick={() => setStep(2)} disabled={!isDetailsValid}>
                                 Continue to Photos
                             </Button>
                         ) : (

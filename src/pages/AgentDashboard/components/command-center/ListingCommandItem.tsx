@@ -34,12 +34,28 @@ export function ListingCommandItem({ listing }: ListingCommandItemProps) {
         setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
     };
 
-    // Mock metrics for command center visualization (or use listing data if available)
+    // Use real metrics from database, calculate health score based on listing quality
+    const imagesCount = listing.images?.length || 0;
+    const hasDescription = listing.description && listing.description.length > 50;
+    const hasPrice = listing.price && listing.price > 0;
+    const hasLocation = listing.location && listing.location.length > 0;
+    
+    // Calculate health score based on listing completeness
+    let healthScore = 0;
+    if (imagesCount >= 5) healthScore += 30;
+    else if (imagesCount >= 3) healthScore += 20;
+    else if (imagesCount >= 1) healthScore += 10;
+    
+    if (hasDescription) healthScore += 25;
+    if (hasPrice) healthScore += 20;
+    if (hasLocation) healthScore += 15;
+    if (listing.amenities && listing.amenities.length > 0) healthScore += 10;
+
     const metrics = {
-        views_7d: listing.views || Math.floor(Math.random() * 500) + 50,
-        saves: listing.saves || Math.floor(Math.random() * 50),
-        inquiries: listing.inquiries || Math.floor(Math.random() * 10),
-        health_score: listing.health_score || Math.floor(Math.random() * 100),
+        views_7d: listing.view_count || 0,
+        saves: listing.saves_count || 0,
+        inquiries: listing.inquiries_count || 0,
+        health_score: healthScore,
     };
 
     const getHealthColor = (score: number) => {
@@ -94,7 +110,7 @@ export function ListingCommandItem({ listing }: ListingCommandItemProps) {
 
                 <div className="absolute top-2 left-2">
                     <Badge variant="secondary" className="backdrop-blur-md bg-black/50 text-white border-0 text-xs font-semibold">
-                        {listing.status || 'Active'}
+                        {listing.status === 'approved' ? 'Active' : listing.status === 'draft' ? 'Draft' : listing.status === 'pending' ? 'Pending' : listing.status || 'Active'}
                     </Badge>
                 </div>
 
@@ -136,11 +152,11 @@ export function ListingCommandItem({ listing }: ListingCommandItemProps) {
 
                     {/* Badges/Tags */}
                     <div className="flex flex-wrap gap-2 mt-3">
-                        <Badge variant="outline" className="text-xs bg-primary/5 border-primary/20 text-primary">
+                        <Badge variant="outline" className="text-xs bg-primary/5 border-primary/20 text-primary capitalize">
                             {listing.category || 'House'}
                         </Badge>
-                        <Badge variant="outline" className="text-xs">
-                            {listing.listing_type || 'Sale'}
+                        <Badge variant="outline" className="text-xs capitalize">
+                            {listing.listing_type === 'sale' ? 'For Sale' : listing.listing_type === 'rent' ? 'For Rent' : listing.listing_type || 'Sale'}
                         </Badge>
                         {/* AI Insight Chip */}
                         {metrics.health_score < 60 && (
