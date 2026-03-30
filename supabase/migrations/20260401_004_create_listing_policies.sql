@@ -1,5 +1,15 @@
 -- Create Row Level Security policies for agent_listings
--- First drop existing policies
+-- Check if table and columns exist first
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'agent_listings') THEN
+        RAISE NOTICE 'Table agent_listings does not exist. Skipping policies.';
+        RETURN;
+    END IF;
+END $$;
+
+-- Drop existing policies
 DROP POLICY IF EXISTS "Agents can view own listings" ON agent_listings;
 DROP POLICY IF EXISTS "Agents can insert own listings" ON agent_listings;
 DROP POLICY IF EXISTS "Agents can update own listings" ON agent_listings;
