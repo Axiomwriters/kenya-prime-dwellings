@@ -1,4 +1,4 @@
--- Step 5: Create trigger function
+-- Create trigger to auto-set listing expiry date
 DROP FUNCTION IF EXISTS set_listing_expiry();
 
 CREATE FUNCTION set_listing_expiry()
@@ -11,14 +11,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-SELECT 'Step 5a: Function created' as status;
-
--- Step 5b: Create trigger
 DROP TRIGGER IF EXISTS set_listing_expiry_trigger ON agent_listings;
 
 CREATE TRIGGER set_listing_expiry_trigger
     BEFORE INSERT ON agent_listings
     FOR EACH ROW
     EXECUTE FUNCTION set_listing_expiry();
-
-SELECT 'Step 5b: Trigger created' as status;

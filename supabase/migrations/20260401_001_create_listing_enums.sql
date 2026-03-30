@@ -1,4 +1,4 @@
--- Step 1: Create enum types
+-- Create enum types for listings
 DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'listing_status') THEN
@@ -13,5 +13,3 @@ BEGIN
         CREATE TYPE listing_type AS ENUM ('sale', 'rent', 'lease');
     END IF;
 END $$;
-
-SELECT 'Step 1: Enum types created' as status;

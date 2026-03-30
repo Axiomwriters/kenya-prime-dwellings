@@ -1,4 +1,4 @@
--- Step 2: Create agent_listings table
+-- Create agent_listings table
 CREATE TABLE IF NOT EXISTS public.agent_listings (
   id uuid primary key default gen_random_uuid(),
   agent_id uuid references auth.users(id) on delete cascade not null,
@@ -41,5 +41,3 @@ CREATE TABLE IF NOT EXISTS public.agent_listings (
 );
 
 ALTER TABLE public.agent_listings ENABLE ROW LEVEL SECURITY;
-
-SELECT 'Step 2: Table created' as status;
