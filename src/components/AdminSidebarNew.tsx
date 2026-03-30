@@ -15,6 +15,7 @@ import {
   Settings,
   X,
   Crown,
+  Mail,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -22,6 +23,7 @@ const mainItems = [
   { title: "Dashboard", url: "/admin/dashboard", icon: LayoutDashboard },
   { title: "Accounts", url: "/admin/accounts", icon: Users },
   { title: "Verifications", url: "/admin/verifications", icon: Shield },
+  { title: "Email Confirmations", url: "/admin/email-confirmations", icon: Mail },
   { title: "Listings", url: "/admin/listings", icon: Home },
   { title: "Trips", url: "/admin/trips", icon: Map },
   { title: "Viewings", url: "/admin/viewings", icon: Calendar },

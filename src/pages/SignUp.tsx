@@ -9,8 +9,9 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Home, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { setSelectedRole } from '@/utils/role-selection'; // Import the utility
+import { setSelectedRole } from '@/utils/role-selection';
 import { resolveDashboard } from '@/utils/roleRedirect';
+import { supabase } from '@/integrations/supabase/client';
 
 type Step = 'role' | 'credentials' | 'verify';
 
@@ -101,11 +102,40 @@ export default function SignUpPage() {
         await setActive({ session: result.createdSessionId });
 
         const role = result.unsafeMetadata?.role as string;
+        const userEmail = result.emailAddress || email;
         console.log(`Detected role: ${role}`);
 
-        if (role === 'agent' || role === 'host') {
-          navigate(`/verification?role=${role}`, { replace: true });
+        // For agent/host/professional: send branded email then go to email-confirmation
+        if (role === 'agent' || role === 'host' || role === 'professional') {
+          try {
+            // Create session and send branded confirmation email
+            const { data: fnData, error: fnError } = await supabase.functions.invoke(
+              'send-branded-confirmation-email',
+              {
+                body: {
+                  clerk_user_id: result.createdUserId,
+                  email: userEmail,
+                  first_name: firstName || result.firstName,
+                  role: role,
+                },
+              }
+            );
+
+            if (fnError) {
+              console.error('Failed to send branded email:', fnError);
+              // Continue anyway - don't block the flow
+            } else {
+              console.log('Branded email sent:', fnData);
+            }
+          } catch (emailError) {
+            console.error('Email send error:', emailError);
+            // Continue anyway
+          }
+
+          // Redirect to email confirmation page
+          navigate(`/email-confirmation?role=${role}&email=${encodeURIComponent(userEmail)}`, { replace: true });
         } else {
+          // For tenant: go directly to dashboard
           const destination = resolveDashboard(role);
           console.log(`Redirecting → ${destination}`);
           navigate(destination, { replace: true });

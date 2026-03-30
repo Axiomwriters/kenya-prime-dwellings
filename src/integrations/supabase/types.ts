@@ -281,6 +281,54 @@ export type Database = {
         }
         Relationships: []
       }
+      email_confirmation_sessions: {
+        Row: {
+          id: string
+          clerk_user_id: string
+          email: string
+          role: "agent" | "host" | "professional"
+          confirmation_token: string
+          confirmation_link: string
+          email_sent_at: string | null
+          email_opened_at: string | null
+          clicked_at: string | null
+          status: "pending" | "sent" | "opened" | "clicked" | "expired"
+          expires_at: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          clerk_user_id: string
+          email: string
+          role: "agent" | "host" | "professional"
+          confirmation_token: string
+          confirmation_link: string
+          email_sent_at?: string | null
+          email_opened_at?: string | null
+          clicked_at?: string | null
+          status?: "pending" | "sent" | "opened" | "clicked" | "expired"
+          expires_at: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          clerk_user_id?: string
+          email?: string
+          role?: "agent" | "host" | "professional"
+          confirmation_token?: string
+          confirmation_link?: string
+          email_sent_at?: string | null
+          email_opened_at?: string | null
+          clicked_at?: string | null
+          status?: "pending" | "sent" | "opened" | "clicked" | "expired"
+          expires_at?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

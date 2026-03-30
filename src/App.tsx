@@ -69,6 +69,8 @@ const TripDetails = lazy(() => import("./pages/ShortStay/TripDetails"));
 const Unauthorized = lazy(() => import("./pages/Unauthorized"));
 const UserProfileSettings = lazy(() => import("./pages/UserProfileSettings"));
 const VerificationPage = lazy(() => import("./pages/Verification/VerificationPage"));
+const EmailConfirmation = lazy(() => import("./pages/EmailConfirmation"));
+const AdminEmailConfirmations = lazy(() => import("./pages/Admin/AdminEmailConfirmations"));
 
 const queryClient = new QueryClient();
 
@@ -88,6 +90,7 @@ function MainApp() {
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="accounts" element={<AdminAccounts />} />
               <Route path="verifications" element={<AdminVerifications />} />
+              <Route path="email-confirmations" element={<AdminEmailConfirmations />} />
               <Route path="listings" element={<AdminListings />} />
               <Route path="trips" element={<AdminTrips />} />
               <Route path="viewings" element={<AdminViewings />} />
@@ -121,6 +124,8 @@ function MainApp() {
             <Route path="/redirect" element={<RedirectPage />} />
             <Route path="/onboarding/sync" element={<SyncPage />} />
             <Route path="/verification" element={<VerificationPage />} />
+            <Route path="/email-confirmation" element={<EmailConfirmation />} />
+            <Route path="/email-confirmed" element={<EmailConfirmation />} />
 
             {/* --- Account Routes --- */}
             <Route path="/profile/settings" element={<UserProfileSettings />} />
