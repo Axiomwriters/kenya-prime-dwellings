@@ -1,0 +1,45 @@
+-- Step 2: Create agent_listings table
+CREATE TABLE IF NOT EXISTS public.agent_listings (
+  id uuid primary key default gen_random_uuid(),
+  agent_id uuid references auth.users(id) on delete cascade not null,
+  title text not null,
+  description text,
+  category property_category not null default 'house',
+  listing_type listing_type not null default 'sale',
+  price numeric not null,
+  location text not null,
+  county text,
+  city text,
+  area text,
+  bedrooms int,
+  bathrooms int,
+  land_size text,
+  amenities jsonb DEFAULT '[]'::jsonb,
+  images text[] DEFAULT '{}'::text[],
+  status listing_status default 'draft',
+  rejection_reason text,
+  view_count int default 0,
+  saves_count int default 0,
+  inquiries_count int default 0,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  published_at timestamptz,
+  year_built int,
+  floor int,
+  unit_number text,
+  furnishing text DEFAULT 'unfurnished',
+  parking text DEFAULT 'none',
+  pets_allowed boolean DEFAULT false,
+  zoning text,
+  latitude double precision,
+  longitude double precision,
+  pinned boolean DEFAULT false,
+  video_url text,
+  property_metadata jsonb DEFAULT '{}'::jsonb,
+  is_featured boolean DEFAULT false,
+  expires_at timestamptz
+);
+
+ALTER TABLE public.agent_listings ENABLE ROW LEVEL SECURITY;
+
+SELECT 'Step 2: Table created' as status;
