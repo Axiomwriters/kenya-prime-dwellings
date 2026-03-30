@@ -1,10 +1,11 @@
 -- Add missing columns to profiles table
-ALTER TABLE profiles 
-ADD COLUMN IF NOT EXISTS pending_listings_count int DEFAULT 0,
-ADD COLUMN IF NOT EXISTS unread_notifications_count int DEFAULT 0;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pending_listings_count int DEFAULT 0;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS unread_notifications_count int DEFAULT 0;
 
 -- Create function to update profile counts when listings change
-CREATE OR REPLACE FUNCTION update_profile_listing_count()
+DROP FUNCTION IF EXISTS update_profile_listing_count();
+
+CREATE FUNCTION update_profile_listing_count()
 RETURNS TRIGGER AS $$
 BEGIN
     UPDATE profiles 
@@ -19,6 +20,7 @@ $$ LANGUAGE plpgsql;
 
 -- Create trigger to update counts
 DROP TRIGGER IF EXISTS trigger_update_profile_listing_count ON agent_listings;
+
 CREATE TRIGGER trigger_update_profile_listing_count
     AFTER INSERT OR UPDATE OR DELETE ON agent_listings
     FOR EACH ROW
