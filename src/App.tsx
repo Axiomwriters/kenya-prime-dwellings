@@ -71,6 +71,7 @@ const UserProfileSettings = lazy(() => import("./pages/UserProfileSettings"));
 const VerificationPage = lazy(() => import("./pages/Verification/VerificationPage"));
 const EmailConfirmation = lazy(() => import("./pages/EmailConfirmation"));
 const AdminEmailConfirmations = lazy(() => import("./pages/Admin/AdminEmailConfirmations"));
+const OnboardingDemo = lazy(() => import("./pages/OnboardingDemo"));
 
 const queryClient = new QueryClient();
 
@@ -124,6 +125,7 @@ function MainApp() {
             <Route path="/redirect" element={<RedirectPage />} />
             <Route path="/onboarding/sync" element={<SyncPage />} />
             <Route path="/verification" element={<VerificationPage />} />
+            <Route path="/onboarding-demo" element={<OnboardingDemo />} />
             <Route path="/email-confirmation" element={<EmailConfirmation />} />
             <Route path="/email-confirmed" element={<EmailConfirmation />} />
 
