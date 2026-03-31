@@ -1,17 +1,17 @@
-
-// src/pages/SignUp.tsx — Headless Clerk with custom UI
 import { useSignUp } from '@clerk/clerk-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Home, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Home, Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { setSelectedRole } from '@/utils/role-selection';
+import { setSelectedRole, getSelectedRole } from '@/utils/role-selection';
 import { resolveDashboard } from '@/utils/roleRedirect';
 import { supabase } from '@/integrations/supabase/client';
+import { validatePassword, validateEmail } from '@/utils/validation';
+import { isValidRole, ROLE_CONFIG, AppRole } from '@/types/auth';
 
 type Step = 'role' | 'credentials' | 'verify';
 
@@ -22,47 +22,103 @@ const ROLES = [
   { value: 'professional', label: ' Professional',        desc: 'Offer property-related services' },
 ];
 
+const DEBOUNCE_MS = 300;
+
 export default function SignUpPage() {
   const { isLoaded, signUp, setActive } = useSignUp();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const roleFromQuery = searchParams.get('role');
-  const isPresetRole = roleFromQuery === 'agent' || roleFromQuery === 'host';
+  const validatedRoleFromQuery = roleFromQuery && isValidRole(roleFromQuery) ? roleFromQuery : null;
+  const isPresetRole = validatedRoleFromQuery === 'agent' || validatedRoleFromQuery === 'host';
 
   const [step, setStep] = useState<Step>(isPresetRole ? 'credentials' : 'role');
-  const [selectedRole, setRole] = useState(isPresetRole ? roleFromQuery : 'tenant');
+  const [selectedRole, setRole] = useState<AppRole>(validatedRoleFromQuery as AppRole || 'tenant');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [code, setCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [emailCheckLoading, setEmailCheckLoading] = useState(false);
+  const [emailExists, setEmailExists] = useState(false);
+  const [passwordValidation, setPasswordValidation] = useState<{
+    isValid: boolean;
+    errors: string[];
+    strength: 'weak' | 'medium' | 'strong';
+  } | null>(null);
 
   useEffect(() => {
-    if (isPresetRole) {
-      setSelectedRole(selectedRole);
+    if (isPresetRole && validatedRoleFromQuery) {
+      setSelectedRole(validatedRoleFromQuery);
     }
-  }, [isPresetRole, selectedRole]);
+  }, [isPresetRole, validatedRoleFromQuery]);
+
+  useEffect(() => {
+    if (password.length > 0) {
+      const validation = validatePassword(password);
+      setPasswordValidation(validation);
+    } else {
+      setPasswordValidation(null);
+    }
+  }, [password]);
+
+  const checkEmailExists = useCallback(async (emailToCheck: string) => {
+    if (!emailToCheck || !validateEmail(emailToCheck)) return;
+    
+    setEmailCheckLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('email', emailToCheck.toLowerCase())
+        .maybeSingle();
+      
+      setEmailExists(!!data);
+    } catch (err) {
+      console.error('Email check error:', err);
+    } finally {
+      setEmailCheckLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (email) checkEmailExists(email);
+    }, DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [email, checkEmailExists]);
 
   const handleRoleContinue = () => {
-    setSelectedRole(selectedRole); // Use the utility
+    if (!selectedRole || !isValidRole(selectedRole)) {
+      toast.error('Please select a valid role');
+      return;
+    }
+    setSelectedRole(selectedRole);
     setStep('credentials');
   };
 
   const handleGoogleSignUp = async () => {
     if (!isLoaded) return;
+    if (!selectedRole || !isValidRole(selectedRole)) {
+      toast.error('Please select a role first');
+      return;
+    }
     setLoading(true);
     try {
-      setSelectedRole(selectedRole); // Use the utility
+      setSelectedRole(selectedRole);
       await signUp.authenticateWithRedirect({
         strategy: 'oauth_google',
         redirectUrl: `${window.location.origin}/sso-callback`,
         redirectUrlComplete: '/onboarding/sync',
       });
-    } catch (err: any) {
-      toast.error(err.errors?.[0]?.message ?? 'Google sign-up failed');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Google sign-up failed';
+      const clerkError = err as { errors?: { message: string }[] };
+      toast.error(clerkError.errors?.[0]?.message ?? errorMessage);
       setLoading(false);
     }
   };
@@ -70,12 +126,43 @@ export default function SignUpPage() {
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isLoaded) return;
+
+    if (!firstName.trim() || !lastName.trim()) {
+      toast.error('Please enter your full name');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    if (!passwordValidation || !passwordValidation.isValid) {
+      toast.error(passwordValidation?.errors?.[0] || 'Password does not meet requirements');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    if (emailExists) {
+      toast.error('An account with this email already exists. Please sign in.');
+      return;
+    }
+
+    if (!selectedRole || !isValidRole(selectedRole)) {
+      toast.error('Invalid role selected');
+      return;
+    }
+
     setLoading(true);
     try {
       await signUp.create({
-        firstName,
-        lastName,
-        emailAddress: email,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        emailAddress: email.toLowerCase().trim(),
         password,
         unsafeMetadata: {
           role: selectedRole,
@@ -85,8 +172,9 @@ export default function SignUpPage() {
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
       toast.success('Verification code sent to your email!');
       setStep('verify');
-    } catch (err: any) {
-      toast.error(err.errors?.[0]?.message ?? 'Sign-up failed. Please try again.');
+    } catch (err: unknown) {
+      const clerkError = err as { errors?: { message: string }[] };
+      toast.error(clerkError.errors?.[0]?.message ?? 'Sign-up failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -95,21 +183,30 @@ export default function SignUpPage() {
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isLoaded) return;
+    if (!code || code.length !== 6) {
+      toast.error('Please enter the 6-digit verification code');
+      return;
+    }
+
     setLoading(true);
     try {
       const result = await signUp.attemptEmailAddressVerification({ code });
+      
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId });
 
-        const role = result.unsafeMetadata?.role as string;
-        const userEmail = result.emailAddress || email;
-        console.log(`Detected role: ${role}`);
+        if (!result.createdSessionId) {
+          toast.error('Failed to create session. Please try again.');
+          setLoading(false);
+          return;
+        }
 
-        // For agent/host/professional: send branded email then go to email-confirmation
+        const role = (result.unsafeMetadata?.role as AppRole) || selectedRole;
+        const userEmail = result.emailAddress || email;
+
         if (role === 'agent' || role === 'host' || role === 'professional') {
           try {
-            // Create session and send branded confirmation email
-            const { data: fnData, error: fnError } = await supabase.functions.invoke(
+            const { error: fnError } = await supabase.functions.invoke(
               'send-branded-confirmation-email',
               {
                 body: {
@@ -123,31 +220,47 @@ export default function SignUpPage() {
 
             if (fnError) {
               console.error('Failed to send branded email:', fnError);
-              // Continue anyway - don't block the flow
-            } else {
-              console.log('Branded email sent:', fnData);
             }
           } catch (emailError) {
             console.error('Email send error:', emailError);
-            // Continue anyway
           }
 
-          // Redirect to email confirmation page
           navigate(`/email-confirmation?role=${role}&email=${encodeURIComponent(userEmail)}`, { replace: true });
         } else {
-          // For tenant: go directly to dashboard
           const destination = resolveDashboard(role);
-          console.log(`Redirecting → ${destination}`);
           navigate(destination, { replace: true });
         }
 
       } else {
         toast.error('Verification incomplete. Check your code and try again.');
       }
-    } catch (err: any) {
-      toast.error(err.errors?.[0]?.message ?? 'Verification failed.');
+    } catch (err: unknown) {
+      const clerkError = err as { errors?: { message: string }[] };
+      toast.error(clerkError.errors?.[0]?.message ?? 'Verification failed.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const resendCode = async () => {
+    if (!isLoaded || !signUp) return;
+    setLoading(true);
+    try {
+      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      toast.success('New code sent!');
+    } catch (err: unknown) {
+      const clerkError = err as { errors?: { message: string }[] };
+      toast.error(clerkError.errors?.[0]?.message ?? 'Failed to resend code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getPasswordStrengthColor = (strength: 'weak' | 'medium' | 'strong') => {
+    switch (strength) {
+      case 'weak': return 'bg-red-500';
+      case 'medium': return 'bg-yellow-500';
+      case 'strong': return 'bg-green-500';
     }
   };
 
@@ -194,7 +307,7 @@ export default function SignUpPage() {
             <button
               key={r.value}
               type="button"
-              onClick={() => setRole(r.value)}
+              onClick={() => setRole(r.value as AppRole)}
               className={cn(
                 'flex items-start gap-3 p-3 rounded-xl border text-left transition-all',
                 selectedRole === r.value
@@ -215,7 +328,11 @@ export default function SignUpPage() {
           ))}
         </div>
 
-        <Button className="w-full h-11" onClick={handleRoleContinue}>
+        <Button 
+          className="w-full h-11" 
+          onClick={handleRoleContinue}
+          disabled={!selectedRole}
+        >
           Continue as {ROLES.find(r => r.value === selectedRole)?.label}
         </Button>
         <p className="text-center text-sm text-muted-foreground mt-4">
@@ -229,12 +346,25 @@ export default function SignUpPage() {
   if (step === 'credentials') {
     return (
       <Shell>
-        <button onClick={() => setStep('role')} className="text-sm text-muted-foreground hover:text-foreground mb-4 flex items-center gap-1">
+        <button 
+          onClick={() => {
+            const persistedRole = getSelectedRole();
+            if (persistedRole && isValidRole(persistedRole)) {
+              setRole(persistedRole as AppRole);
+              if (persistedRole === 'agent' || persistedRole === 'host') {
+                setStep('credentials');
+                return;
+              }
+            }
+            setStep('role');
+          }} 
+          className="text-sm text-muted-foreground hover:text-foreground mb-4 flex items-center gap-1"
+        >
           ← Back
         </button>
         <h1 className="text-2xl font-bold mb-1">Your details</h1>
         <p className="text-muted-foreground text-sm mb-5">
-          Signing up as <span className="font-medium text-foreground capitalize">{selectedRole}</span>
+          Signing up as <span className="font-medium text-foreground capitalize">{ROLE_CONFIG[selectedRole]?.label || selectedRole}</span>
         </p>
 
         <Button
@@ -263,16 +393,59 @@ export default function SignUpPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label htmlFor="firstName" className="text-xs">First name</Label>
-              <Input id="firstName" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Jane" required className="mt-1 h-10" />
+              <Input 
+                id="firstName" 
+                value={firstName} 
+                onChange={e => setFirstName(e.target.value)} 
+                placeholder="Jane" 
+                required 
+                className="mt-1 h-10" 
+                autoComplete="given-name"
+              />
             </div>
             <div>
               <Label htmlFor="lastName" className="text-xs">Last name</Label>
-              <Input id="lastName" value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Doe" required className="mt-1 h-10" />
+              <Input 
+                id="lastName" 
+                value={lastName} 
+                onChange={e => setLastName(e.target.value)} 
+                placeholder="Doe" 
+                required 
+                className="mt-1 h-10"
+                autoComplete="family-name"
+              />
             </div>
           </div>
           <div>
             <Label htmlFor="email" className="text-xs">Email address</Label>
-            <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="jane@example.com" required className="mt-1 h-10" />
+            <div className="relative mt-1">
+              <Input 
+                id="email" 
+                type="email" 
+                value={email} 
+                onChange={e => setEmail(e.target.value)} 
+                placeholder="jane@example.com" 
+                required 
+                className={cn(
+                  "mt-1 h-10", 
+                  emailExists && "border-red-500 focus:ring-red-500"
+                )}
+                autoComplete="email"
+              />
+              {emailCheckLoading && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                </div>
+              )}
+              {emailExists && !emailCheckLoading && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <AlertCircle className="w-4 h-4 text-red-500" />
+                </div>
+              )}
+            </div>
+            {emailExists && !emailCheckLoading && (
+              <p className="text-xs text-red-500 mt-1">An account with this email already exists</p>
+            )}
           </div>
           <div>
             <Label htmlFor="password" className="text-xs">Password</Label>
@@ -282,10 +455,10 @@ export default function SignUpPage() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder="Min. 8 characters"
+                placeholder="Create a strong password"
                 required
-                minLength={8}
                 className="h-10 pr-10"
+                autoComplete="new-password"
               />
               <button
                 type="button"
@@ -295,8 +468,46 @@ export default function SignUpPage() {
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+            {passwordValidation && (
+              <div className="mt-2 space-y-2">
+                <div className="flex gap-1">
+                  <div className={cn("h-1 flex-1 rounded-full", passwordValidation.strength === 'weak' ? 'bg-red-500' : passwordValidation.strength === 'medium' ? 'bg-yellow-500' : 'bg-green-500')} />
+                  <div className={cn("h-1 flex-1 rounded-full", passwordValidation.strength === 'medium' || passwordValidation.strength === 'strong' ? (passwordValidation.strength === 'strong' ? 'bg-green-500' : 'bg-yellow-500') : 'bg-gray-200')} />
+                  <div className={cn("h-1 flex-1 rounded-full", passwordValidation.strength === 'strong' ? 'bg-green-500' : 'bg-gray-200')} />
+                </div>
+                <div className="space-y-1">
+                  {passwordValidation.errors.map((error, i) => (
+                    <p key={i} className="text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" /> {error}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-          <Button type="submit" className="w-full h-11 mt-2" disabled={loading || !isLoaded}>
+          <div>
+            <Label htmlFor="confirmPassword" className="text-xs">Confirm Password</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              placeholder="Confirm your password"
+              required
+              className="mt-1 h-10"
+              autoComplete="new-password"
+            />
+            {confirmPassword && password && confirmPassword !== password && (
+              <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" /> Passwords do not match
+              </p>
+            )}
+          </div>
+          <Button 
+            type="submit" 
+            className="w-full h-11 mt-2" 
+            disabled={loading || !isLoaded || emailExists || !passwordValidation?.isValid || password !== confirmPassword}
+          >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create Account'}
           </Button>
         </form>
@@ -321,14 +532,19 @@ export default function SignUpPage() {
           <Input
             id="code"
             value={code}
-            onChange={e => setCode(e.target.value)}
+            onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
             placeholder="123456"
             required
             maxLength={6}
             className="mt-1 h-11 text-center text-xl tracking-widest font-mono"
+            autoComplete="one-time-code"
           />
         </div>
-        <Button type="submit" className="w-full h-11" disabled={loading || !isLoaded}>
+        <Button 
+          type="submit" 
+          className="w-full h-11" 
+          disabled={loading || !isLoaded || code.length !== 6}
+        >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify & Continue'}
         </Button>
       </form>
@@ -336,10 +552,8 @@ export default function SignUpPage() {
         Didn't receive it?{' '}
         <button
           className="text-primary hover:underline"
-          onClick={async () => {
-            await signUp?.prepareEmailAddressVerification({ strategy: 'email_code' });
-            toast.success('New code sent!');
-          }}
+          onClick={resendCode}
+          disabled={loading}
         >
           Resend code
         </button>

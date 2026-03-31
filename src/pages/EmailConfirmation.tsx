@@ -1,16 +1,17 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Loader2, Mail, CheckCircle, AlertCircle, Home } from 'lucide-react';
+import { Loader2, Mail, CheckCircle, AlertCircle, Home, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { VERIFICATION_ROLES, ROLE_LABELS, AppRole } from '@/types/auth';
 
 type Step = 'checking' | 'waiting' | 'confirmed' | 'expired' | 'error';
 
-const ROLE_LABELS: Record<string, string> = {
+const ROLE_LABELS_LOCAL: Record<string, string> = {
   agent: 'Real Estate Agent',
   host: 'Airbnb Host',
   professional: 'Professional',
@@ -23,39 +24,117 @@ export default function EmailConfirmationPage() {
   const { isLoaded: authLoaded, isSignedIn } = useAuth();
 
   const token = searchParams.get('token');
-  const role = (searchParams.get('role') || 'agent') as 'agent' | 'host' | 'professional';
+  const roleParam = searchParams.get('role');
+  const role = (roleParam && VERIFICATION_ROLES.includes(roleParam as AppRole) ? roleParam : 'agent') as AppRole;
   const emailParam = searchParams.get('email');
 
   const [step, setStep] = useState<Step>('checking');
   const [loading, setLoading] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
   const [sessionData, setSessionData] = useState<any>(null);
 
   const email = emailParam || user?.primaryEmailAddress?.emailAddress;
+  const userRole = (user?.unsafeMetadata?.role as AppRole) || role;
+
+  const getDashboardRoute = useCallback((userRole: string) => {
+    switch (userRole) {
+      case 'agent':
+        return '/agent/dashboard';
+      case 'host':
+        return '/dashboard/short-stay';
+      case 'professional':
+        return '/professionalDashboard';
+      default:
+        return '/dashboard';
+    }
+  }, []);
+
+  const redirectToVerification = useCallback((verifiedRole: string) => {
+    if (VERIFICATION_ROLES.includes(verifiedRole as AppRole)) {
+      navigate(`/verification?role=${verifiedRole}`, { replace: true });
+    } else {
+      const destination = getDashboardRoute(verifiedRole);
+      navigate(destination, { replace: true });
+    }
+  }, [navigate, getDashboardRoute]);
+
+  const redirectToDashboard = useCallback(() => {
+    const destination = getDashboardRoute(userRole);
+    navigate(destination, { replace: true });
+  }, [navigate, userRole, getDashboardRoute]);
 
   useEffect(() => {
     if (!authLoaded || !userLoaded) return;
 
-    // If user has token from email link, validate it
-    if (token) {
-      validateToken(token);
-      return;
-    }
+    const init = async () => {
+      if (token) {
+        await validateToken(token);
+        return;
+      }
 
-    // Otherwise show waiting state
-    if (!isSignedIn) {
-      navigate('/sign-in', { replace: true });
-      return;
-    }
+      if (!isSignedIn || !user) {
+        navigate('/sign-in?redirect_url=/email-confirmation', { replace: true });
+        return;
+      }
 
-    // Check if user already has an active session
-    checkExistingSession();
-  }, [authLoaded, userLoaded, token, isSignedIn]);
+      const clerkRole = user.unsafeMetadata?.role as string;
+      
+      if (clerkRole && VERIFICATION_ROLES.includes(clerkRole as AppRole)) {
+        await checkExistingSession(clerkRole);
+      } else {
+        redirectToDashboard();
+      }
+    };
+
+    init();
+  }, [authLoaded, userLoaded, token, isSignedIn, user]);
+
+  const checkExistingSession = async (checkRole?: string) => {
+    if (!user) return;
+    
+    try {
+      const checkRoleParam = checkRole || role;
+      
+      const { data, error } = await supabase
+        .from('email_confirmation_sessions')
+        .select('*')
+        .eq('clerk_user_id', user.id)
+        .eq('role', checkRoleParam)
+        .in('status', ['sent', 'opened', 'clicked'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (data) {
+        if (data.status === 'clicked' || data.clicked_at) {
+          redirectToVerification(checkRoleParam);
+          return;
+        }
+        setSessionData(data);
+        setStep('waiting');
+      } else {
+        const clerkRole = user.unsafeMetadata?.role as string;
+        if (clerkRole && VERIFICATION_ROLES.includes(clerkRole as AppRole)) {
+          redirectToVerification(clerkRole);
+        } else {
+          redirectToDashboard();
+        }
+      }
+    } catch (err: any) {
+      console.error('Session check error:', err);
+      const clerkRole = user.unsafeMetadata?.role as string;
+      if (clerkRole && VERIFICATION_ROLES.includes(clerkRole as AppRole)) {
+        redirectToVerification(clerkRole);
+      } else {
+        redirectToDashboard();
+      }
+    }
+  };
 
   const validateToken = async (confirmationToken: string) => {
     try {
       setLoading(true);
       
-      // Call the database function to mark as clicked
       const { data, error } = await supabase.rpc('get_confirmation_by_token', {
         p_token: confirmationToken,
       });
@@ -67,20 +146,16 @@ export default function EmailConfirmationPage() {
 
       const session = data[0];
 
-      // Check if expired
       if (new Date(session.expires_at) < new Date()) {
         setStep('expired');
         return;
       }
 
-      // Check if already clicked
-      if (session.status === 'clicked') {
-        // Already confirmed, proceed to verification
-        navigate(`/verification?role=${session.role}`, { replace: true });
+      if (session.status === 'clicked' || session.clicked_at) {
+        redirectToVerification(session.role);
         return;
       }
 
-      // Mark as clicked
       await supabase.rpc('mark_confirmation_clicked', {
         p_token: confirmationToken,
       });
@@ -88,9 +163,8 @@ export default function EmailConfirmationPage() {
       setSessionData(session);
       setStep('confirmed');
 
-      // Redirect to verification after short delay
       setTimeout(() => {
-        navigate(`/verification?role=${session.role}`, { replace: true });
+        redirectToVerification(session.role);
       }, 2000);
 
     } catch (error) {
@@ -101,38 +175,6 @@ export default function EmailConfirmationPage() {
     }
   };
 
-  const checkExistingSession = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('email_confirmation_sessions')
-        .select('*')
-        .eq('clerk_user_id', user.id)
-        .eq('role', role)
-        .in('status', ['sent', 'opened', 'clicked'])
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (data) {
-        if (data.status === 'clicked') {
-          // Already confirmed, go to verification
-          navigate(`/verification?role=${data.role}`, { replace: true });
-          return;
-        }
-        setSessionData(data);
-        setStep('waiting');
-      } else {
-        // No session, redirect to sign-up
-        navigate('/sign-up', { replace: true });
-      }
-    } catch (error) {
-      console.error('Session check error:', error);
-      navigate('/sign-up', { replace: true });
-    }
-  };
-
   const handleResendEmail = async () => {
     if (!user || !email) {
       toast.error('Unable to resend email. Please sign in again.');
@@ -140,20 +182,27 @@ export default function EmailConfirmationPage() {
     }
 
     try {
-      setLoading(true);
+      setSendingEmail(true);
 
-      // Get the edge function URL
-      const { data: fnData } = await supabase.functions.invoke(
+      const clerkRole = user.unsafeMetadata?.role as string || role;
+      
+      const { data: fnData, error: fnError } = await supabase.functions.invoke(
         'send-branded-confirmation-email',
         {
           body: {
             clerk_user_id: user.id,
             email: email,
             first_name: user.firstName,
-            role: role,
+            role: clerkRole,
           },
         }
       );
+
+      if (fnError) {
+        console.error('Resend error:', fnError);
+        toast.error('Failed to resend email. Please try again.');
+        return;
+      }
 
       if (fnData?.success) {
         toast.success('Confirmation email sent! Check your inbox.');
@@ -164,7 +213,18 @@ export default function EmailConfirmationPage() {
       console.error('Resend error:', error);
       toast.error(error.message || 'Failed to resend email');
     } finally {
-      setLoading(false);
+      setSendingEmail(false);
+    }
+  };
+
+  const handleSkipToVerification = () => {
+    const clerkRole = user?.unsafeMetadata?.role as string;
+    if (clerkRole && VERIFICATION_ROLES.includes(clerkRole as AppRole)) {
+      redirectToVerification(clerkRole);
+    } else if (role && VERIFICATION_ROLES.includes(role)) {
+      redirectToVerification(role);
+    } else {
+      redirectToDashboard();
     }
   };
 
@@ -191,7 +251,7 @@ export default function EmailConfirmationPage() {
             Confirm Your Account
           </h2>
           <p className="text-gray-400 text-lg leading-relaxed">
-            You're almost there! Check your email to complete registration as a {ROLE_LABELS[role]}.
+            You're almost there! Check your email to complete registration as a {ROLE_LABELS[userRole as AppRole] || 'agent'}.
           </p>
         </div>
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/20 rounded-full blur-[100px] animate-pulse" />
@@ -199,7 +259,7 @@ export default function EmailConfirmationPage() {
     </div>
   );
 
-  if (!authLoaded || !userLoaded || step === 'checking') {
+  if (!authLoaded || !userLoaded || loading) {
     return (
       <Shell>
         <div className="flex flex-col items-center justify-center py-12">
@@ -221,15 +281,15 @@ export default function EmailConfirmationPage() {
           <p className="text-muted-foreground mb-6">
             This confirmation link has expired. Please request a new one.
           </p>
-          <Button onClick={handleResendEmail} disabled={loading}>
-            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+          <Button onClick={handleResendEmail} disabled={sendingEmail}>
+            {sendingEmail ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
             Resend Confirmation Email
           </Button>
-          <p className="text-center text-sm text-muted-foreground mt-4">
-            <Link to="/sign-up" className="text-primary hover:underline">
-              Back to Sign Up
-            </Link>
-          </p>
+          <div className="mt-6 pt-6 border-t">
+            <Button variant="outline" onClick={handleSkipToVerification}>
+              Skip to Verification →
+            </Button>
+          </div>
         </div>
       </Shell>
     );
@@ -246,9 +306,14 @@ export default function EmailConfirmationPage() {
           <p className="text-muted-foreground mb-6">
             We couldn't validate your confirmation link. Please try again.
           </p>
-          <Button onClick={() => navigate('/sign-up', { replace: true })}>
-            Back to Sign Up
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button onClick={() => navigate('/sign-up', { replace: true })}>
+              Back to Sign Up
+            </Button>
+            <Button variant="outline" onClick={handleSkipToVerification}>
+              Skip to Verification →
+            </Button>
+          </div>
         </div>
       </Shell>
     );
@@ -271,7 +336,6 @@ export default function EmailConfirmationPage() {
     );
   }
 
-  // Default: waiting state
   return (
     <Shell>
       <div className="text-center">
@@ -286,40 +350,30 @@ export default function EmailConfirmationPage() {
         
         <div className="p-4 bg-muted rounded-lg mb-6 text-left">
           <p className="text-sm text-muted-foreground">
-            <strong>Next step:</strong> Click the link in the email to confirm your account as a {ROLE_LABELS[role]}.
+            <strong>Next step:</strong> Click the link in the email to confirm your account as a {ROLE_LABELS[userRole as AppRole] || 'agent'}.
           </p>
         </div>
 
         <Button 
           onClick={handleResendEmail} 
-          disabled={loading}
+          disabled={sendingEmail}
           variant="outline"
           className="w-full mb-4"
         >
-          {loading ? (
+          {sendingEmail ? (
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
           ) : (
             "Resend Email"
           )}
         </Button>
 
-        <p className="text-xs text-muted-foreground">
-          Didn't receive the email? Check your spam folder or{' '}
-          <button 
-            onClick={handleResendEmail}
-            className="text-primary hover:underline"
-          >
-            request a new one
-          </button>
-        </p>
-
         <div className="border-t border-border mt-6 pt-4">
-          <p className="text-xs text-muted-foreground mb-2">
-            Already confirmed?
+          <p className="text-xs text-muted-foreground mb-3">
+            Already confirmed? Skip to verification:
           </p>
           <Button 
             variant="ghost" 
-            onClick={() => navigate(`/verification?role=${role}`)}
+            onClick={handleSkipToVerification}
           >
             Continue to Verification →
           </Button>

@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,6 +26,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { resolveDashboard } from "@/utils/roleRedirect";
+import { validatePhoneNumber, formatPhoneNumber } from "@/utils/validation";
+import { isValidRole, VERIFICATION_ROLES, ROLE_LABELS, AppRole } from "@/types/auth";
 
 type Step = "welcome" | "id-upload" | "selfie" | "phone" | "otp" | "complete" | "expired";
 
@@ -40,24 +42,54 @@ interface VerificationSession {
   selfie_url: string | null;
   phone_number: string | null;
   phone_verified: boolean | null;
+  otp_hash: string | null;
+  otp_expires_at: string | null;
+  otp_attempts: number | null;
 }
 
-const TOTAL_STEPS = 4;
-const STEP_LABELS = ["Identity", "Selfie", "Phone", "Verify"];
+const TOTAL_STEPS = 3;
+const STEP_LABELS = ["Identity", "Selfie", "Phone"];
+const MAX_OTP_ATTEMPTS = 5;
+const OTP_EXPIRY_MINUTES = 5;
+
+async function hashOtp(otp: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const salt = 'savanah-verification-salt-v1';
+  const data = encoder.encode(otp + salt);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function verifyOtpHash(inputOtp: string, storedHash: string): Promise<boolean> {
+  const inputHash = await hashOtp(inputOtp);
+  return inputHash === storedHash;
+}
+
+function generateOtp(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
 export default function VerificationPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded: userLoaded } = useUser();
 
-  const role = (searchParams.get("role") || "agent") as "agent" | "host";
+  const roleParam = searchParams.get("role");
   const token = searchParams.get("token");
+
+  // Get actual role from Clerk metadata and validate against URL param
+  const clerkRole = (user?.unsafeMetadata?.role as AppRole) || null;
+  const validRoleParam = (roleParam && VERIFICATION_ROLES.includes(roleParam as AppRole)) 
+    ? roleParam 
+    : (clerkRole && VERIFICATION_ROLES.includes(clerkRole) ? clerkRole : 'agent');
+  const role = validRoleParam as AppRole;
 
   const [step, setStep] = useState<Step>("welcome");
   const [session, setSession] = useState<VerificationSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState<number>(0);
+  const [serverTimeRemaining, setServerTimeRemaining] = useState<number>(0);
 
   const [idFrontFile, setIdFrontFile] = useState<File | null>(null);
   const [idBackFile, setIdBackFile] = useState<File | null>(null);
@@ -69,27 +101,76 @@ export default function VerificationPage() {
   const [otpCode, setOtpCode] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otpTimer, setOtpTimer] = useState(0);
-  const [otpAttempts, setOtpAttempts] = useState(0);
+  const [otpLocalAttempts, setOtpLocalAttempts] = useState(0);
+  const [otpVerified, setOtpVerified] = useState(false);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const idFrontInputRef = useRef<HTMLInputElement>(null);
+  const idBackInputRef = useRef<HTMLInputElement>(null);
   const selfieInputRef = useRef<HTMLInputElement>(null);
+  const otpInputRef = useRef<HTMLInputElement>(null);
 
-  const currentStepIndex = STEP_LABELS.indexOf(
-    step === "welcome" ? "Identity" : step === "id-upload" ? "Identity" : step === "selfie" ? "Selfie" : step === "phone" || step === "otp" ? "Phone" : step === "complete" ? "Verify" : "Identity"
-  );
-
-  useEffect(() => {
-    if (isLoaded && user) {
-      initializeSession();
-    } else if (isLoaded && !user) {
-      navigate("/sign-in?redirect_url=/verification");
+  const currentStepIndex = useMemo(() => {
+    switch (step) {
+      case "welcome":
+      case "id-upload":
+        return 0;
+      case "selfie":
+        return 1;
+      case "phone":
+      case "otp":
+        return 2;
+      case "complete":
+        return 3;
+      default:
+        return 0;
     }
-  }, [isLoaded, user, token]);
+  }, [step]);
+
+  const currentStepLabel = useMemo(() => {
+    if (step === "welcome" || step === "id-upload") return "Identity";
+    if (step === "selfie") return "Selfie";
+    if (step === "phone" || step === "otp") return "Phone";
+    return "Verify";
+  }, [step]);
+
+  const cleanupObjectUrl = useCallback((url: string | null) => {
+    if (url && url.startsWith('blob:')) {
+      URL.revokeObjectURL(url);
+    }
+  }, []);
 
   useEffect(() => {
-    if (timeRemaining > 0) {
-      const timer = setInterval(() => {
-        setTimeRemaining((prev) => {
+    return () => {
+      cleanupObjectUrl(idFrontPreview);
+      cleanupObjectUrl(idBackPreview);
+      cleanupObjectUrl(selfiePreview);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!userLoaded) return;
+    
+    if (!user) {
+      navigate("/sign-in?redirect_url=/verification");
+      return;
+    }
+
+    // Validate user has a role that requires verification
+    const userClerkRole = user.unsafeMetadata?.role as string;
+    if (userClerkRole && !VERIFICATION_ROLES.includes(userClerkRole as AppRole)) {
+      // User doesn't need verification - redirect to their dashboard
+      const destination = resolveDashboard(userClerkRole);
+      navigate(destination, { replace: true });
+      return;
+    }
+
+    initializeSession();
+  }, [userLoaded, user, token, navigate]);
+
+  useEffect(() => {
+    if (serverTimeRemaining > 0) {
+      const timer = setInterval(async () => {
+        setServerTimeRemaining(prev => {
           if (prev <= 1) {
             setStep("expired");
             return 0;
@@ -99,12 +180,12 @@ export default function VerificationPage() {
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [timeRemaining]);
+  }, [serverTimeRemaining]);
 
   useEffect(() => {
     if (otpTimer > 0) {
       const timer = setInterval(() => {
-        setOtpTimer((prev) => {
+        setOtpTimer(prev => {
           if (prev <= 1) {
             return 0;
           }
@@ -115,7 +196,15 @@ export default function VerificationPage() {
     }
   }, [otpTimer]);
 
+  useEffect(() => {
+    if (step === "otp" && otpInputRef.current) {
+      otpInputRef.current.focus();
+    }
+  }, [step]);
+
   const initializeSession = async () => {
+    if (!user) return;
+    
     try {
       setLoading(true);
 
@@ -124,7 +213,7 @@ export default function VerificationPage() {
           .from("verification_sessions")
           .select("*")
           .eq("token", token)
-          .eq("user_id", user?.id)
+          .eq("user_id", user.id)
           .single();
 
         if (error || !data) {
@@ -134,29 +223,34 @@ export default function VerificationPage() {
         }
 
         if (data.status === "completed") {
-          navigate("/agent");
+          const destination = resolveDashboard(data.role || role);
+          navigate(destination);
           return;
         }
 
         if (data.status === "expired" || new Date(data.expires_at) < new Date()) {
           setStep("expired");
-          setTimeRemaining(0);
+          setServerTimeRemaining(0);
           return;
         }
 
         setSession(data);
-        const expiresAt = new Date(data.expires_at).getTime();
-        const now = Date.now();
-        setTimeRemaining(Math.max(0, Math.floor((expiresAt - now) / 1000)));
+        calculateTimeRemaining(data.expires_at);
 
-        if (data.id_front_url && data.id_back_url) {
+        if (data.id_front_url && data.id_back_url && data.selfie_url) {
+          if (data.phone_verified) {
+            setStep("complete");
+          } else {
+            setStep("phone");
+          }
+        } else if (data.id_front_url && data.id_back_url) {
           setStep("selfie");
         }
       } else {
         const { data: existingSession } = await supabase
           .from("verification_sessions")
           .select("*")
-          .eq("user_id", user?.id)
+          .eq("user_id", user.id)
           .eq("role", role)
           .eq("status", "pending")
           .order("created_at", { ascending: false })
@@ -165,24 +259,38 @@ export default function VerificationPage() {
 
         if (existingSession) {
           if (new Date(existingSession.expires_at) < new Date()) {
+            await supabase
+              .from("verification_sessions")
+              .update({ status: "expired" })
+              .eq("id", existingSession.id);
             setStep("expired");
-            setTimeRemaining(0);
+            setServerTimeRemaining(0);
             return;
           }
           setSession(existingSession);
-          const expiresAt = new Date(existingSession.expires_at).getTime();
-          const now = Date.now();
-          setTimeRemaining(Math.max(0, Math.floor((expiresAt - now) / 1000)));
-          setStep(existingSession.id_front_url && existingSession.id_back_url ? "selfie" : "id-upload");
+          calculateTimeRemaining(existingSession.expires_at);
+          
+          if (existingSession.id_front_url && existingSession.id_back_url && existingSession.selfie_url) {
+            if (existingSession.phone_verified) {
+              setStep("complete");
+            } else {
+              setStep("phone");
+            }
+          } else if (existingSession.id_front_url && existingSession.id_back_url) {
+            setStep("selfie");
+          }
         } else {
           const newToken = crypto.randomUUID();
+          const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+          
           const { data: newSession, error } = await supabase
             .from("verification_sessions")
             .insert({
-              user_id: user?.id,
+              user_id: user.id,
               role: role,
               token: newToken,
               status: "pending",
+              expires_at: expiresAt,
             })
             .select()
             .single();
@@ -193,7 +301,7 @@ export default function VerificationPage() {
           }
 
           setSession(newSession);
-          setTimeRemaining(48 * 60 * 60);
+          setServerTimeRemaining(48 * 60 * 60);
           navigate(`/verification?role=${role}&token=${newToken}`, { replace: true });
         }
       }
@@ -203,6 +311,13 @@ export default function VerificationPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const calculateTimeRemaining = (expiresAt: string) => {
+    const expiresAtDate = new Date(expiresAt).getTime();
+    const now = Date.now();
+    const remaining = Math.max(0, Math.floor((expiresAtDate - now) / 1000));
+    setServerTimeRemaining(remaining);
   };
 
   const formatTime = (seconds: number) => {
@@ -215,40 +330,47 @@ export default function VerificationPage() {
   const uploadFile = async (file: File, folder: string): Promise<string | null> => {
     if (!user || !session) return null;
 
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${user.id}/${session.id}/${folder}-${Date.now()}.${fileExt}`;
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user.id}/${session.id}/${folder}-${Date.now()}.${fileExt}`;
 
-    const { data, error } = await supabase.storage
-      .from("verification-docs")
-      .upload(fileName, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
+      const { data, error } = await supabase.storage
+        .from("verification-docs")
+        .upload(fileName, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
 
-    if (error) {
+      if (error) {
+        console.error("Upload error:", error);
+        toast.error(`Failed to upload ${folder}`);
+        return null;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("verification-docs")
+        .getPublicUrl(fileName);
+
+      return urlData.publicUrl;
+    } catch (error) {
       console.error("Upload error:", error);
       toast.error(`Failed to upload ${folder}`);
       return null;
     }
-
-    const { data: urlData } = supabase.storage
-      .from("verification-docs")
-      .getPublicUrl(fileName);
-
-    return urlData.publicUrl;
   };
 
   const handleIdFrontChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
-        toast.error("Please upload an image file");
+        toast.error("Please upload an image file (JPG, PNG)");
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
         toast.error("File size must be less than 5MB");
         return;
       }
+      cleanupObjectUrl(idFrontPreview);
       setIdFrontFile(file);
       setIdFrontPreview(URL.createObjectURL(file));
     }
@@ -258,13 +380,14 @@ export default function VerificationPage() {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
-        toast.error("Please upload an image file");
+        toast.error("Please upload an image file (JPG, PNG)");
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
         toast.error("File size must be less than 5MB");
         return;
       }
+      cleanupObjectUrl(idBackPreview);
       setIdBackFile(file);
       setIdBackPreview(URL.createObjectURL(file));
     }
@@ -274,13 +397,14 @@ export default function VerificationPage() {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
-        toast.error("Please upload an image file");
+        toast.error("Please upload an image file (JPG, PNG)");
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
         toast.error("File size must be less than 5MB");
         return;
       }
+      cleanupObjectUrl(selfiePreview);
       setSelfieFile(file);
       setSelfiePreview(URL.createObjectURL(file));
     }
@@ -357,43 +481,80 @@ export default function VerificationPage() {
   };
 
   const sendOtp = async () => {
-    if (!session || !phoneNumber) return;
-
-    const cleanPhone = phoneNumber.replace(/\s/g, "").replace(/^0/, "+254");
-    if (!/^\+254[0-9]{9}$/.test(cleanPhone)) {
+    if (!session) return;
+    
+    const validation = validatePhoneNumber(phoneNumber);
+    if (!validation.isValid) {
       toast.error("Please enter a valid Kenyan phone number (e.g., 0712345678)");
       return;
     }
 
     setSubmitting(true);
     try {
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+      const otp = generateOtp();
+      const otpHash = await hashOtp(otp);
+      const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000).toISOString();
 
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from("verification_sessions")
         .update({
-          phone_number: cleanPhone,
-          otp_code: otp,
+          phone_number: validation.formatted,
+          otp_hash: otpHash,
           otp_expires_at: expiresAt,
           otp_attempts: 0,
+          otp_sent_at: new Date().toISOString(),
         })
         .eq("id", session.id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
-      console.log("OTP for testing:", otp);
-      toast.success(`OTP sent to ${cleanPhone} (Demo: ${otp})`, {
-        duration: 10000,
-      });
+      const { data: fnData, error: fnError } = await supabase.functions.invoke(
+        'send-verification-otp',
+        {
+          body: {
+            phone_number: validation.formatted,
+            otp_code: otp,
+            purpose: 'verification',
+          },
+        }
+      );
 
-      setSession({ ...session, phone_number: cleanPhone });
-      setOtpSent(true);
-      setOtpTimer(300);
-      setStep("otp");
+      if (fnError) {
+        console.error('SMS function error:', fnError);
+        toast.error("Failed to send verification code. Please try again.");
+        return;
+      }
+
+      if (fnData?.success) {
+        setSession({ 
+          ...session, 
+          phone_number: validation.formatted,
+          otp_hash: otpHash,
+          otp_expires_at: expiresAt,
+        });
+        setOtpSent(true);
+        setOtpTimer(OTP_EXPIRY_MINUTES * 60);
+        setOtpLocalAttempts(0);
+        setStep("otp");
+        toast.success(`Verification code sent to ${formatPhoneNumber(validation.formatted.replace('+254', '0'))}`);
+      } else if (fnData?.demo_mode) {
+        setSession({ 
+          ...session, 
+          phone_number: validation.formatted,
+          otp_hash: otpHash,
+          otp_expires_at: expiresAt,
+        });
+        setOtpSent(true);
+        setOtpTimer(OTP_EXPIRY_MINUTES * 60);
+        setOtpLocalAttempts(0);
+        setStep("otp");
+        toast.info("Demo mode: Check the UI for the OTP code");
+      } else {
+        toast.error(fnData?.error || "Failed to send verification code");
+      }
     } catch (error) {
       console.error("Error sending OTP:", error);
-      toast.error("Failed to send OTP");
+      toast.error("Failed to send verification code");
     } finally {
       setSubmitting(false);
     }
@@ -401,11 +562,11 @@ export default function VerificationPage() {
 
   const verifyOtp = async () => {
     if (!session || !otpCode || otpCode.length !== 6) {
-      toast.error("Please enter a valid 6-digit code");
+      toast.error("Please enter the 6-digit code");
       return;
     }
 
-    if (otpAttempts >= 5) {
+    if (otpLocalAttempts >= MAX_OTP_ATTEMPTS) {
       toast.error("Too many attempts. Please request a new code.");
       return;
     }
@@ -420,40 +581,62 @@ export default function VerificationPage() {
 
       if (fetchError || !sessionData) {
         toast.error("Session not found");
+        setSubmitting(false);
+        return;
+      }
+
+      if (!sessionData.otp_hash || !sessionData.otp_expires_at) {
+        toast.error("No verification code found. Please request a new one.");
+        setSubmitting(false);
         return;
       }
 
       if (new Date(sessionData.otp_expires_at) < new Date()) {
-        toast.error("OTP has expired. Please request a new code.");
+        toast.error("Verification code has expired. Please request a new one.");
         setOtpCode("");
+        setOtpLocalAttempts(prev => prev + 1);
+        setSubmitting(false);
         return;
       }
 
-      if (sessionData.otp_code !== otpCode) {
-        const newAttempts = otpAttempts + 1;
-        setOtpAttempts(newAttempts);
+      const isValid = await verifyOtpHash(otpCode, sessionData.otp_hash);
+      
+      if (!isValid) {
+        const newAttempts = (sessionData.otp_attempts || 0) + 1;
         await supabase
           .from("verification_sessions")
           .update({ otp_attempts: newAttempts })
           .eq("id", session.id);
-        toast.error(`Incorrect code. ${5 - newAttempts} attempts remaining.`);
+        
+        const remaining = MAX_OTP_ATTEMPTS - newAttempts;
+        setOtpLocalAttempts(newAttempts);
+        
+        if (remaining <= 0) {
+          toast.error("Too many incorrect attempts. Please request a new code.");
+        } else {
+          toast.error(`Incorrect code. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`);
+        }
         setOtpCode("");
+        setSubmitting(false);
         return;
       }
 
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from("verification_sessions")
         .update({
           phone_verified: true,
           status: "completed",
           completed_at: new Date().toISOString(),
+          otp_hash: null,
+          otp_expires_at: null,
         })
         .eq("id", session.id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
-      toast.success("Phone verified successfully!");
+      setOtpVerified(true);
       setStep("complete");
+      toast.success("Phone number verified successfully!");
     } catch (error) {
       console.error("Error verifying OTP:", error);
       toast.error("Verification failed");
@@ -463,20 +646,37 @@ export default function VerificationPage() {
   };
 
   const resendOtp = async () => {
-    setOtpTimer(0);
+    if (!session || !session.phone_number) {
+      setStep("phone");
+      return;
+    }
+
     setOtpCode("");
-    setOtpAttempts(0);
     await sendOtp();
   };
 
   const handleComplete = () => {
-    navigate("/agent");
+    const destination = resolveDashboard(role);
+    navigate(destination);
   };
 
-  if (loading || !isLoaded) {
+  const handleCancelVerification = async () => {
+    if (session) {
+      await supabase
+        .from("verification_sessions")
+        .update({ status: "cancelled" })
+        .eq("id", session.id);
+    }
+    navigate("/sign-up?role=" + role);
+  };
+
+  if (loading || !userLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="text-center space-y-3">
+          <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Loading verification...</p>
+        </div>
       </div>
     );
   }
@@ -495,16 +695,7 @@ export default function VerificationPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button
-              className="w-full"
-              onClick={() => {
-                supabase
-                  .from("verification_sessions")
-                  .update({ status: "cancelled" })
-                  .eq("id", session?.id);
-                navigate("/sign-up?role=" + role);
-              }}
-            >
+            <Button className="w-full" onClick={handleCancelVerification}>
               Start New Verification
             </Button>
           </CardContent>
@@ -513,7 +704,7 @@ export default function VerificationPage() {
     );
   }
 
-  const progress = step === "welcome" ? 0 : step === "complete" ? 100 : ((currentStepIndex + 1) / TOTAL_STEPS) * 100;
+  const progress = step === "welcome" ? 0 : step === "complete" ? 100 : ((currentStepIndex) / TOTAL_STEPS) * 100;
 
   return (
     <div className="min-h-screen bg-background">
@@ -526,49 +717,47 @@ export default function VerificationPage() {
               </div>
               <span className="font-bold text-lg">Savanah Dwelling</span>
             </div>
-            {timeRemaining > 0 && (
+            {serverTimeRemaining > 0 && step !== "complete" && (
               <Badge variant="outline" className="gap-1.5">
                 <Clock className="w-3.5 h-3.5" />
-                {formatTime(timeRemaining)}
+                {formatTime(serverTimeRemaining)}
               </Badge>
             )}
           </div>
-          {step !== "welcome" && (
+          {step !== "welcome" && step !== "complete" && (
             <>
               <div className="mt-4">
                 <div className="flex justify-between text-sm text-muted-foreground mb-2">
-                  <span className="capitalize">{role} Verification</span>
+                  <span className="capitalize">{ROLE_LABELS[role]} Verification</span>
                   <span>{Math.round(progress)}% complete</span>
                 </div>
                 <Progress value={progress} className="h-2" />
               </div>
-              {step !== "complete" && step !== "phone" && (
-                <div className="flex justify-between mt-4">
-                  {STEP_LABELS.map((label, index) => (
+              <div className="flex justify-between mt-4">
+                {STEP_LABELS.map((label, index) => (
+                  <div
+                    key={label}
+                    className={cn(
+                      "flex flex-col items-center text-xs",
+                      index < currentStepIndex ? "text-primary" : "text-muted-foreground"
+                    )}
+                  >
                     <div
-                      key={label}
                       className={cn(
-                        "flex flex-col items-center text-xs",
-                        index <= currentStepIndex ? "text-primary" : "text-muted-foreground"
+                        "w-6 h-6 rounded-full flex items-center justify-center mb-1 text-[10px]",
+                        index < currentStepIndex
+                          ? "bg-primary text-primary-foreground"
+                          : index === currentStepIndex
+                            ? "bg-primary/20 text-primary border-2 border-primary"
+                            : "bg-muted text-muted-foreground"
                       )}
                     >
-                      <div
-                        className={cn(
-                          "w-6 h-6 rounded-full flex items-center justify-center mb-1 text-[10px]",
-                          index < currentStepIndex
-                            ? "bg-primary text-primary-foreground"
-                            : index === currentStepIndex
-                              ? "bg-primary/20 text-primary border-2 border-primary"
-                              : "bg-muted text-muted-foreground"
-                        )}
-                      >
-                        {index < currentStepIndex ? <CheckCircle2 className="w-4 h-4" /> : index + 1}
-                      </div>
-                      <span className="hidden sm:block">{label}</span>
+                      {index < currentStepIndex ? <CheckCircle2 className="w-4 h-4" /> : index + 1}
                     </div>
-                  ))}
-                </div>
-              )}
+                    <span className="hidden sm:block">{label}</span>
+                  </div>
+                ))}
+              </div>
             </>
           )}
         </div>
@@ -581,7 +770,7 @@ export default function VerificationPage() {
               </div>
               <CardTitle className="text-2xl">Complete Your Verification</CardTitle>
               <CardDescription className="text-base">
-                To become a verified {role}, you need to complete identity verification within 48 hours.
+                To become a verified {ROLE_LABELS[role].toLowerCase()}, you need to complete identity verification within 48 hours.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -647,6 +836,7 @@ export default function VerificationPage() {
                 size="sm"
                 className="w-fit px-0 hover:bg-transparent"
                 onClick={() => setStep("welcome")}
+                disabled={submitting}
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Back
@@ -667,15 +857,16 @@ export default function VerificationPage() {
                         ? "border-primary bg-primary/5"
                         : "border-muted-foreground/25 hover:border-primary/50"
                     )}
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => idFrontInputRef.current?.click()}
                   >
                     <input
-                      ref={fileInputRef}
+                      ref={idFrontInputRef}
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,image/png,image/jpg"
                       capture="environment"
                       className="hidden"
                       onChange={handleIdFrontChange}
+                      disabled={submitting}
                     />
                     {idFrontPreview ? (
                       <div className="relative">
@@ -690,9 +881,11 @@ export default function VerificationPage() {
                           className="absolute -top-2 -right-2 h-6 w-6 p-0"
                           onClick={(e) => {
                             e.stopPropagation();
+                            cleanupObjectUrl(idFrontPreview);
                             setIdFrontFile(null);
                             setIdFrontPreview(null);
                           }}
+                          disabled={submitting}
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -715,14 +908,16 @@ export default function VerificationPage() {
                         ? "border-primary bg-primary/5"
                         : "border-muted-foreground/25 hover:border-primary/50"
                     )}
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => idBackInputRef.current?.click()}
                   >
                     <input
+                      ref={idBackInputRef}
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,image/png,image/jpg"
                       capture="environment"
                       className="hidden"
                       onChange={handleIdBackChange}
+                      disabled={submitting}
                     />
                     {idBackPreview ? (
                       <div className="relative">
@@ -737,9 +932,11 @@ export default function VerificationPage() {
                           className="absolute -top-2 -right-2 h-6 w-6 p-0"
                           onClick={(e) => {
                             e.stopPropagation();
+                            cleanupObjectUrl(idBackPreview);
                             setIdBackFile(null);
                             setIdBackPreview(null);
                           }}
+                          disabled={submitting}
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -757,7 +954,7 @@ export default function VerificationPage() {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription className="text-sm">
-                  Make sure all text on your ID is clearly visible and not obscured.
+                  Make sure all text on your ID is clearly visible and not obscured. Accepted formats: JPG, PNG (max 5MB).
                 </AlertDescription>
               </Alert>
 
@@ -790,6 +987,7 @@ export default function VerificationPage() {
                 size="sm"
                 className="w-fit px-0 hover:bg-transparent"
                 onClick={() => setStep("id-upload")}
+                disabled={submitting}
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Back
@@ -812,10 +1010,11 @@ export default function VerificationPage() {
                 <input
                   ref={selfieInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/jpg"
                   capture="user"
                   className="hidden"
                   onChange={handleSelfieChange}
+                  disabled={submitting}
                 />
                 {selfiePreview ? (
                   <div className="relative">
@@ -830,9 +1029,11 @@ export default function VerificationPage() {
                       className="absolute top-0 right-1/2 translate-x-20 -translate-y-2 h-6 w-6 p-0"
                       onClick={(e) => {
                         e.stopPropagation();
+                        cleanupObjectUrl(selfiePreview);
                         setSelfieFile(null);
                         setSelfiePreview(null);
                       }}
+                      disabled={submitting}
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -881,6 +1082,7 @@ export default function VerificationPage() {
                 size="sm"
                 className="w-fit px-0 hover:bg-transparent"
                 onClick={() => setStep("selfie")}
+                disabled={submitting}
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Back
@@ -904,6 +1106,7 @@ export default function VerificationPage() {
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, "").slice(0, 9))}
                     className="flex-1 h-10"
+                    disabled={submitting}
                   />
                 </div>
               </div>
@@ -943,26 +1146,34 @@ export default function VerificationPage() {
                 variant="ghost"
                 size="sm"
                 className="w-fit px-0 hover:bg-transparent"
-                onClick={() => setStep("phone")}
+                onClick={() => {
+                  if (otpVerified) {
+                    setStep("phone");
+                  }
+                }}
+                disabled={submitting}
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Back
               </Button>
               <CardTitle>Enter Verification Code</CardTitle>
               <CardDescription>
-                We sent a 6-digit code to <strong>{session?.phone_number}</strong>
+                We sent a 6-digit code to <strong>{session?.phone_number ? formatPhoneNumber(session.phone_number.replace('+254', '0')) : 'your phone'}</strong>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="otp">Verification Code</Label>
                 <Input
+                  ref={otpInputRef}
                   id="otp"
                   type="text"
                   placeholder="000000"
                   value={otpCode}
                   onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   className="h-12 text-center text-2xl tracking-widest font-mono"
+                  disabled={submitting}
+                  autoComplete="one-time-code"
                 />
               </div>
 
@@ -972,19 +1183,24 @@ export default function VerificationPage() {
                     Resend code in {Math.floor(otpTimer / 60)}:{String(otpTimer % 60).padStart(2, "0")}
                   </p>
                 ) : (
-                  <Button variant="link" onClick={resendOtp} disabled={submitting}>
+                  <Button 
+                    variant="link" 
+                    onClick={resendOtp} 
+                    disabled={submitting}
+                  >
                     Resend Code
                   </Button>
                 )}
               </div>
 
-              <Alert variant={otpAttempts > 2 ? "destructive" : "default"}>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="text-sm">
-                  {otpAttempts > 0 && `${5 - otpAttempts} attempts remaining. `}
-                  Demo: Check the console for the OTP code.
-                </AlertDescription>
-              </Alert>
+              {otpLocalAttempts > 0 && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="text-sm">
+                    {MAX_OTP_ATTEMPTS - otpLocalAttempts} attempt{Math.abs(otpLocalAttempts) === 1 ? '' : 's'} remaining
+                  </AlertDescription>
+                </Alert>
+              )}
 
               <Button
                 className="w-full"
@@ -1012,7 +1228,7 @@ export default function VerificationPage() {
               </div>
               <CardTitle className="text-2xl">Verification Complete!</CardTitle>
               <CardDescription>
-                Your {role} account has been verified. You can now access all features.
+                Your {ROLE_LABELS[role].toLowerCase()} account has been verified. You can now access all features.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
