@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { compressImage } from "@/utils/uploadHelpers";
 
 interface FileUploadProps {
   label: string;
@@ -57,12 +58,15 @@ export function FileUpload({
 
     setIsUploading(true);
     try {
-      const url = await onUpload(file);
+      const isImageFile = file.type.startsWith('image/');
+      const processedFile = isImageFile ? await compressImage(file) : file;
+      const url = await onUpload(processedFile);
       if (url) {
         setCurrentPreview(url);
         toast.success("File uploaded successfully");
       }
     } catch (error) {
+      console.error("Upload error:", error);
       toast.error("Failed to upload file");
     } finally {
       setIsUploading(false);

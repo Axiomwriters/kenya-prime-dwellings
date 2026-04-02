@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 
 // Compress image before upload
-export async function compressImage(file: File): Promise<File> {
+export async function compressImage(file: File, isAvatar = false): Promise<File> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -14,8 +14,8 @@ export async function compressImage(file: File): Promise<File> {
         let height = img.height;
         
         // Max dimensions
-        const MAX_WIDTH = 1920;
-        const MAX_HEIGHT = 1920;
+        const MAX_WIDTH = isAvatar ? 800 : 1920;
+        const MAX_HEIGHT = isAvatar ? 800 : 1920;
         
         if (width > height) {
           if (width > MAX_WIDTH) {
@@ -35,6 +35,9 @@ export async function compressImage(file: File): Promise<File> {
         const ctx = canvas.getContext('2d');
         ctx?.drawImage(img, 0, 0, width, height);
         
+        // Higher quality for better image fidelity
+        const quality = isAvatar ? 0.92 : 0.92;
+        
         canvas.toBlob((blob) => {
           if (blob) {
             const compressedFile = new File([blob], file.name, {
@@ -45,7 +48,7 @@ export async function compressImage(file: File): Promise<File> {
           } else {
             reject(new Error('Compression failed'));
           }
-        }, 'image/jpeg', 0.85);
+        }, 'image/jpeg', quality);
       };
       img.onerror = reject;
     };

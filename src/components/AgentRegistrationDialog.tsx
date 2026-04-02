@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { uploadFile } from "@/utils/uploadHelpers";
+import { uploadFile, compressImage } from "@/utils/uploadHelpers";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -102,48 +102,98 @@ export function AgentRegistrationDialog({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleAvatarUpload = (file: File, url: string) => {
-    setDocuments((prev) => ({ ...prev, avatarFile: file, avatarUrl: url }));
+  const handleAvatarUpload = async (file: File, url: string) => {
+    try {
+      const compressedFile = await compressImage(file, true);
+      setDocuments((prev) => ({ ...prev, avatarFile: compressedFile, avatarUrl: url }));
+    } catch (error) {
+      console.error("Failed to compress avatar:", error);
+      setDocuments((prev) => ({ ...prev, avatarFile: file, avatarUrl: url }));
+    }
   };
 
   const handleLicenseDocUpload = async (file: File): Promise<string | null> => {
     if (!user) return null;
-    const path = `${user.id}/license-${Date.now()}.jpg`;
-    const { url } = await uploadFile("agent-documents", path, file);
-    if (url) {
-      setDocuments((prev) => ({ ...prev, licenseDocFile: file, licenseDocUrl: url }));
+    try {
+      const compressedFile = await compressImage(file, false);
+      const path = `${user.id}/license-${Date.now()}.jpg`;
+      const { url } = await uploadFile("agent-documents", path, compressedFile);
+      if (url) {
+        setDocuments((prev) => ({ ...prev, licenseDocFile: compressedFile, licenseDocUrl: url }));
+      }
+      return url;
+    } catch (error) {
+      console.error("Failed to compress license doc:", error);
+      const path = `${user.id}/license-${Date.now()}.jpg`;
+      const { url } = await uploadFile("agent-documents", path, file);
+      if (url) {
+        setDocuments((prev) => ({ ...prev, licenseDocFile: file, licenseDocUrl: url }));
+      }
+      return url;
     }
-    return url;
   };
 
   const handleIdFrontUpload = async (file: File): Promise<string | null> => {
     if (!user) return null;
-    const path = `${user.id}/id-front-${Date.now()}.jpg`;
-    const { url } = await uploadFile("id-documents", path, file);
-    if (url) {
-      setDocuments((prev) => ({ ...prev, idFrontFile: file, idFrontUrl: url }));
+    try {
+      const compressedFile = await compressImage(file, false);
+      const path = `${user.id}/id-front-${Date.now()}.jpg`;
+      const { url } = await uploadFile("id-documents", path, compressedFile);
+      if (url) {
+        setDocuments((prev) => ({ ...prev, idFrontFile: compressedFile, idFrontUrl: url }));
+      }
+      return url;
+    } catch (error) {
+      console.error("Failed to compress ID front:", error);
+      const path = `${user.id}/id-front-${Date.now()}.jpg`;
+      const { url } = await uploadFile("id-documents", path, file);
+      if (url) {
+        setDocuments((prev) => ({ ...prev, idFrontFile: file, idFrontUrl: url }));
+      }
+      return url;
     }
-    return url;
   };
 
   const handleIdBackUpload = async (file: File): Promise<string | null> => {
     if (!user) return null;
-    const path = `${user.id}/id-back-${Date.now()}.jpg`;
-    const { url } = await uploadFile("id-documents", path, file);
-    if (url) {
-      setDocuments((prev) => ({ ...prev, idBackFile: file, idBackUrl: url }));
+    try {
+      const compressedFile = await compressImage(file, false);
+      const path = `${user.id}/id-back-${Date.now()}.jpg`;
+      const { url } = await uploadFile("id-documents", path, compressedFile);
+      if (url) {
+        setDocuments((prev) => ({ ...prev, idBackFile: compressedFile, idBackUrl: url }));
+      }
+      return url;
+    } catch (error) {
+      console.error("Failed to compress ID back:", error);
+      const path = `${user.id}/id-back-${Date.now()}.jpg`;
+      const { url } = await uploadFile("id-documents", path, file);
+      if (url) {
+        setDocuments((prev) => ({ ...prev, idBackFile: file, idBackUrl: url }));
+      }
+      return url;
     }
-    return url;
   };
 
   const handleSelfieUpload = async (file: File): Promise<string | null> => {
     if (!user) return null;
-    const path = `${user.id}/selfie-${Date.now()}.jpg`;
-    const { url } = await uploadFile("id-documents", path, file);
-    if (url) {
-      setDocuments((prev) => ({ ...prev, selfieFile: file, selfieUrl: url }));
+    try {
+      const compressedFile = await compressImage(file, true);
+      const path = `${user.id}/selfie-${Date.now()}.jpg`;
+      const { url } = await uploadFile("id-documents", path, compressedFile);
+      if (url) {
+        setDocuments((prev) => ({ ...prev, selfieFile: compressedFile, selfieUrl: url }));
+      }
+      return url;
+    } catch (error) {
+      console.error("Failed to compress selfie:", error);
+      const path = `${user.id}/selfie-${Date.now()}.jpg`;
+      const { url } = await uploadFile("id-documents", path, file);
+      if (url) {
+        setDocuments((prev) => ({ ...prev, selfieFile: file, selfieUrl: url }));
+      }
+      return url;
     }
-    return url;
   };
 
   const validateStep = (step: number): boolean => {
@@ -601,7 +651,7 @@ export function AgentRegistrationDialog({
               <SelectTrigger className="glass-input">
                 <SelectValue placeholder="Select county" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent side="bottom" className="max-h-[300px]">
                 {KENYAN_COUNTIES.map((c) => (
                   <SelectItem key={c} value={c}>
                     {c}
@@ -979,7 +1029,7 @@ export function AgentRegistrationDialog({
         if (!open) resetForm();
       }}
     >
-      <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-xl max-h-[85vh] overflow-y-auto">
         {currentStep > 1 && currentStep < 6 && (
           <div className="text-center text-sm text-muted-foreground pb-2">
             Step {currentStep}: {stepTitles[currentStep - 1]}
