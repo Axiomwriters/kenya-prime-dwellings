@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,19 +31,31 @@ import {
   CheckCircle,
   Info,
   ArrowRight,
+  ArrowLeft,
   Shield,
   Send,
   Loader2,
   Upload,
   AlertCircle,
+  User,
+  Building2,
+  Briefcase,
+  FileText,
+  Camera,
+  Check,
+  Clock,
+  Sparkles,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface AgentRegistrationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+export type IdentityType = "individual" | "agency";
+
+const TOTAL_STEPS = 6;
 
 export function AgentRegistrationDialog({
   open,
@@ -51,31 +63,132 @@ export function AgentRegistrationDialog({
 }: AgentRegistrationDialogProps) {
   const { user, refreshRole } = useAuth();
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Form state
-  const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [county, setCounty] = useState("");
-  const [city, setCity] = useState("");
-  const [bio, setBio] = useState("");
-  const [idFrontFile, setIdFrontFile] = useState<File | null>(null);
-  const [idBackFile, setIdBackFile] = useState<File | null>(null);
-  const [idFrontUrl, setIdFrontUrl] = useState("");
-  const [idBackUrl, setIdBackUrl] = useState("");
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarUrl, setAvatarUrl] = useState("");
+  const [identityType, setIdentityType] = useState<IdentityType>("individual");
 
-  const handleIdFrontUpload = (file: File, url: string) => {
-    setIdFrontFile(file);
-    setIdFrontUrl(url);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    phone: "",
+    whatsapp: "",
+    county: "",
+    city: "",
+    bio: "",
+    licenseNumber: "",
+    agencyName: "",
+    agencyRegNumber: "",
+    kraPin: "",
+    agencyPhone: "",
+    agencyAddress: "",
+  });
+
+  const [documents, setDocuments] = useState({
+    avatarFile: null as File | null,
+    avatarUrl: "",
+    licenseDocFile: null as File | null,
+    licenseDocUrl: "",
+    idFrontFile: null as File | null,
+    idFrontUrl: "",
+    idBackFile: null as File | null,
+    idBackUrl: "",
+    selfieFile: null as File | null,
+    selfieUrl: "",
+  });
+
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+
+  const updateFormData = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleIdBackUpload = (file: File, url: string) => {
-    setIdBackFile(file);
-    setIdBackUrl(url);
+  const handleAvatarUpload = (file: File, url: string) => {
+    setDocuments((prev) => ({ ...prev, avatarFile: file, avatarUrl: url }));
+  };
+
+  const handleLicenseDocUpload = async (file: File): Promise<string | null> => {
+    if (!user) return null;
+    const path = `${user.id}/license-${Date.now()}.jpg`;
+    const { url } = await uploadFile("agent-documents", path, file);
+    if (url) {
+      setDocuments((prev) => ({ ...prev, licenseDocFile: file, licenseDocUrl: url }));
+    }
+    return url;
+  };
+
+  const handleIdFrontUpload = async (file: File): Promise<string | null> => {
+    if (!user) return null;
+    const path = `${user.id}/id-front-${Date.now()}.jpg`;
+    const { url } = await uploadFile("id-documents", path, file);
+    if (url) {
+      setDocuments((prev) => ({ ...prev, idFrontFile: file, idFrontUrl: url }));
+    }
+    return url;
+  };
+
+  const handleIdBackUpload = async (file: File): Promise<string | null> => {
+    if (!user) return null;
+    const path = `${user.id}/id-back-${Date.now()}.jpg`;
+    const { url } = await uploadFile("id-documents", path, file);
+    if (url) {
+      setDocuments((prev) => ({ ...prev, idBackFile: file, idBackUrl: url }));
+    }
+    return url;
+  };
+
+  const handleSelfieUpload = async (file: File): Promise<string | null> => {
+    if (!user) return null;
+    const path = `${user.id}/selfie-${Date.now()}.jpg`;
+    const { url } = await uploadFile("id-documents", path, file);
+    if (url) {
+      setDocuments((prev) => ({ ...prev, selfieFile: file, selfieUrl: url }));
+    }
+    return url;
+  };
+
+  const validateStep = (step: number): boolean => {
+    switch (step) {
+      case 1:
+        return true;
+      case 2:
+        return true;
+      case 3:
+        return !!(
+          formData.fullName &&
+          formData.phone &&
+          formData.whatsapp &&
+          formData.county &&
+          formData.city &&
+          formData.bio.length >= 250 &&
+          (identityType === "individual" || formData.agencyName)
+        );
+      case 4:
+        return !!documents.licenseDocUrl;
+      case 5:
+        return !!(
+          documents.idFrontUrl &&
+          documents.idBackUrl &&
+          documents.selfieUrl
+        );
+      case 6:
+        return acceptedTerms;
+      default:
+        return true;
+    }
+  };
+
+  const canProceed = validateStep(currentStep);
+
+  const handleNext = () => {
+    if (currentStep < TOTAL_STEPS) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
   };
 
   const handleSubmitApplication = async () => {
@@ -84,544 +197,796 @@ export function AgentRegistrationDialog({
     setIsSubmitting(true);
 
     try {
-      // 1. Upload avatar if provided
-      let finalAvatarUrl = avatarUrl;
-      if (avatarFile) {
+      let finalAvatarUrl = documents.avatarUrl;
+      
+      if (documents.avatarFile) {
         const avatarPath = `${user.id}/avatar-${Date.now()}.jpg`;
-        const { url: uploadedAvatarUrl, error: avatarError } = await uploadFile(
+        const { url: uploadedAvatarUrl } = await uploadFile(
           "avatars",
           avatarPath,
-          avatarFile
+          documents.avatarFile
         );
-        
-        if (uploadedAvatarUrl && !avatarError) {
+        if (uploadedAvatarUrl) {
           finalAvatarUrl = uploadedAvatarUrl;
         }
       }
 
-      // 2. Update profile
-      const { error: profileError } = await supabase
+      const verificationDocuments = {
+        id_front_url: documents.idFrontUrl,
+        id_back_url: documents.idBackUrl,
+        selfie_url: documents.selfieUrl,
+        license_doc_url: documents.licenseDocUrl,
+      };
+
+      await supabase
         .from("profiles")
         .update({
-          full_name: fullName,
-          phone,
-          whatsapp,
-          county,
-          city,
-          bio,
+          full_name: formData.fullName,
+          phone_number: formData.phone,
           avatar_url: finalAvatarUrl || null,
+          bio: formData.bio,
+          user_type: identityType,
+          verification_status: "pending",
+          verification_documents: verificationDocuments,
         })
         .eq("id", user.id);
 
-      if (profileError) throw profileError;
+      const agentData: any = {
+        id: user.id,
+        agency_name: identityType === "agency" ? formData.agencyName : null,
+        license_number: identityType === "individual" ? formData.licenseNumber : null,
+        bio: formData.bio,
+        whatsapp_number: formData.whatsapp,
+        is_verified: false,
+      };
 
-      // 3. Upload ID documents
-      const idFrontPath = `${user.id}/id-front-${Date.now()}.jpg`;
-      const idBackPath = `${user.id}/id-back-${Date.now()}.jpg`;
+      const { error: agentError } = await supabase
+        .from("agents")
+        .upsert(agentData);
 
-      const { url: frontUrl, error: frontError } = await uploadFile("id-documents", idFrontPath, idFrontFile!);
-      if (frontError || !frontUrl) throw new Error("Failed to upload front ID");
+      if (agentError) {
+        console.error("Agent insert error:", agentError);
+        throw agentError;
+      }
 
-      const { url: backUrl, error: backError } = await uploadFile("id-documents", idBackPath, idBackFile!);
-      if (backError || !backUrl) throw new Error("Failed to upload back ID");
-
-      // 4. Create verification record (status: pending, admin will approve)
-      const { error: verificationError } = await supabase
-        .from("agent_verifications")
-        .insert([{
-          user_id: user.id,
-          id_front_url: frontUrl,
-          id_back_url: backUrl,
-          status: "pending",
-        }]);
-
-      if (verificationError) throw verificationError;
-
-      // Agent role will be assigned by admin upon approval
-      await refreshRole();
-
-      toast.success("Application submitted! Awaiting admin approval...");
+      toast.success("Application submitted successfully!");
       onOpenChange(false);
-
-      // Redirect to home
+      
       setTimeout(() => {
-        navigate("/");
-      }, 100);
-    } catch (error) {
+        navigate("/agent/onboarding-complete");
+      }, 500);
+    } catch (error: any) {
       console.error("Submission error:", error);
-      toast.error("Failed to submit application. Please try again.");
+      toast.error(error.message || "Failed to submit application. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const resetForm = () => {
-    setStep(1);
-    setFullName("");
-    setPhone("");
-    setWhatsapp("");
-    setCounty("");
-    setCity("");
-    setBio("");
-    setIdFrontFile(null);
-    setIdBackFile(null);
-    setIdFrontUrl("");
-    setIdBackUrl("");
+    setCurrentStep(1);
+    setIdentityType("individual");
+    setFormData({
+      fullName: "",
+      phone: "",
+      whatsapp: "",
+      county: "",
+      city: "",
+      bio: "",
+      licenseNumber: "",
+      agencyName: "",
+      agencyRegNumber: "",
+      kraPin: "",
+      agencyPhone: "",
+      agencyAddress: "",
+    });
+    setDocuments({
+      avatarFile: null,
+      avatarUrl: "",
+      licenseDocFile: null,
+      licenseDocUrl: "",
+      idFrontFile: null,
+      idFrontUrl: "",
+      idBackFile: null,
+      idBackUrl: "",
+      selfieFile: null,
+      selfieUrl: "",
+    });
+    setAcceptedTerms(false);
   };
 
-  return (
-    <Dialog open={open} onOpenChange={(open) => {
-      onOpenChange(open);
-      if (!open) resetForm();
-    }}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-        {/* Step Progress Indicator */}
-        <div className="flex items-center justify-center gap-2 mb-6 pt-2">
-          {[1, 2, 3, 4].map((stepNumber, index) => (
-            <div key={stepNumber} className="flex items-center">
-              <div className={`
-                w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all
-                ${step >= stepNumber 
-                  ? 'bg-primary text-primary-foreground shadow-md' 
-                  : 'bg-muted text-muted-foreground'
-                }
-              `}>
-                {stepNumber}
-              </div>
-              {index < 3 && (
-                <div className={`
-                  w-12 h-1 mx-1 rounded transition-all
-                  ${step > stepNumber ? 'bg-primary' : 'bg-muted'}
-                `} />
-              )}
-            </div>
-          ))}
+  const renderStepIndicator = () => (
+    <div className="flex items-center justify-center gap-2 mb-6 pt-2">
+      {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((stepNum, index) => (
+        <div key={stepNum} className="flex items-center">
+          <div
+            className={`
+              w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all
+              ${currentStep >= stepNum
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "bg-muted text-muted-foreground"
+              }
+            `}
+          >
+            {currentStep > stepNum ? (
+              <Check className="w-4 h-4" />
+            ) : (
+              stepNum
+            )}
+          </div>
+          {index < TOTAL_STEPS - 1 && (
+            <div
+              className={`
+                w-8 h-0.5 mx-1 rounded transition-all
+                ${currentStep > stepNum ? "bg-primary" : "bg-muted"}
+              `}
+            />
+          )}
         </div>
-        
-        {/* Step 1: Welcome */}
-        {step === 1 && (
-          <>
-            <DialogHeader>
-              <DialogTitle className="text-2xl">Become an Agent</DialogTitle>
-              <DialogDescription>
-                Join our network of trusted real estate agents
-              </DialogDescription>
-            </DialogHeader>
+      ))}
+    </div>
+  );
 
-            <div className="space-y-6 py-6">
-              <div className="glass-card p-6 space-y-4">
-                <h3 className="font-semibold text-lg">Requirements:</h3>
-                <ul className="space-y-3">
-                  <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium">Valid National ID</p>
-                      <p className="text-sm text-muted-foreground">
-                        Upload front and back photos
-                      </p>
-                    </div>
+  const renderStep1_Welcome = () => (
+    <>
+      <DialogHeader>
+        <div className="flex items-center justify-center mb-4">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
+            <Briefcase className="w-8 h-8 text-white" />
+          </div>
+        </div>
+        <DialogTitle className="text-2xl text-center">Become an Agent Partner</DialogTitle>
+        <DialogDescription className="text-center">
+          Join Kenya&apos;s premier real estate platform and start listing properties today
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="space-y-4 py-6">
+        <div className="glass-card p-5 space-y-4">
+          <h3 className="font-semibold text-lg flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-emerald-500" />
+            What you&apos;ll get:
+          </h3>
+          <ul className="space-y-3">
+            {[
+              "Unlimited property listings",
+              "Access to thousands of buyers",
+              "AI-powered lead generation",
+              "Secure escrow transactions",
+              "Trust badge on verified profiles",
+              "Dedicated agent dashboard",
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center mt-0.5">
+                  <Check className="w-3 h-3 text-emerald-500" />
+                </div>
+                <span className="text-sm">{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <Info className="w-5 h-5 text-amber-500 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-medium text-amber-500 mb-1">
+                Application Process
+              </p>
+              <p className="text-muted-foreground">
+                Your application will be reviewed by our team within <strong>24-48 hours</strong>. 
+                You&apos;ll receive a notification once approved.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <DialogFooter>
+        <Button onClick={handleNext} className="w-full bg-primary" size="lg">
+          Get Started
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </Button>
+      </DialogFooter>
+    </>
+  );
+
+  const renderStep2_Identity = () => (
+    <>
+      <DialogHeader>
+        <DialogTitle>Choose Your Identity</DialogTitle>
+        <DialogDescription>
+          Select how you want to operate on the platform
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="space-y-4 py-6">
+        <div className="grid grid-cols-1 gap-4">
+          <button
+            onClick={() => setIdentityType("individual")}
+            className={`
+              relative p-5 rounded-xl border-2 transition-all text-left
+              ${identityType === "individual"
+                ? "border-primary bg-primary/5 shadow-md"
+                : "border-border bg-card hover:border-primary/50"
+              }
+            `}
+          >
+            {identityType === "individual" && (
+              <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                <Check className="w-4 h-4 text-white" />
+              </div>
+            )}
+            <div className="flex items-start gap-4">
+              <div className={`
+                p-3 rounded-xl
+                ${identityType === "individual" ? "bg-primary text-white" : "bg-muted"}
+              `}>
+                <User className="w-6 h-6" />
+              </div>
+              <div className="flex-1">
+                <p className={`font-bold text-lg ${identityType === "individual" ? "text-primary" : ""}`}>
+                  Individual Agent
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Work independently and manage your own listings
+                </p>
+                <ul className="mt-3 space-y-1">
+                  <li className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Check className="w-3 h-3 text-emerald-500" /> Perfect for freelancers
                   </li>
-                  <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium">Complete Profile</p>
-                      <p className="text-sm text-muted-foreground">
-                        Provide contact info and location
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium">Verification Review</p>
-                      <p className="text-sm text-muted-foreground">
-                        Wait 24-48 hours for approval
-                      </p>
-                    </div>
+                  <li className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Check className="w-3 h-3 text-emerald-500" /> Own profile and reputation
                   </li>
                 </ul>
               </div>
+            </div>
+          </button>
 
-              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <Info className="w-5 h-5 text-blue-500 mt-0.5" />
-                  <div className="text-sm">
-                    <p className="font-medium text-blue-500 mb-1">
-                      Why become an agent?
-                    </p>
-                    <p className="text-muted-foreground">
-                      List unlimited properties, reach thousands of buyers, and
-                      grow your real estate business on KenyaHomes.
-                    </p>
-                  </div>
-                </div>
+          <button
+            onClick={() => setIdentityType("agency")}
+            className={`
+              relative p-5 rounded-xl border-2 transition-all text-left
+              ${identityType === "agency"
+                ? "border-primary bg-primary/5 shadow-md"
+                : "border-border bg-card hover:border-primary/50"
+              }
+            `}
+          >
+            {identityType === "agency" && (
+              <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                <Check className="w-4 h-4 text-white" />
+              </div>
+            )}
+            <div className="flex items-start gap-4">
+              <div className={`
+                p-3 rounded-xl
+                ${identityType === "agency" ? "bg-primary text-white" : "bg-muted"}
+              `}>
+                <Building2 className="w-6 h-6" />
+              </div>
+              <div className="flex-1">
+                <p className={`font-bold text-lg ${identityType === "agency" ? "text-primary" : ""}`}>
+                  Registered Agency
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Operate as a company with a team
+                </p>
+                <ul className="mt-3 space-y-1">
+                  <li className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Check className="w-3 h-3 text-emerald-500" /> Company branding
+                  </li>
+                  <li className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Check className="w-3 h-3 text-emerald-500" /> Manage multiple agents
+                  </li>
+                </ul>
               </div>
             </div>
+          </button>
+        </div>
+      </div>
 
-            <DialogFooter>
-              <Button onClick={() => setStep(2)} className="bg-primary w-full">
-                Get Started
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </DialogFooter>
-          </>
+      <DialogFooter className="gap-2">
+        <Button variant="outline" onClick={handleBack}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
+        <Button onClick={handleNext} className="bg-primary">
+          Continue
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </Button>
+      </DialogFooter>
+    </>
+  );
+
+  const renderStep3_Profile = () => (
+    <>
+      <DialogHeader>
+        <DialogTitle>Profile Information</DialogTitle>
+        <DialogDescription>
+          {identityType === "individual"
+            ? "Tell us about yourself and your experience"
+            : "Tell us about your agency"
+          }
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="space-y-4 py-4 max-h-[50vh] overflow-y-auto pr-2">
+        <div className="flex flex-col items-center gap-3">
+          <Avatar className="w-20 h-20 border-4 border-primary/20">
+            <AvatarImage src={documents.avatarUrl} />
+            <AvatarFallback className="text-2xl bg-primary/10">
+              {formData.fullName?.charAt(0)?.toUpperCase() || "A"}
+            </AvatarFallback>
+          </Avatar>
+          <div className="text-center">
+            <Input
+              type="file"
+              id="avatar-upload-wizard"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const url = URL.createObjectURL(file);
+                  handleAvatarUpload(file, url);
+                }
+              }}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => document.getElementById("avatar-upload-wizard")?.click()}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Upload Photo
+            </Button>
+          </div>
+        </div>
+
+        <Separator />
+
+        <div className="space-y-2">
+          <Label>
+            {identityType === "individual" ? "Full Name" : "Agency Name"} *
+          </Label>
+          <Input
+            value={formData.fullName}
+            onChange={(e) => updateFormData("fullName", e.target.value)}
+            placeholder={identityType === "individual" ? "John Kamau" : "Kamau Properties Ltd"}
+            className="glass-input"
+          />
+        </div>
+
+        {identityType === "individual" && (
+          <div className="space-y-2">
+            <Label>License Number (Optional)</Label>
+            <Input
+              value={formData.licenseNumber}
+              onChange={(e) => updateFormData("licenseNumber", e.target.value)}
+              placeholder="e.g., REF/2023/12345"
+              className="glass-input"
+            />
+          </div>
         )}
 
-        {/* Step 2: Profile Information */}
-        {step === 2 && (
-          <>
-            <DialogHeader>
-              <DialogTitle>Profile Information</DialogTitle>
-              <DialogDescription>
-                Tell us about yourself and your experience
-              </DialogDescription>
-            </DialogHeader>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label>Phone Number *</Label>
+            <Input
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => updateFormData("phone", e.target.value)}
+              placeholder="+254 712 345 678"
+              className="glass-input"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>WhatsApp *</Label>
+            <Input
+              type="tel"
+              value={formData.whatsapp}
+              onChange={(e) => updateFormData("whatsapp", e.target.value)}
+              placeholder="+254 712 345 678"
+              className="glass-input"
+            />
+          </div>
+        </div>
 
-            <div className="space-y-4 py-6">
-              {/* Profile Picture Upload */}
-              <div className="flex flex-col items-center gap-4 py-4">
-                <Avatar className="w-24 h-24">
-                  <AvatarImage src={avatarUrl} />
-                  <AvatarFallback className="text-2xl bg-primary/10">
-                    {fullName?.charAt(0)?.toUpperCase() || "A"}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div className="text-center">
-                  <input
-                    type="file"
-                    id="avatar-upload-agent"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setAvatarFile(file);
-                        setAvatarUrl(URL.createObjectURL(file));
-                      }
-                    }}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => document.getElementById("avatar-upload-agent")?.click()}
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    Upload Profile Picture
-                  </Button>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    JPG, PNG or WEBP. Max 5MB
-                  </p>
-                </div>
-              </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label>County *</Label>
+            <Select value={formData.county} onValueChange={(v) => updateFormData("county", v)}>
+              <SelectTrigger className="glass-input">
+                <SelectValue placeholder="Select county" />
+              </SelectTrigger>
+              <SelectContent>
+                {KENYAN_COUNTIES.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>City/Town *</Label>
+            <Input
+              value={formData.city}
+              onChange={(e) => updateFormData("city", e.target.value)}
+              placeholder="e.g., Nairobi"
+              className="glass-input"
+            />
+          </div>
+        </div>
 
-              <Separator className="my-4" />
+        <div className="space-y-2">
+          <Label>
+            Bio / Description *
+            <span className="text-xs text-muted-foreground ml-2">
+              (Minimum 250 characters)
+            </span>
+          </Label>
+          <Textarea
+            value={formData.bio}
+            onChange={(e) => updateFormData("bio", e.target.value)}
+            placeholder={
+              identityType === "individual"
+                ? "Tell potential clients about your experience in real estate..."
+                : "Describe your agency's services and expertise..."
+            }
+            rows={4}
+            maxLength={500}
+            className="glass-input resize-none"
+          />
+          <div className="flex items-center justify-between text-xs">
+            <span className={formData.bio.length < 250 ? "text-destructive" : "text-emerald-500"}>
+              {formData.bio.length < 250
+                ? `${250 - formData.bio.length} more characters needed`
+                : "Good to go!"}
+            </span>
+            <span className="text-muted-foreground">{formData.bio.length}/500</span>
+          </div>
+        </div>
+      </div>
 
-              <div>
-                <Label>Full Name / Agency Name</Label>
+      <DialogFooter className="gap-2">
+        <Button variant="outline" onClick={handleBack}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
+        <Button
+          onClick={handleNext}
+          disabled={!validateStep(3)}
+          className="bg-primary"
+        >
+          Next: Documents
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </Button>
+      </DialogFooter>
+    </>
+  );
+
+  const renderStep4_License = () => (
+    <>
+      <DialogHeader>
+        <DialogTitle>License Verification</DialogTitle>
+        <DialogDescription>
+          Upload your {identityType === "individual" ? "practicing license" : "business registration certificate"}
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="space-y-4 py-4">
+        <Alert className="border-emerald-500/50 bg-emerald-500/10">
+          <Shield className="w-4 h-4 text-emerald-500" />
+          <AlertTitle>Secure Document Handling</AlertTitle>
+          <AlertDescription>
+            Your documents are encrypted and only visible to admin reviewers.
+          </AlertDescription>
+        </Alert>
+
+        <div className="space-y-4">
+          {identityType === "individual" ? (
+            <>
+              <FileUpload
+                label="Practicing License *"
+                accept="image/*,.pdf"
+                maxSize={10}
+                onUpload={handleLicenseDocUpload}
+                preview={documents.licenseDocUrl}
+              />
+              <p className="text-xs text-muted-foreground -mt-2">
+                Upload your real estate practicing license issued by relevant authority
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <Label>Agency Registration Number *</Label>
                 <Input
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  value={formData.agencyRegNumber}
+                  onChange={(e) => updateFormData("agencyRegNumber", e.target.value)}
+                  placeholder="e.g., CPR/2023/123456"
                   className="glass-input"
-                  required
                 />
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Phone Number</Label>
-                  <Input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+254 712 345 678"
-                    className="glass-input"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label>WhatsApp Number</Label>
-                  <Input
-                    type="tel"
-                    value={whatsapp}
-                    onChange={(e) => setWhatsapp(e.target.value)}
-                    placeholder="+254 712 345 678"
-                    className="glass-input"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>County</Label>
-                  <Select value={county} onValueChange={setCounty}>
-                    <SelectTrigger className="glass-input">
-                      <SelectValue placeholder="Select county" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {KENYAN_COUNTIES.map((c) => (
-                        <SelectItem key={c} value={c}>
-                          {c}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>City / Town</Label>
-                  <Input
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    className="glass-input"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label>
-                  Bio / Description
-                  <span className="text-destructive ml-1">*</span>
-                </Label>
-                <Textarea
-                  value={bio}
-                  onChange={(e) => {
-                    const newValue = e.target.value;
-                    setBio(newValue);
-                    
-                    // Auto-proceed when reaching max length (300 chars)
-                    if (newValue.length === 300) {
-                      // Check if all required fields are filled
-                      if (fullName && phone && whatsapp && county && city) {
-                        setTimeout(() => setStep(3), 500);
-                      }
-                    }
-                  }}
-                  placeholder="Tell us about your experience in real estate..."
-                  rows={4}
-                  maxLength={300}
-                  className={`glass-input resize-none border-2 transition-colors ${
-                    bio.length >= 250 
-                      ? 'border-green-500/50 focus:border-green-500' 
-                      : bio.length > 0 
-                        ? 'border-destructive/50 focus:border-destructive' 
-                        : ''
-                  }`}
+              <div className="space-y-2">
+                <Label>KRA PIN *</Label>
+                <Input
+                  value={formData.kraPin}
+                  onChange={(e) => updateFormData("kraPin", e.target.value)}
+                  placeholder="e.g., A123456789B"
+                  className="glass-input"
                 />
-                <div className="flex items-center justify-between mt-2">
-                  <div className="flex items-center gap-2">
-                    {bio.length < 250 ? (
-                      <>
-                        <AlertCircle className="w-4 h-4 text-destructive" />
-                        <p className="text-sm font-medium text-destructive">
-                          Minimum 250 characters required ({250 - bio.length} more)
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                        <p className="text-sm font-medium text-green-500">
-                          Great! ✓
-                        </p>
-                      </>
-                    )}
-                  </div>
-                  <p className="text-sm font-semibold text-muted-foreground">
-                    {bio.length}/300
-                  </p>
-                </div>
               </div>
+              <FileUpload
+                label="Certificate of Incorporation *"
+                accept="image/*,.pdf"
+                maxSize={10}
+                onUpload={handleLicenseDocUpload}
+                preview={documents.licenseDocUrl}
+              />
+              <div className="space-y-2">
+                <Label>Physical Address</Label>
+                <Input
+                  value={formData.agencyAddress}
+                  onChange={(e) => updateFormData("agencyAddress", e.target.value)}
+                  placeholder="e.g., Westlands Commercial Center, 4th Floor"
+                  className="glass-input"
+                />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      <DialogFooter className="gap-2">
+        <Button variant="outline" onClick={handleBack}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
+        <Button
+          onClick={handleNext}
+          disabled={!validateStep(4)}
+          className="bg-primary"
+        >
+          Next: ID Verification
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </Button>
+      </DialogFooter>
+    </>
+  );
+
+  const renderStep5_ID = () => (
+    <>
+      <DialogHeader>
+        <DialogTitle>Identity Verification</DialogTitle>
+        <DialogDescription>
+          Upload clear photos of your national ID and a selfie
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="space-y-4 py-4 max-h-[50vh] overflow-y-auto pr-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FileUpload
+            label="National ID (Front) *"
+            accept="image/*"
+            maxSize={5}
+            onUpload={handleIdFrontUpload}
+            preview={documents.idFrontUrl}
+          />
+          <FileUpload
+            label="National ID (Back) *"
+            accept="image/*"
+            maxSize={5}
+            onUpload={handleIdBackUpload}
+            preview={documents.idBackUrl}
+          />
+        </div>
+
+        <FileUpload
+          label="Selfie with ID *"
+          accept="image/*"
+          maxSize={5}
+          onUpload={handleSelfieUpload}
+          preview={documents.selfieUrl}
+        />
+
+        <Alert className="border-yellow-500/50 bg-yellow-500/10">
+          <AlertCircle className="w-4 h-4 text-yellow-500" />
+          <AlertTitle>Photo Guidelines</AlertTitle>
+          <AlertDescription className="text-xs">
+            <ul className="list-disc list-inside mt-1 space-y-0.5">
+              <li>Ensure all text on ID is clearly readable</li>
+              <li>Good lighting with no glare on ID surface</li>
+              <li>Selfie should clearly show your face alongside the ID</li>
+            </ul>
+          </AlertDescription>
+        </Alert>
+      </div>
+
+      <DialogFooter className="gap-2">
+        <Button variant="outline" onClick={handleBack}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
+        <Button
+          onClick={handleNext}
+          disabled={!validateStep(5)}
+          className="bg-primary"
+        >
+          Next: Review
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </Button>
+      </DialogFooter>
+    </>
+  );
+
+  const renderStep6_Review = () => (
+    <>
+      <DialogHeader>
+        <DialogTitle>Review & Submit</DialogTitle>
+        <DialogDescription>
+          Please review your information before submitting
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="space-y-4 py-4 max-h-[50vh] overflow-y-auto pr-2">
+        <div className="glass-card p-4 space-y-4">
+          <div className="flex items-center gap-3 pb-3 border-b">
+            <Avatar className="w-12 h-12">
+              <AvatarImage src={documents.avatarUrl} />
+              <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                {formData.fullName?.charAt(0)?.toUpperCase() || "A"}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-bold">{formData.fullName}</p>
+              <p className="text-sm text-muted-foreground capitalize">
+                {identityType} Agent
+              </p>
             </div>
+          </div>
 
-            <DialogFooter className="gap-2">
-              <Button variant="outline" onClick={() => setStep(1)}>
-                Back
-              </Button>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="inline-block">
-                      <Button
-                        onClick={() => setStep(3)}
-                        disabled={!fullName || !phone || !whatsapp || !county || !city || bio.length < 250}
-                        className="bg-primary"
-                      >
-                        Next: Upload Documents
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    </span>
-                  </TooltipTrigger>
-                  {(!fullName || !phone || !whatsapp || !county || !city || bio.length < 250) && (
-                    <TooltipContent>
-                      <p className="font-medium">Please complete all required fields:</p>
-                      <ul className="text-xs mt-1 space-y-1">
-                        {!fullName && <li>• Full Name</li>}
-                        {!phone && <li>• Phone Number</li>}
-                        {!whatsapp && <li>• WhatsApp Number</li>}
-                        {!county && <li>• County</li>}
-                        {!city && <li>• City/Town</li>}
-                        {bio.length < 250 && <li>• Bio (need {250 - bio.length} more characters)</li>}
-                      </ul>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
-            </DialogFooter>
-          </>
-        )}
-
-        {/* Step 3: ID Upload */}
-        {step === 3 && (
-          <>
-            <DialogHeader>
-              <DialogTitle>ID Document Upload</DialogTitle>
-              <DialogDescription>
-                Upload clear photos of your national ID
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-6 py-6">
-              <Alert className="border-yellow-500/50 bg-yellow-500/10">
-                <Shield className="w-4 h-4 text-yellow-500" />
-                <AlertTitle>Document Security</AlertTitle>
-                <AlertDescription>
-                  Your documents are encrypted and only visible to admin
-                  reviewers. We never share your personal information.
-                </AlertDescription>
-              </Alert>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label>National ID (Front)</Label>
-                  <Input type="file" accept="image/*" onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setIdFrontFile(file);
-                      setIdFrontUrl(URL.createObjectURL(file));
-                    }
-                  }} />
-                </div>
-
-                <div>
-                  <Label>National ID (Back)</Label>
-                  <Input type="file" accept="image/*" onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setIdBackFile(file);
-                      setIdBackUrl(URL.createObjectURL(file));
-                    }
-                  }} />
-                </div>
-              </div>
-
-              <div className="text-sm text-muted-foreground space-y-1">
-                <p className="font-medium">Document Guidelines:</p>
-                <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li>Upload clear, readable photos</li>
-                  <li>Ensure all text is visible</li>
-                  <li>Supported formats: JPG, PNG, PDF</li>
-                  <li>Maximum file size: 10MB per document</li>
-                </ul>
-              </div>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <p className="text-muted-foreground">Phone</p>
+              <p className="font-medium">{formData.phone}</p>
             </div>
-
-            <DialogFooter className="gap-2">
-              <Button variant="outline" onClick={() => setStep(2)}>
-                Back
-              </Button>
-              <Button
-                onClick={() => setStep(4)}
-                disabled={!idFrontUrl || !idBackUrl}
-                className="bg-primary"
-              >
-                Review Application
-              </Button>
-            </DialogFooter>
-          </>
-        )}
-
-        {/* Step 4: Review */}
-        {step === 4 && (
-          <>
-            <DialogHeader>
-              <DialogTitle>Review & Submit</DialogTitle>
-              <DialogDescription>
-                Please review your information before submitting
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-6 py-6">
-              <div className="glass-card p-6 space-y-4">
-                <h3 className="font-semibold">Application Summary</h3>
-
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Full Name:</span>
-                    <span className="font-medium">{fullName}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Phone:</span>
-                    <span className="font-medium">{phone}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">WhatsApp:</span>
-                    <span className="font-medium">{whatsapp}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Location:</span>
-                    <span className="font-medium">
-                      {city}, {county}
-                    </span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between items-start">
-                    <span className="text-muted-foreground">Documents:</span>
-                    <div className="text-right">
-                      <p className="font-medium">✓ ID Front Uploaded</p>
-                      <p className="font-medium">✓ ID Back Uploaded</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <Alert className="border-green-500/50 bg-green-500/10">
-                <CheckCircle className="w-4 h-4 text-green-500" />
-                <AlertTitle>Ready to Submit</AlertTitle>
-                <AlertDescription>
-                  Your application will be reviewed within 24-48 hours. You'll
-                  receive a notification once approved.
-                </AlertDescription>
-              </Alert>
+            <div>
+              <p className="text-muted-foreground">WhatsApp</p>
+              <p className="font-medium">{formData.whatsapp}</p>
             </div>
+            <div>
+              <p className="text-muted-foreground">County</p>
+              <p className="font-medium">{formData.county}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">City</p>
+              <p className="font-medium">{formData.city}</p>
+            </div>
+          </div>
 
-            <DialogFooter className="gap-2">
-              <Button variant="outline" onClick={() => setStep(3)}>
-                Back
-              </Button>
-              <Button
-                onClick={handleSubmitApplication}
-                disabled={isSubmitting}
-                className="bg-primary"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4 mr-2" />
-                    Submit Application
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </>
+          <div className="pt-3 border-t">
+            <p className="text-muted-foreground text-sm mb-1">Bio</p>
+            <p className="text-sm">{formData.bio}</p>
+          </div>
+        </div>
+
+        <div className="glass-card p-4">
+          <h4 className="font-semibold text-sm mb-3">Uploaded Documents</h4>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex items-center gap-2 text-sm">
+              <FileText className="w-4 h-4 text-emerald-500" />
+              <span className="text-muted-foreground">License/Registration</span>
+              <Check className="w-4 h-4 text-emerald-500 ml-auto" />
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <FileText className="w-4 h-4 text-emerald-500" />
+              <span className="text-muted-foreground">ID Front</span>
+              <Check className="w-4 h-4 text-emerald-500 ml-auto" />
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <FileText className="w-4 h-4 text-emerald-500" />
+              <span className="text-muted-foreground">ID Back</span>
+              <Check className="w-4 h-4 text-emerald-500 ml-auto" />
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Camera className="w-4 h-4 text-emerald-500" />
+              <span className="text-muted-foreground">Selfie</span>
+              <Check className="w-4 h-4 text-emerald-500 ml-auto" />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg">
+          <input
+            type="checkbox"
+            id="terms-checkbox"
+            checked={acceptedTerms}
+            onChange={(e) => setAcceptedTerms(e.target.checked)}
+            className="mt-1 w-4 h-4 rounded border-primary text-primary focus:ring-primary"
+          />
+          <label htmlFor="terms-checkbox" className="text-sm text-muted-foreground cursor-pointer">
+            I confirm that all information provided is accurate and I agree to the{" "}
+            <a href="#" className="text-primary hover:underline">Terms of Service</a>{" "}
+            and{" "}
+            <a href="#" className="text-primary hover:underline">Agent Partnership Agreement</a>.
+          </label>
+        </div>
+      </div>
+
+      <DialogFooter className="gap-2">
+        <Button variant="outline" onClick={handleBack}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
+        <Button
+          onClick={handleSubmitApplication}
+          disabled={!acceptedTerms || isSubmitting}
+          className="bg-primary"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Submitting...
+            </>
+          ) : (
+            <>
+              <Send className="w-4 h-4 mr-2" />
+              Submit Application
+            </>
+          )}
+        </Button>
+      </DialogFooter>
+    </>
+  );
+
+  const renderCurrentStep = () => {
+    switch (currentStep) {
+      case 1:
+        return renderStep1_Welcome();
+      case 2:
+        return renderStep2_Identity();
+      case 3:
+        return renderStep3_Profile();
+      case 4:
+        return renderStep4_License();
+      case 5:
+        return renderStep5_ID();
+      case 6:
+        return renderStep6_Review();
+      default:
+        return null;
+    }
+  };
+
+  const stepTitles = [
+    "Welcome",
+    "Identity",
+    "Profile",
+    "License",
+    "ID Verification",
+    "Review",
+  ];
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(open) => {
+        onOpenChange(open);
+        if (!open) resetForm();
+      }}
+    >
+      <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
+        {currentStep > 1 && currentStep < 6 && (
+          <div className="text-center text-sm text-muted-foreground pb-2">
+            Step {currentStep}: {stepTitles[currentStep - 1]}
+          </div>
         )}
+        {renderStepIndicator()}
+        {renderCurrentStep()}
       </DialogContent>
     </Dialog>
   );

@@ -1,5 +1,7 @@
-import { lazy } from "react";
+import { lazy, Suspense } from "react";
 import { Navigate } from "react-router-dom";
+import { ProtectedAgentRoute } from "@/components/agent/ProtectedAgentRoute";
+import { Loader2 } from "lucide-react";
 
 // Agent Dashboard Components
 const NewAgentDashboard = lazy(() => import("../pages/AgentDashboard/NewAgentDashboard"));
@@ -9,43 +11,85 @@ const MyListings = lazy(() => import("../pages/AgentDashboard/MyListings"));
 const AgentTrips = lazy(() => import("../pages/AgentDashboard/AgentTrips"));
 const Notifications = lazy(() => import("../pages/AgentDashboard/Notifications"));
 const AgentSettings = lazy(() => import("../pages/AgentDashboard/AgentSettings"));
+const AgentOnboardingComplete = lazy(() => import("../pages/AgentDashboard/AgentOnboardingComplete"));
 
-// Wrapper to handle agency mode redirection
+const LoadingFallback = () => (
+  <div className="h-screen flex items-center justify-center">
+    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+  </div>
+);
+
 function AgentIndexRoute() {
-  const isAgencyMode = localStorage.getItem("agency_mode") === "true";
-  if (isAgencyMode) {
-    return <Navigate to="/agent/agency" replace />;
-  }
   return <NewAgentDashboard />;
 }
 
 export const agentRoutes = [
   {
     index: true,
-    element: <AgentIndexRoute />,
+    element: <NewAgentDashboard />,
   },
   {
     path: "agency",
-    element: <AgencyDashboard />,
+    element: (
+      <ProtectedAgentRoute>
+        <Suspense fallback={<LoadingFallback />}>
+          <AgencyDashboard />
+        </Suspense>
+      </ProtectedAgentRoute>
+    ),
   },
   {
     path: "profile",
-    element: <AgentDashboardProfile />,
+    element: (
+      <ProtectedAgentRoute>
+        <Suspense fallback={<LoadingFallback />}>
+          <AgentDashboardProfile />
+        </Suspense>
+      </ProtectedAgentRoute>
+    ),
   },
   {
     path: "listings",
-    element: <MyListings />,
+    element: (
+      <ProtectedAgentRoute>
+        <Suspense fallback={<LoadingFallback />}>
+          <MyListings />
+        </Suspense>
+      </ProtectedAgentRoute>
+    ),
   },
   {
     path: "trips",
-    element: <AgentTrips />,
+    element: (
+      <ProtectedAgentRoute>
+        <Suspense fallback={<LoadingFallback />}>
+          <AgentTrips />
+        </Suspense>
+      </ProtectedAgentRoute>
+    ),
   },
   {
     path: "notifications",
-    element: <Notifications />,
+    element: (
+      <ProtectedAgentRoute>
+        <Suspense fallback={<LoadingFallback />}>
+          <Notifications />
+        </Suspense>
+      </ProtectedAgentRoute>
+    ),
   },
   {
     path: "settings",
-    element: <AgentSettings />,
+    element: (
+      <ProtectedAgentRoute>
+        <Suspense fallback={<LoadingFallback />}>
+          <AgentSettings />
+        </Suspense>
+      </ProtectedAgentRoute>
+    ),
+  },
+  {
+    path: "onboarding-complete",
+    element: <AgentOnboardingComplete />,
   },
 ];

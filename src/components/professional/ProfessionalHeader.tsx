@@ -16,10 +16,10 @@ import { ChevronDown, Menu, X } from 'lucide-react';
 const ProfessionalHeader = () => {
   const { isAuthenticated, userRole } = useAuth();
   const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (isMenuOpen) {
+    if (isMobileMenuOpen) {
       document.body.classList.add('mobile-menu-open');
     } else {
       document.body.classList.remove('mobile-menu-open');
@@ -27,7 +27,7 @@ const ProfessionalHeader = () => {
     return () => {
       document.body.classList.remove('mobile-menu-open');
     };
-  }, [isMenuOpen]);
+  }, [isMobileMenuOpen]);
 
   const handleSignIn = (role: 'agent' | 'host') => {
     navigate(`/sign-in?role=${role}`);
@@ -63,7 +63,7 @@ const ProfessionalHeader = () => {
               {isAuthenticated ? (
                 <Button variant="outline" size="sm" onClick={handleDashboard}>Dashboard</Button>
               ) : (
-                <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+                <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm">
                       Sign In
@@ -83,28 +83,50 @@ const ProfessionalHeader = () => {
               <ModeToggle />
               <button 
                 className="mobile-menu-toggle"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 aria-label="Toggle menu"
               >
-                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
             </div>
           </nav>
         </div>
       </header>
-      <div className={`mobile-nav-overlay ${isMenuOpen ? 'open' : ''}`} onClick={() => setIsMenuOpen(false)} />
-      <div className={`mobile-nav ${isMenuOpen ? 'open' : ''}`}>
+      <div 
+        className={`mobile-nav-overlay ${isMobileMenuOpen ? 'open' : ''}`} 
+        onClick={() => setIsMobileMenuOpen(false)} 
+      />
+      <div className={`mobile-nav ${isMobileMenuOpen ? 'open' : ''}`}>
         <div className="mobile-nav-header">
-          <button onClick={() => setIsMenuOpen(false)} aria-label="Close menu">
+          <button onClick={() => setIsMobileMenuOpen(false)} aria-label="Close menu">
             <X size={22} />
           </button>
         </div>
         <div className="mobile-nav-links">
           {navLinks.map((link) => (
-            <a key={link.href} href={link.href} className="mobile-nav-link" onClick={() => setIsMenuOpen(false)}>
+            <a key={link.href} href={link.href} className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
               {link.label}
             </a>
           ))}
+          {!isAuthenticated && (
+            <>
+              <div className="mobile-nav-divider" />
+              <a 
+                href="/sign-in?role=agent" 
+                className="mobile-nav-link" 
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Sign in as Agent
+              </a>
+              <a 
+                href="/sign-in?role=host" 
+                className="mobile-nav-link" 
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Sign in as Host
+              </a>
+            </>
+          )}
         </div>
       </div>
     </>

@@ -171,6 +171,12 @@
   font-weight: 600;
 }
 
+.mobile-nav-divider {
+  height: 1px;
+  background: hsl(var(--border));
+  margin: 8px 16px;
+}
+
 @media (max-width: 768px) {
   .desktop-nav {
     display: none;

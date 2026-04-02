@@ -76,17 +76,27 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const [accountsRes] = await Promise.all([
+      const [
+        accountsRes,
+        listingsRes,
+        verificationsRes,
+        tripsRes,
+        verifiedAgentsRes
+      ] = await Promise.all([
         supabaseAdmin.from("profiles").select("*", { count: "exact", head: true }),
+        supabaseAdmin.from("agent_listings").select("*", { count: "exact", head: true }),
+        supabaseAdmin.from("profiles").select("*", { count: "exact", head: true }).eq("verification_status", "pending"),
+        supabaseAdmin.from("viewings").select("*", { count: "exact", head: true }),
+        supabaseAdmin.from("agents").select("*", { count: "exact", head: true }).eq("is_verified", true),
       ]);
 
       setStats({
         totalAccounts: accountsRes.count || 0,
-        totalListings: 0,
-        pendingVerifications: 0,
-        activeViewings: 0,
-        totalTrips: 0,
-        verifiedAgents: Math.floor((accountsRes.count || 0) * 0.7),
+        totalListings: listingsRes.count || 0,
+        pendingVerifications: verificationsRes.count || 0,
+        activeViewings: tripsRes.count || 0,
+        totalTrips: tripsRes.count || 0,
+        verifiedAgents: verifiedAgentsRes.count || 0,
       });
     } catch (error) {
       console.error("Error fetching stats:", error);
