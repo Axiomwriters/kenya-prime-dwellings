@@ -213,7 +213,7 @@ export function AgentRegistrationDialog({
           (identityType === "individual" || formData.agencyName)
         );
       case 4:
-        return !!documents.licenseDocUrl;
+        return true; // License step is now optional
       case 5:
         return !!(
           documents.idFrontUrl &&
@@ -721,9 +721,10 @@ export function AgentRegistrationDialog({
   const renderStep4_License = () => (
     <>
       <DialogHeader>
-        <DialogTitle>License Verification</DialogTitle>
+        <DialogTitle>License Verification (Optional)</DialogTitle>
         <DialogDescription>
-          Upload your {identityType === "individual" ? "practicing license" : "business registration certificate"}
+          Upload your {identityType === "individual" ? "practicing license" : "business registration certificate"}. 
+          This step is optional - you can skip if you don't have these documents yet.
         </DialogDescription>
       </DialogHeader>
 
@@ -740,20 +741,20 @@ export function AgentRegistrationDialog({
           {identityType === "individual" ? (
             <>
               <FileUpload
-                label="Practicing License *"
+                label="Practicing License"
                 accept="image/*,.pdf"
                 maxSize={10}
                 onUpload={handleLicenseDocUpload}
                 preview={documents.licenseDocUrl}
               />
               <p className="text-xs text-muted-foreground -mt-2">
-                Upload your real estate practicing license issued by relevant authority
+                Upload your real estate practicing license issued by relevant authority (optional)
               </p>
             </>
           ) : (
             <>
               <div className="space-y-2">
-                <Label>Agency Registration Number *</Label>
+                <Label>Agency Registration Number</Label>
                 <Input
                   value={formData.agencyRegNumber}
                   onChange={(e) => updateFormData("agencyRegNumber", e.target.value)}
@@ -762,7 +763,7 @@ export function AgentRegistrationDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label>KRA PIN *</Label>
+                <Label>KRA PIN</Label>
                 <Input
                   value={formData.kraPin}
                   onChange={(e) => updateFormData("kraPin", e.target.value)}
@@ -771,7 +772,7 @@ export function AgentRegistrationDialog({
                 />
               </div>
               <FileUpload
-                label="Certificate of Incorporation *"
+                label="Certificate of Incorporation"
                 accept="image/*,.pdf"
                 maxSize={10}
                 onUpload={handleLicenseDocUpload}
@@ -791,17 +792,13 @@ export function AgentRegistrationDialog({
         </div>
       </div>
 
-      <DialogFooter className="gap-2">
-        <Button variant="outline" onClick={handleBack}>
+      <DialogFooter className="flex-col sm:flex-row gap-2">
+        <Button variant="outline" onClick={handleBack} className="w-full sm:w-auto">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
-        <Button
-          onClick={handleNext}
-          disabled={!validateStep(4)}
-          className="bg-primary"
-        >
-          Next: ID Verification
+        <Button onClick={handleNext} className="w-full sm:w-auto bg-primary">
+          {documents.licenseDocUrl ? "Continue" : "Skip & Continue"}
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       </DialogFooter>
