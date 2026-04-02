@@ -651,7 +651,7 @@ export function AgentRegistrationDialog({
               <SelectTrigger className="glass-input">
                 <SelectValue placeholder="Select county" />
               </SelectTrigger>
-              <SelectContent side="bottom" className="max-h-[300px]">
+              <SelectContent className="max-h-[300px]">
                 {KENYAN_COUNTIES.map((c) => (
                   <SelectItem key={c} value={c}>
                     {c}
