@@ -346,12 +346,12 @@ export function AgentRegistrationDialog({
   };
 
   const renderStepIndicator = () => (
-    <div className="flex items-center justify-center gap-2 mb-6 pt-2">
+    <div className="flex items-center justify-center gap-1 sm:gap-2 mb-6 pt-2">
       {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((stepNum, index) => (
         <div key={stepNum} className="flex items-center">
           <div
             className={`
-              w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all
+              w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all
               ${currentStep >= stepNum
                 ? "bg-primary text-primary-foreground shadow-md"
                 : "bg-muted text-muted-foreground"
@@ -359,7 +359,7 @@ export function AgentRegistrationDialog({
             `}
           >
             {currentStep > stepNum ? (
-              <Check className="w-4 h-4" />
+              <Check className="w-3 h-3 sm:w-4 sm:h-4" />
             ) : (
               stepNum
             )}
@@ -367,7 +367,7 @@ export function AgentRegistrationDialog({
           {index < TOTAL_STEPS - 1 && (
             <div
               className={`
-                w-8 h-0.5 mx-1 rounded transition-all
+                w-4 sm:w-8 h-0.5 mx-0.5 sm:mx-1 rounded transition-all
                 ${currentStep > stepNum ? "bg-primary" : "bg-muted"}
               `}
             />
@@ -391,8 +391,8 @@ export function AgentRegistrationDialog({
         </DialogDescription>
       </DialogHeader>
 
-      <div className="space-y-4 py-6">
-        <div className="glass-card p-5 space-y-4">
+      <div className="space-y-3 sm:space-y-4 py-4 sm:py-6 max-h-[45vh] sm:max-h-[50vh] overflow-y-auto pr-2">
+        <div className="glass-card p-4 sm:p-5 space-y-3 sm:space-y-4">
           <h3 className="font-semibold text-lg flex items-center gap-2">
             <CheckCircle className="w-5 h-5 text-emerald-500" />
             What you&apos;ll get:
@@ -450,8 +450,8 @@ export function AgentRegistrationDialog({
         </DialogDescription>
       </DialogHeader>
 
-      <div className="space-y-4 py-6">
-        <div className="grid grid-cols-1 gap-4">
+      <div className="space-y-3 sm:space-y-4 py-4 sm:py-6 max-h-[45vh] sm:max-h-[50vh] overflow-y-auto pr-2">
+        <div className="grid grid-cols-1 gap-3 sm:gap-4">
           <button
             onClick={() => setIdentityType("individual")}
             className={`
@@ -536,12 +536,12 @@ export function AgentRegistrationDialog({
         </div>
       </div>
 
-      <DialogFooter className="gap-2">
-        <Button variant="outline" onClick={handleBack}>
+      <DialogFooter className="flex-col sm:flex-row gap-2">
+        <Button variant="outline" onClick={handleBack} className="w-full sm:w-auto">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
-        <Button onClick={handleNext} className="bg-primary">
+        <Button onClick={handleNext} className="w-full sm:w-auto bg-primary">
           Continue
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
@@ -621,7 +621,7 @@ export function AgentRegistrationDialog({
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-2">
             <Label>Phone Number *</Label>
             <Input
@@ -644,7 +644,7 @@ export function AgentRegistrationDialog({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-2">
             <Label>County *</Label>
             <Select value={formData.county} onValueChange={(v) => updateFormData("county", v)}>
@@ -926,7 +926,7 @@ export function AgentRegistrationDialog({
 
         <div className="glass-card p-4">
           <h4 className="font-semibold text-sm mb-3">Uploaded Documents</h4>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex items-center gap-2 text-sm">
               <FileText className="w-4 h-4 text-emerald-500" />
               <span className="text-muted-foreground">License/Registration</span>
@@ -1029,7 +1029,7 @@ export function AgentRegistrationDialog({
         if (!open) resetForm();
       }}
     >
-      <DialogContent className="sm:max-w-xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="w-[95%] sm:max-w-xl max-h-[85vh] overflow-y-auto p-4 sm:p-6">
         {currentStep > 1 && currentStep < 6 && (
           <div className="text-center text-sm text-muted-foreground pb-2">
             Step {currentStep}: {stepTitles[currentStep - 1]}
